@@ -23,11 +23,11 @@ imgUpload.addEventListener('change', async (e) => {
 
 async function processSource(source) {
     loading.style.display = 'flex';
-    loading.innerText = "جاري تحليل المؤشرات البصرية...";
+    loading.innerText = "جاري تحليل فيرونا الذكي...";
     sessionData.ai = await analyzeSkin(source);
     loading.style.display = 'none';
     if (sessionData.ai) showDecisionTree();
-    else alert("يرجى توجيه الوجه جيداً للكاميرا أو رفع صورة واضحة.");
+    else alert("يرجى توجيه الوجه جيداً أو رفع صورة واضحة.");
 }
 
 function showDecisionTree() {
@@ -35,15 +35,13 @@ function showDecisionTree() {
     results.style.display = "block";
     const ind = sessionData.ai.indicators;
     
-    let html = `
-        <div class="professional-report">
-            <div class="evidence-panel">
-                <h4>📊 المؤشرات المكتشفة بصرياً:</h4>
-                <p>• الحبوب/التهيج: ${ind.acne ? '✅ رصد مؤشرات' : '❌ لا يوجد'}</p>
-                <p>• التصبغات: ${ind.pigment ? '✅ رصد مؤشرات' : '❌ لا يوجد'}</p>
-            </div>
-            <div class="q-block">
-                <h3>تحقق فيرونا الذكي:</h3>`;
+    let html = `<div class="professional-report">
+                    <div class="confirmed-issues-panel" style="background:#f0f7ff; border-color:#bee3f8;">
+                        <h4>🔍 نتائج الفحص البصري الأولي:</h4>
+                        <p>رصد الـ AI مؤشرات: ${ind.acne ? 'تهيج/حبوب' : ''} ${ind.pigment ? 'بقع/تصبغات' : ''} ${!ind.acne && !ind.pigment ? 'بشرة مستقرة' : ''}</p>
+                    </div>
+                    <div class="q-block">
+                        <h3>تحقق فيرونا الذكي:</h3>`;
     
     if (ind.acne) {
         html += `<p>هل الحبوب المكتشفة ملتهبة أو مؤلمة؟</p>
@@ -54,7 +52,7 @@ function showDecisionTree() {
                  <button onclick="saveStep('sun', true)">نعم</button>
                  <button onclick="saveStep('sun', false)">لا</button>`;
     } else {
-        html += `<p>بشرتك تبدو صافية، هل ترغبين في خطة وقائية للنضارة؟</p>
+        html += `<p>بشرتك تبدو رائعة، هل ترغبين في خطة وقائية للنضارة؟</p>
                  <button onclick="renderFinal()">ابدأ الخطة</button>`;
     }
 
@@ -69,9 +67,22 @@ function saveStep(key, val) {
 
 function renderFinal() {
     const results = document.getElementById("results");
+    const ind = sessionData.ai.indicators;
+    const ans = sessionData.answers;
+
+    let confirmedIssues = [];
+    if (ind.acne) confirmedIssues.push(ans.inflamed ? "حبوب نشطة وملتهبة" : "آثار حبوب وتهيّج سطحي");
+    if (ind.pigment) confirmedIssues.push(ans.sun ? "تصبغات ناتجة عن الشمس" : "بقع داكنة ناتجة عن عوامل داخلية");
+    if (!ind.acne && !ind.pigment) confirmedIssues.push("بشرة مستقرة (تحتاج عناية وقائية)");
+
     results.innerHTML = `
         <div class="professional-report">
-            <h2 style="text-align:center; color:var(--black); letter-spacing:2px;">VERONA REPORT</h2>
+            <header class="report-header"><h2>VERONA REPORT</h2></header>
+            <div class="confirmed-issues-panel">
+                <h4>✅ مشاكل البشرة المؤكدة:</h4>
+                <ul>${confirmedIssues.map(i => `<li>${i}</li>`).join('')}</ul>
+                <p class="trust-note">ℹ️ تم الدمج بين رؤية الـ AI وإجاباتك.</p>
+            </div>
             <div class="level-tabs">
                 <button id="l-budget" onclick="updateLvl('budget')">اقتصادي 💰</button>
                 <button id="l-super" class="active" onclick="updateLvl('super')">سوبر ⭐</button>
@@ -92,13 +103,15 @@ function updateLvl(lvl) {
     const data = expertLogic[target];
     const product = data.levels[lvl];
 
-    let html = "";
+    let html = `<div class="mapping-logic">
+                    <p><strong>المادة الفعالة:</strong> ${data.active}</p>
+                    <p>💡 <strong>لماذا؟</strong> ${data.reason}</p>
+                </div>`;
+
     [1, 2, 3].forEach(n => {
-        let item = (n===1) ? "Hyaluronic Acid + Panthenol" : (n===2) ? `<b>${product.name}</b><br><small>${product.why}</small>` : "Sunblock SPF50+";
+        let item = (n===1) ? "Hyaluronic Acid + Panthenol" : (n===2) ? `<b>${product.name}</b><br><small>${product.why}</small>` : "Sunblock SPF50+ (Verona Edition)";
         html += `<div class="phase-card"><h4>المرحلة ${n}: ${phasesInfo[n].name}</h4><div class="p-item">${item}</div></div>`;
     });
 
-    document.getElementById('report-content').innerHTML = html + 
-        `<button class="wa-btn" onclick="sendWA()">إرسال تقرير فيرونا للواتساب ✅</button>`;
+    document.getElementById('report-content').innerHTML = html + `<button class="wa-btn" onclick="sendWA()">إرسال التقرير للواتساب ✅</button>`;
 }
-
