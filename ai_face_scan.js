@@ -6,76 +6,37 @@ async function initAI() {
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
         await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
         isModelLoaded = true;
-        console.log("AI Ready ✅");
-        if(document.getElementById('loading-overlay')) {
-            document.getElementById('loading-overlay').style.display = 'none';
-        }
-    } catch (err) {
-        console.error("AI Load Error:", err);
-    }
+        document.getElementById('loading-overlay').style.display = 'none';
+    } catch (err) { console.error("AI Error", err); }
 }
 initAI();
 
 async function analyzeSkin(source) {
     if (!isModelLoaded) return null;
-
-    // اكتشاف الوجه مع حساسية متوسطة
     const detection = await faceapi.detectSingleFace(source, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }));
-    
     if (!detection) return null;
 
-    // إنشاء كانفاس داخلي إجباري لكسر حماية البكسلات
     const canvas = document.createElement('canvas');
-    const box = detection.box;
-    canvas.width = 150; 
-    canvas.height = 150;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    
-    // رسم منطقة الوجه فقط للتحليل
-    ctx.drawImage(source, box.x, box.y, box.width, box.height, 0, 0, 150, 150);
+    canvas.width = 100; canvas.height = 100;
+    ctx.drawImage(source, detection.box.x, detection.box.y, detection.box.width, detection.box.height, 0, 0, 100, 100);
 
-    const imageData = ctx.getImageData(0, 0, 150, 150);
-    const data = imageData.data;
-
-    let redSum = 0;
-    let darkSum = 0;
-    let totalPixels = data.length / 4;
-
+    const data = ctx.getImageData(0, 0, 100, 100).data;
+    let rPixels = 0, dPixels = 0, total = data.length / 4;
     for (let i = 0; i < data.length; i += 4) {
-        const r = data[i], g = data[i+1], b = data[i+2];
-
-        // كشف الاحمرار: يجب أن يكون الأحمر طاغياً بفرق كبير (للحبوب الحقيقية)
-        if (r > g + 65 && r > b + 65) redSum++;
-
-        // كشف التصبغات: استخدام معادلة السطوع (Luminance)
-        const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
-        if (brightness < 75) darkSum++;
+        if (data[i] > data[i+1] + 65) rPixels++; // حساس للاحمرار
+        if ((data[i] + data[i+1] + data[i+2]) / 3 < 75) dPixels++; // حساس للتصبغ
     }
 
-    const redPercent = (redSum / totalPixels) * 100;
-    const darkPercent = (darkSum / totalPixels) * 100;
+    const redP = (rPixels / total) * 100, darkP = (dPixels / total) * 100;
+    let problems = [];
+    if (redP > 3.5) problems.push("حبوب أو تهيج");
+    if (darkP > 15) problems.push("تصبغات داكنة");
+    else if (darkP > 6) problems.push("تصبغات خفيفة");
+    if (darkP > 10) problems.push("هالات");
 
-    const problems = [];
-    
-    // شروط متغيرة (Thresholds) لضمان عدم ظهور النتائج مع البشرة الصافية (مثل الأطفال)
-    if (redPercent > 3.5) {
-        problems.push("حبوب أو تهيج بشرة");
-    }
-    
-    if (darkPercent > 15) {
-        problems.push("تصبغات داكنة");
-    } else if (darkPercent > 6) {
-        problems.push("تصبغات خفيفة");
-    }
-    
-    if (darkPercent > 10) {
-        problems.push("هالات تحت العين");
-    }
-
-    // النتيجة للبشرة الصافية أو الأطفال
-    if (problems.length === 0) {
-        problems.push("بشرة صحية ومستقرة ✨");
-    }
-
-    return problems;
+    return { 
+        problems: problems.length > 0 ? problems : ["بشرة صحية ومستقرة ✨"], 
+        sensitivity: redP > 6 ? "حساسة" : "تتحمل" 
+    };
 }
