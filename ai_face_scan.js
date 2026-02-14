@@ -1,64 +1,71 @@
 let isModelLoaded = false;
 
-// وظيفة تحميل النماذج من مصدر موثوق وسريع
+// استخدام روابط بديلة وأكثر استقراراً لنماذج face-api
 async function initAI() {
-    console.log("جاري تشغيل محرك الذكاء الاصطناعي...");
-    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+    console.log("بدء تحميل نماذج الذكاء الاصطناعي...");
+    
+    // روابط النماذج من مستودع موثوق
+    const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+    
     try {
+        // تحميل النماذج الأساسية فقط لتقليل وقت الانتظار
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
         await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        
         isModelLoaded = true;
-        console.log("تم تشغيل المحرك بنجاح ✅");
+        console.log("تم تحميل محرك الذكاء الاصطناعي بنجاح ✅");
+        
+        // إخفاء رسالة التحليل إذا كانت ظاهرة
+        if(document.getElementById('loading-overlay')) {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
     } catch (err) {
-        console.error("خطأ في تحميل المحرك: ", err);
+        console.error("خطأ تقني في تحميل النماذج: ", err);
+        alert("فشل تحميل محرك الـ AI. يرجى التأكد من اتصال الإنترنت وتحديث الصفحة.");
     }
 }
 
-// البدء فور فتح الصفحة
+// البدء فوراً
 initAI();
 
 async function analyzeSkin(source) {
     if (!isModelLoaded) {
-        alert("المحرك لا يزال قيد التحميل.. انتظر ثانية واحدة");
+        alert("المحرك لم يكتمل تحميله بعد، يرجى تحديث الصفحة.");
         return null;
     }
 
-    // استخدام TinyFaceDetector بإعدادات مرنة للعمل على كافة الهواتف
-    const detection = await faceapi.detectSingleFace(source, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.3 })).withFaceLandmarks();
-    
-    if (!detection) return null;
+    try {
+        // الكشف عن الوجه
+        const detection = await faceapi.detectSingleFace(source, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 })).withFaceLandmarks();
+        
+        if (!detection) return null;
 
-    const canvas = document.createElement('canvas');
-    const box = detection.detection.box;
-    
-    // تحديد أبعاد منطقة الوجه المكتشفة
-    canvas.width = box.width; 
-    canvas.height = box.height;
-    const ctx = canvas.getContext('2d');
-    
-    // رسم منطقة الوجه فقط للتحليل بدقة
-    ctx.drawImage(source, box.x, box.y, box.width, box.height, 0, 0, box.width, box.height);
+        const canvas = document.createElement('canvas');
+        const box = detection.detection.box;
+        canvas.width = box.width; 
+        canvas.height = box.height;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.drawImage(source, box.x, box.y, box.width, box.height, 0, 0, box.width, box.height);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
+        let red = 0, dark = 0;
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2];
+            if (r > g + 40 && r > b + 40) red++; 
+            if ((r + g + b) / 3 < 85) dark++; 
+        }
 
-    let red = 0, dark = 0;
-    for (let i = 0; i < data.length; i += 4) {
-        const r = data[i], g = data[i+1], b = data[i+2];
-        // معادلة كشف التهيج والاحمرار
-        if (r > g + 40 && r > b + 40) red++; 
-        // معادلة كشف المناطق الداكنة والتصبغات
-        if ((r + g + b) / 3 < 85) dark++; 
+        const total = data.length / 4;
+        const results = [];
+        if (red / total > 0.015) results.push("حبوب أو تهيج بشرة");
+        if (dark / total > 0.07) results.push("تصبغات داكنة");
+        else results.push("تصبغات خفيفة");
+        results.push("هالات تحت العين"); 
+
+        return results;
+    } catch (e) {
+        console.error("خطأ أثناء التحليل: ", e);
+        return null;
     }
-
-    const total = data.length / 4;
-    const results = [];
-    
-    if (red / total > 0.01) results.push("حبوب أو تهيج بشرة");
-    if (dark / total > 0.06) results.push("تصبغات داكنة");
-    else if (dark / total > 0.02) results.push("تصبغات خفيفة");
-    
-    results.push("هالات تحت العين"); 
-
-    return results;
 }
