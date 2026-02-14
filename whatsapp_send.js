@@ -1,9 +1,25 @@
-document.getElementById("sendWhatsApp").addEventListener("click", () => {
-    const problems = Array.from(document.querySelectorAll("#skinProblems li")).map(li => li.innerText).join(", ");
-    const routine = Array.from(document.querySelectorAll(".item")).map(div => div.innerText.split('\n')[0]).join(" - ");
-    const duration = document.getElementById("treatmentDuration").innerText;
-    const rate = document.getElementById("improvementRate").innerText;
+function sendToWhatsApp(level) {
+    const status = document.querySelector('.status-bar').innerText;
+    const products = Array.from(document.querySelectorAll('.p-item'))
+        .map(item => "• " + item.innerText)
+        .join('\n');
 
-    const msg = `*تقرير تحليل البشرة (الصالون)* ✨\n\n*المشاكل:* ${problems}\n\n*الروتين المقترح:* ${routine}\n\n*${duration}*\n*نسبة التحسن المتوقعة:* ${rate}`;
-    window.open(`https://api.whatsapp.com/send?phone=201063994139&text=${encodeURIComponent(msg)}`, "_blank");
-});
+    const levelName = level === 'budget' ? 'الاقتصادي' : level === 'super' ? 'السوبر' : 'البريميوم';
+
+    const message = `
+*تقرير تحليل البشرة الذكي* ✨
+--------------------------
+📊 *تحليل الحالة:* ${status}
+🧪 *المستوى المختار:* ${levelName}
+
+📅 *خطة الروتين (3 مراحل):*
+${products}
+
+⚠️ *تعليمات:*
+- الالتزام بمرحلة التهيئة أول أسبوع.
+- واقي الشمس يجدد كل ساعتين.
+- توقفي عن المنتجات في حالة التهيج الشديد.
+    `;
+
+    window.open(`https://wa.me/201063994139?text=${encodeURIComponent(message)}`, '_blank');
+}
