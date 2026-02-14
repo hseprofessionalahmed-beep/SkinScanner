@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA | Glow Smarter</title>
+    <title>VERONA | AI Skin Lab</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -15,14 +16,14 @@
 
         <div class="scanner-box">
             <video id="video" autoplay muted playsinline></video>
-            <div id="loading-overlay">جاري تشغيل محرك فيرونا الذكي...</div>
+            <div id="loading-overlay">جاري تشغيل محرك فيرونا العبقري...</div>
         </div>
 
         <div class="upload-controls">
-            <button id="scanBtn" class="primary-btn">فحص بالكاميرا 📸</button>
+            <button id="scanBtn" class="primary-btn">بدء الفحص الذكي 📸</button>
             <label for="imageUpload" class="secondary-btn">رفع صورة من الاستوديو 📁</label>
             <input type="file" id="imageUpload" accept="image/*" style="display:none;">
-            <p class="privacy-note">🔒 يتم تحليل الصورة محلياً ولا يتم تخزينها دون إذنك.</p>
+            <p class="privacy-note">🔒 فحص آمن: يتم التحليل محلياً دون تخزين بياناتك.</p>
         </div>
 
         <div id="results" style="display:none;"></div>
@@ -34,4 +35,3 @@
     <script src="whatsapp_send.js"></script>
 </body>
 </html>
-
