@@ -1,25 +1,21 @@
-function sendToWhatsApp(level) {
-    const status = document.querySelector('.status-bar').innerText;
-    const products = Array.from(document.querySelectorAll('.p-item'))
-        .map(item => "• " + item.innerText)
-        .join('\n');
-
-    const levelName = level === 'budget' ? 'الاقتصادي' : level === 'super' ? 'السوبر' : 'البريميوم';
-
-    const message = `
-*تقرير تحليل البشرة الذكي* ✨
+function sendWA() {
+    const ind = sessionData.ai.indicators;
+    const msg = `
+*VERONA | Glow Smarter* ✨
 --------------------------
-📊 *تحليل الحالة:* ${status}
-🧪 *المستوى المختار:* ${levelName}
+📊 *تقرير فيرونا لتحليل البشرة*
+--------------------------
+🛡️ نوع الجلد: ${sessionData.isSensitive ? 'حساسة' : 'عادية'}
+💎 المستوى المختار: ${sessionData.level.toUpperCase()}
 
-📅 *خطة الروتين (3 مراحل):*
-${products}
+📅 *الخطة المقترحة:*
+1. التهيئة: مرطبات حاجز الجلد
+2. العلاج: ${sessionData.level} Professional Choice
+3. الحماية: واقي شمس يومي
 
-⚠️ *تعليمات:*
-- الالتزام بمرحلة التهيئة أول أسبوع.
-- واقي الشمس يجدد كل ساعتين.
-- توقفي عن المنتجات في حالة التهيج الشديد.
+⚠️ يرجى الالتزام بالترتيب لضمان أفضل نضارة.
+--------------------------
+*VERONA - حيث يلتقي العلم بالجمال*
     `;
-
-    window.open(`https://wa.me/201063994139?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/201063994139?text=${encodeURIComponent(msg)}`);
 }
