@@ -13,15 +13,15 @@ startCamera();
 document.getElementById('scanBtn').addEventListener('click', async () => {
     if (!isModelLoaded) return;
     loading.style.display = 'flex';
-    loading.innerText = "جاري فحص طبقات الجلد...";
+    loading.innerText = "جاري فحص البكسلات...";
 
-    // مهلة قصيرة لضمان استقرار الصورة
-    setTimeout(async () => {
+    // استخدام requestAnimationFrame لضمان التقاط كادر فيديو نشط
+    requestAnimationFrame(async () => {
         const problems = await analyzeSkin(video);
         loading.style.display = 'none';
         if (problems) renderResults(problems);
-        else alert("يرجى الاقتراب من الكاميرا أكثر");
-    }, 200);
+        else alert("يرجى توجيه الوجه للكاميرا بشكل صحيح");
+    });
 });
 
 document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
@@ -47,6 +47,7 @@ function renderResults(problems) {
     let duration = "6-8 أسابيع";
     let improvement = "40-60%";
 
+    // توزيع المنتجات بناءً على المشاكل الحقيقية المكتشفة
     if (problems.includes("تصبغات داكنة") || problems.includes("تصبغات خفيفة")) {
         routines.pigmentation.items.forEach(i => selectedProducts.add(i));
         duration = routines.pigmentation.duration;
@@ -59,6 +60,11 @@ function renderResults(problems) {
     }
     if (problems.includes("هالات تحت العين")) {
         routines.darkCircles.items.forEach(i => selectedProducts.add(i));
+    }
+    if (problems.includes("بشرة صحية ومستقرة ✨")) {
+        routines.healthy.items.forEach(i => selectedProducts.add(i));
+        duration = routines.healthy.duration;
+        improvement = routines.healthy.improvement;
     }
 
     const phases = { morning: "☀️ الروتين الصباحي (وقاية)", evening: "🌙 الروتين المسائي (علاج وصيانة)" };
