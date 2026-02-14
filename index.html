@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Skin Scanner Pro - الصالون</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>ماسح البشرة الذكي Pro ✨</h1>
-            <p>تحليل عميق للبشرة وروتين علاجي متكامل</p>
+            <p>تحليل عميق للبشرة بخطة علاجية متكاملة</p>
         </header>
 
         <div class="scanner-box">
             <video id="video" autoplay muted playsinline></video>
-            <div id="loading-overlay" style="display:none;">جاري تحليل خلايا البشرة بدقة عالية...</div>
+            <div id="loading-overlay">جاري تشغيل محرك الذكاء الاصطناعي...</div>
         </div>
 
         <div class="action-buttons">
@@ -35,15 +35,15 @@
             <div id="skinRoutine"></div>
 
             <div class="card summary-card">
-                <h3>📅 الخطة الزمنية والنتائج</h3>
-                <p id="treatmentDuration"></p>
+                <h3>📅 الخطة الزمنية والنتائج المتوقعة</h3>
+                <p id="treatmentDuration" style="font-weight: bold; color: #d81b60;"></p>
                 <div class="improvement-box">
                     <span>نسبة التحسن المتوقعة:</span>
                     <strong id="improvementRate"></strong>
                 </div>
             </div>
 
-            <button id="sendWhatsApp" class="wa-btn">إرسال الخطة العلاجية لواتساب ✅</button>
+            <button id="sendWhatsApp" class="wa-btn">إرسال الخطة لواتساب ✅</button>
         </div>
     </div>
 
