@@ -1,44 +1,41 @@
 const video = document.getElementById('video');
-const scanBtn = document.getElementById('scanBtn');
 const loading = document.getElementById('loading-overlay');
+const fileInput = document.getElementById('fileInput');
 
-// تشغيل الكاميرا
 async function startCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         video.srcObject = stream;
-    } catch (err) {
-        alert("يرجى تفعيل صلاحية الكاميرا للمتابعة");
-    }
+    } catch (err) { console.log("Camera access denied"); }
 }
-
 startCamera();
 
-scanBtn.addEventListener('click', async () => {
+document.getElementById('scanBtn').addEventListener('click', async () => {
     loading.style.display = 'flex';
-    
-    // إعطاء مهلة صغيرة للـ AI لمعالجة الفريم
-    setTimeout(async () => {
-        const problems = await analyzeSkin(video);
-        loading.style.display = 'none';
+    const problems = await analyzeSkin(video);
+    loading.style.display = 'none';
+    if (!problems) return alert("لم يتم العثور على وجه بوضوح");
+    renderResults(problems);
+});
 
-        if (!problems) {
-            alert("لم نتمكن من رؤية الوجه بوضوح. يرجى تعديل الإضاءة.");
-            return;
-        }
+document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
 
-        renderResults(problems);
-    }, 500);
+fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    loading.style.display = 'flex';
+    const img = await faceapi.bufferToImage(file);
+    const problems = await analyzeSkin(img);
+    loading.style.display = 'none';
+    if (!problems) return alert("تعذر تحليل الصورة، حاول مرة أخرى");
+    renderResults(problems);
 });
 
 function renderResults(problems) {
     const pList = document.getElementById("skinProblems");
     const rList = document.getElementById("skinRoutine");
     pList.innerHTML = ""; rList.innerHTML = "";
-
-    problems.forEach(p => {
-        const li = document.createElement("li"); li.textContent = "• " + p; pList.appendChild(li);
-    });
+    problems.forEach(p => { pList.innerHTML += `<li>• ${p}</li>`; });
 
     let keys = new Set(["sunblock"]);
     if (problems.includes("تصبغات عميقة") || problems.includes("تصبغات خفيفة")) routines.pigmentation.forEach(k => keys.add(k));
@@ -47,12 +44,9 @@ function renderResults(problems) {
 
     keys.forEach(k => {
         products[k].forEach(prod => {
-            const li = document.createElement("li");
-            li.innerHTML = `<strong>${prod.name}</strong><br><small>المواد: ${prod.actives.join(", ")}</small>`;
-            rList.appendChild(li);
+            rList.innerHTML += `<li><strong>${prod.name}</strong><br><small>${prod.actives.join(", ")}</small></li>`;
         });
     });
-
     document.getElementById("results").style.display = "block";
-    document.getElementById("results").scrollIntoView({ behavior: 'smooth' });
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
