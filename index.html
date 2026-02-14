@@ -18,7 +18,13 @@
             <div id="loading-overlay">جاري تشغيل محرك فيرونا الذكي...</div>
         </div>
 
-        <button id="scanBtn">فحص البشرة الفوري 📸</button>
+        <div class="upload-controls">
+            <button id="scanBtn" class="primary-btn">فحص بالكاميرا 📸</button>
+            <label for="imageUpload" class="secondary-btn">
+                رفع صورة من الاستوديو 📁
+            </label>
+            <input type="file" id="imageUpload" accept="image/*" style="display:none;">
+        </div>
 
         <div id="results" style="display:none;"></div>
     </div>
