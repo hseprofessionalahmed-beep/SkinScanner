@@ -1,93 +1,75 @@
 const video = document.getElementById('video');
 const loading = document.getElementById('loading-overlay');
-let skinData = null;
+let sessionData = { ai: null, isSensitive: false, level: 'super' };
 
 async function startCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         video.srcObject = stream;
-    } catch (err) { console.log("Camera access error"); }
+    } catch (err) { alert("يرجى تفعيل الكاميرا"); }
 }
 startCamera();
 
 document.getElementById('scanBtn').addEventListener('click', async () => {
     loading.style.display = 'flex';
-    loading.innerText = "جاري مسح طبقات الجلد...";
-    skinData = await analyzeSkin(video);
+    loading.innerText = "جاري تحليل فيرونا الذكي...";
+    sessionData.ai = await analyzeSkin(video);
     loading.style.display = 'none';
-    
-    if (skinData) {
-        askSmartQuestions();
-    } else {
-        alert("يرجى توجيه الوجه جيداً للكاميرا");
-    }
+    if (sessionData.ai) showQuestions();
 });
 
-function askSmartQuestions() {
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.style.display = "block";
-    resultsDiv.innerHTML = `
-        <div class="card question-card">
-            <h3>🛡️ سؤال الأمان:</h3>
-            <p>هل تلاحظين تحسس بشرتك من العطور أو منتجات التفتيح القوية؟</p>
-            <div style="display:flex; gap:10px; justify-content:center;">
-                <button onclick="finalDecision(true)" style="background:#e53e3e; color:white;">نعم (حساسة)</button>
-                <button onclick="finalDecision(false)" style="background:#3182ce; color:white;">لا (عادية)</button>
-            </div>
+function showQuestions() {
+    const results = document.getElementById("results");
+    results.style.display = "block";
+    results.innerHTML = `
+        <div class="question-card professional-report">
+            <h3>🛡️ سؤال الأمان من فيرونا:</h3>
+            <p>هل بشرتك تتحسس من العطور أو الكريمات القوية؟</p>
+            <button onclick="setStep(true)">نعم (حساسة)</button>
+            <button onclick="setStep(false)">لا (عادية)</button>
         </div>`;
-    resultsDiv.scrollIntoView({ behavior: 'smooth' });
+    results.scrollIntoView({ behavior: 'smooth' });
 }
 
-function finalDecision(isSensitive) {
-    const finalSensitivity = isSensitive ? "حساسة" : skinData.sensitivity;
-    renderRoutine(skinData.problems, finalSensitivity);
+function setStep(ans) {
+    sessionData.isSensitive = ans;
+    renderReport();
 }
 
-function renderRoutine(problems, sensitivity) {
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = `
-        <div class="status-bar ${sensitivity === 'حساسة' ? 'warn' : 'safe'}">
-            نمط الجلد: <strong>${sensitivity}</strong> | النتائج: ${problems.join(" - ")}
-        </div>
-        <div class="tabs-container">
-            <button id="btn-budget" onclick="showLevel('budget')">اقتصادي 💰</button>
-            <button id="btn-super" onclick="showLevel('super')">سوبر ⭐</button>
-            <button id="btn-premium" onclick="showLevel('premium')">بريميوم 👑</button>
-        </div>
-        <div id="routine-body"></div>
-    `;
-    showLevel('super');
+function renderReport() {
+    const results = document.getElementById("results");
+    results.innerHTML = `
+        <div class="professional-report">
+            <div class="report-header">
+                <h2 style="letter-spacing:2px;">VERONA REPORT</h2>
+                <div class="evidence-panel">نمط الجلد: ${sessionData.isSensitive ? 'حساسة 🌿' : 'تتحمل 🔥'}</div>
+            </div>
+            <div class="level-tabs">
+                <button id="b-budget" onclick="updateLvl('budget')">اقتصادي 💰</button>
+                <button id="b-super" class="active" onclick="updateLvl('super')">سوبر ⭐</button>
+                <button id="b-premium" onclick="updateLvl('premium')">بريميوم 👑</button>
+            </div>
+            <div id="report-content"></div>
+        </div>`;
+    updateLvl('super');
 }
 
-function showLevel(level) {
-    document.querySelectorAll('.tabs-container button').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-' + level).classList.add('active');
+function updateLvl(lvl) {
+    sessionData.level = lvl;
+    document.querySelectorAll('.level-tabs button').forEach(b => b.classList.remove('active'));
+    document.getElementById('b-' + lvl).classList.add('active');
     
-    const body = document.getElementById("routine-body");
-    const data = productsDb.levels[level];
+    const content = document.getElementById('report-content');
+    const target = sessionData.ai.indicators.pigment === 'High' ? 'pigmentation' : 'acne';
+    const data = expertLogic[target];
+    const product = data.levels[lvl];
+
     let html = "";
-
-    [1, 2, 3].forEach(num => {
-        const phase = productsDb.phases[num];
-        let items = "";
-        if(num === 1) items = `<div class="p-item">Hyaluronic Acid + Panthenol (صباحاً ومساءً)</div>`;
-        if(num === 2) items = `
-            <div class="p-item">${data.vitC.name} <small>(صباحاً)</small></div>
-            <div class="p-item">${data.arbutin.name} <small>(مساءً)</small></div>
-            <div class="p-item">${data.correction.name} <small>(علاج مكثف)</small></div>`;
-        if(num === 3) items = `<div class="p-item">${data.sunblock.name} <small>(واقي شمس يومي)</small></div>`;
-
-        html += `
-            <div class="phase-box">
-                <h4>${phase.name}</h4>
-                <small>${phase.goal}</small>
-                ${items}
-            </div>`;
+    [1, 2, 3].forEach(n => {
+        const p = phasesInfo[n];
+        let item = (n===1) ? "Hyaluronic + Panthenol" : (n===2) ? `<b>${product.name}</b><br><small>${product.why}</small>` : "Sunblock SPF50+";
+        html += `<div class="phase-card"><h4>المرحلة ${n}: ${p.name}</h4><div class="p-item">${item}</div></div>`;
     });
 
-    body.innerHTML = html + `
-        <div class="final-warning">
-            ⚠️ <strong>تنبيه الخبير:</strong> ${level === 'premium' ? 'التركيبة قوية جداً، يرجى الالتزام بالكميات المحددة.' : 'واقي الشمس هو سر نجاح هذه الخطة.'}
-        </div>
-        <button class="wa-btn" onclick="sendToWhatsApp('${level}')">إرسال الخطة كاملة لواتساب ✅</button>`;
+    content.innerHTML = html + `<button class="wa-btn" onclick="sendWA()">إرسال التقرير عبر واتساب ✅</button>`;
 }
