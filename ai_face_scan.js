@@ -20,16 +20,16 @@ async function analyzeSkin(source) {
     ctx.drawImage(source, detection.box.x, detection.box.y, detection.box.width, detection.box.height, 0, 0, 150, 150);
 
     const data = ctx.getImageData(0, 0, 150, 150).data;
-    let redPixels = 0, darkPixels = 0, total = data.length / 4;
+    let redP = 0, darkP = 0, total = data.length / 4;
     for (let i = 0; i < data.length; i += 4) {
-        if (data[i] > data[i+1] + 60) redPixels++;
-        if ((data[i] + data[i+1] + data[i+2]) / 3 < 80) darkPixels++;
+        if (data[i] > data[i+1] + 60) redP++;
+        if ((data[i] + data[i+1] + data[i+2]) / 3 < 80) darkP++;
     }
 
     return {
         indicators: {
-            acne: (redPixels/total)*100 > 2.5,
-            pigment: (darkPixels/total)*100 > 10
+            acne: (redP/total)*100 > 2.5,
+            pigment: (darkP/total)*100 > 10
         }
     };
 }
