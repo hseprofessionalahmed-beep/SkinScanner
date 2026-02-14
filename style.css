@@ -1,19 +1,18 @@
-body { font-family: 'Segoe UI', sans-serif; background: #fdf2f8; direction: rtl; margin: 0; }
-.container { max-width: 500px; margin: auto; padding: 20px; }
-.scanner-box { position: relative; border-radius: 20px; overflow: hidden; background: #000; box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
-video { width: 100%; height: auto; transform: scaleX(-1); }
-#loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(216,27,96,0.8); color: #fff; display: flex; align-items: center; justify-content: center; z-index: 10; }
-
-.phase-card { background: #fff; border-radius: 15px; padding: 15px; margin-top: 15px; border-right: 5px solid #d81b60; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-.phase-card h4 { color: #d81b60; margin: 0 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-
-.item { padding: 10px 0; border-bottom: 1px dashed #eee; }
-.item:last-child { border: none; }
-.active-tag { font-size: 0.85em; color: #666; font-style: italic; }
-.goal-text { font-size: 0.8em; color: #d81b60; font-weight: bold; margin-top: 3px; }
-
-.improvement-box { margin-top: 10px; background: #e6fffa; padding: 10px; border-radius: 10px; color: #2c7a7b; text-align: center; }
-button { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-#scanBtn { background: #d81b60; color: #fff; }
-.secondary-btn { background: #4a5568; color: #fff; }
-.wa-btn { background: #25d366; color: #fff; }
+:root { --primary: #d81b60; --bg: #fdf2f8; }
+body { font-family: sans-serif; background: var(--bg); direction: rtl; margin: 0; padding: 20px; }
+.container { max-width: 500px; margin: auto; }
+.scanner-box { position: relative; border-radius: 20px; overflow: hidden; background: #000; aspect-ratio: 4/5; }
+video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+#loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(216,27,96,0.8); color: white; display: flex; align-items: center; justify-content: center; z-index: 10; }
+#scanBtn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+.card { background: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.status-bar { padding: 12px; border-radius: 10px; margin: 15px 0; text-align: center; font-size: 0.9rem; }
+.warn { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+.safe { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+.tabs-container { display: flex; gap: 5px; margin: 15px 0; }
+.tabs-container button { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; }
+.tabs-container button.active { background: var(--primary); color: white; }
+.phase-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-right: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.p-item { background: #fdf2f8; padding: 8px; margin-top: 5px; border-radius: 6px; font-size: 0.9rem; border: 1px solid #f9a8d4; }
+.final-warning { background: #fffaf0; padding: 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid #feebc8; margin-top: 10px; }
+.wa-btn { width: 100%; padding: 15px; background: #25d366; color: white; border: none; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; }
