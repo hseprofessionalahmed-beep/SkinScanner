@@ -1,42 +1,39 @@
 let isModelLoaded = false;
 
-// استخدام روابط بديلة وأكثر استقراراً لنماذج face-api
 async function initAI() {
-    console.log("بدء تحميل نماذج الذكاء الاصطناعي...");
+    console.log("محاولة تحميل النماذج...");
     
-    // روابط النماذج من مستودع موثوق
-    const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
-    
+    // روابط النماذج من سيرفر مباشر وموثوق
+    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/weights/';
+
     try {
-        // تحميل النماذج الأساسية فقط لتقليل وقت الانتظار
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        
+        // تحميل النماذج مع التأكد من اكتمال كل واحد
+        await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
+        ]);
+
         isModelLoaded = true;
-        console.log("تم تحميل محرك الذكاء الاصطناعي بنجاح ✅");
+        console.log("تم التحميل بنجاح! المحرك جاهز.");
         
-        // إخفاء رسالة التحليل إذا كانت ظاهرة
-        if(document.getElementById('loading-overlay')) {
-            document.getElementById('loading-overlay').style.display = 'none';
-        }
+        // إخفاء رسالة التحميل تلقائياً عند الجاهزية
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) overlay.style.display = 'none';
+
     } catch (err) {
-        console.error("خطأ تقني في تحميل النماذج: ", err);
-        alert("فشل تحميل محرك الـ AI. يرجى التأكد من اتصال الإنترنت وتحديث الصفحة.");
+        console.error("فشل التحميل. السبب:", err);
+        alert("فشل تحميل محرك AI. تأكد من أنك تفتح الموقع عبر رابط آمن (https) وليس (http).");
     }
 }
 
-// البدء فوراً
+// بدء التشغيل
 initAI();
 
 async function analyzeSkin(source) {
-    if (!isModelLoaded) {
-        alert("المحرك لم يكتمل تحميله بعد، يرجى تحديث الصفحة.");
-        return null;
-    }
+    if (!isModelLoaded) return null;
 
     try {
-        // الكشف عن الوجه
-        const detection = await faceapi.detectSingleFace(source, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 })).withFaceLandmarks();
+        const detection = await faceapi.detectSingleFace(source, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.3 })).withFaceLandmarks();
         
         if (!detection) return null;
 
@@ -45,10 +42,9 @@ async function analyzeSkin(source) {
         canvas.width = box.width; 
         canvas.height = box.height;
         const ctx = canvas.getContext('2d');
-        
         ctx.drawImage(source, box.x, box.y, box.width, box.height, 0, 0, box.width, box.height);
-        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
         let red = 0, dark = 0;
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i], g = data[i+1], b = data[i+2];
@@ -59,13 +55,13 @@ async function analyzeSkin(source) {
         const total = data.length / 4;
         const results = [];
         if (red / total > 0.015) results.push("حبوب أو تهيج بشرة");
-        if (dark / total > 0.07) results.push("تصبغات داكنة");
+        if (dark / total > 0.06) results.push("تصبغات داكنة");
         else results.push("تصبغات خفيفة");
         results.push("هالات تحت العين"); 
 
         return results;
     } catch (e) {
-        console.error("خطأ أثناء التحليل: ", e);
+        console.error("خطأ تحليل:", e);
         return null;
     }
 }
