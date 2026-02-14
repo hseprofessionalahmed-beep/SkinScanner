@@ -19,11 +19,12 @@ initAI();
 async function analyzeSkin(source) {
     if (!isModelLoaded) return null;
 
-    // اكتشاف الوجه مع حساسية متوسطة لضمان التقاط الملامح
+    // اكتشاف الوجه مع حساسية متوسطة
     const detection = await faceapi.detectSingleFace(source, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }));
     
     if (!detection) return null;
 
+    // إنشاء كانفاس داخلي إجباري لكسر حماية البكسلات
     const canvas = document.createElement('canvas');
     const box = detection.box;
     canvas.width = 150; 
@@ -43,12 +44,12 @@ async function analyzeSkin(source) {
     for (let i = 0; i < data.length; i += 4) {
         const r = data[i], g = data[i+1], b = data[i+2];
 
-        // كشف الاحمرار (الحبوب): اللون الأحمر أعلى من الأخضر والأزرق بفرق واضح
-        if (r > g + 60 && r > b + 60) redSum++;
+        // كشف الاحمرار: يجب أن يكون الأحمر طاغياً بفرق كبير (للحبوب الحقيقية)
+        if (r > g + 65 && r > b + 65) redSum++;
 
-        // كشف التصبغات (السطوع): قياس مدى قتامة البكسل
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
-        if (luminance < 80) darkSum++;
+        // كشف التصبغات: استخدام معادلة السطوع (Luminance)
+        const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+        if (brightness < 75) darkSum++;
     }
 
     const redPercent = (redSum / totalPixels) * 100;
@@ -56,24 +57,24 @@ async function analyzeSkin(source) {
 
     const problems = [];
     
-    // المنطق البرمجي المتغير (النتائج لن تظهر إلا إذا تجاوزت النسب الحدود التالية)
-    if (redPercent > 2.5) {
+    // شروط متغيرة (Thresholds) لضمان عدم ظهور النتائج مع البشرة الصافية (مثل الأطفال)
+    if (redPercent > 3.5) {
         problems.push("حبوب أو تهيج بشرة");
     }
     
-    if (darkPercent > 12) {
+    if (darkPercent > 15) {
         problems.push("تصبغات داكنة");
-    } else if (darkPercent > 4) {
+    } else if (darkPercent > 6) {
         problems.push("تصبغات خفيفة");
     }
     
-    if (darkPercent > 7) {
+    if (darkPercent > 10) {
         problems.push("هالات تحت العين");
     }
 
-    // في حال كانت البشرة صافية تماماً
+    // النتيجة للبشرة الصافية أو الأطفال
     if (problems.length === 0) {
-        problems.push("بشرة صافية (تحتاج روتين نضارة)");
+        problems.push("بشرة صحية ومستقرة ✨");
     }
 
     return problems;
