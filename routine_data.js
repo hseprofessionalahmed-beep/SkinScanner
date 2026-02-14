@@ -15,17 +15,22 @@ const products = {
 const routines = {
     pigmentation: {
         items: ["morning.vitC", "morning.sunblock", "evening.pigmentation", "evening.exfoliant"],
-        duration: "من 8 إلى 12 أسبوع",
+        duration: "8-12 أسبوع",
         improvement: "70% - 85%"
     },
     acne: {
         items: ["morning.sunblock", "morning.moisturizer", "evening.acne", "evening.exfoliant"],
-        duration: "من 4 إلى 8 أسابيع",
+        duration: "4-8 أسابيع",
         improvement: "60% - 80%"
     },
     darkCircles: {
         items: ["morning.vitC", "evening.eye"],
-        duration: "من 6 إلى 10 أسابيع",
+        duration: "6-10 أسابيع",
         improvement: "50% - 65%"
+    },
+    healthy: {
+        items: ["morning.sunblock", "morning.moisturizer"],
+        duration: "يومي كوقاية",
+        improvement: "الحفاظ على حيوية الجلد"
     }
 };
