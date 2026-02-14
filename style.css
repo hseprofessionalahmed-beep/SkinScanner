@@ -1,18 +1,130 @@
-:root { --primary: #d81b60; --bg: #fdf2f8; }
-body { font-family: sans-serif; background: var(--bg); direction: rtl; margin: 0; padding: 20px; }
+:root { 
+    --main-black: #1a1a1a; 
+    --peach-light: #fdf2e9; 
+    --peach-accent: #f5d5b8; 
+    --white: #ffffff;
+    --gray: #718096;
+}
+
+body { 
+    font-family: 'Segoe UI', sans-serif; 
+    background: var(--white); 
+    direction: rtl; 
+    margin: 0; 
+    padding: 15px; 
+    color: var(--main-black);
+}
+
 .container { max-width: 500px; margin: auto; }
-.scanner-box { position: relative; border-radius: 20px; overflow: hidden; background: #000; aspect-ratio: 4/5; }
+
+.brand-header { text-align: center; padding: 20px 0; }
+.main-logo { max-width: 180px; height: auto; }
+
+.scanner-box { 
+    position: relative; 
+    border-radius: 40px; 
+    overflow: hidden; 
+    background: #000; 
+    aspect-ratio: 4/5; 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+    border: 2px solid var(--peach-light);
+}
+
 video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-#loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(216,27,96,0.8); color: white; display: flex; align-items: center; justify-content: center; z-index: 10; }
-#scanBtn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-.card { background: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-.status-bar { padding: 12px; border-radius: 10px; margin: 15px 0; text-align: center; font-size: 0.9rem; }
-.warn { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
-.safe { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
-.tabs-container { display: flex; gap: 5px; margin: 15px 0; }
-.tabs-container button { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; }
-.tabs-container button.active { background: var(--primary); color: white; }
-.phase-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-right: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-.p-item { background: #fdf2f8; padding: 8px; margin-top: 5px; border-radius: 6px; font-size: 0.9rem; border: 1px solid #f9a8d4; }
-.final-warning { background: #fffaf0; padding: 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid #feebc8; margin-top: 10px; }
-.wa-btn { width: 100%; padding: 15px; background: #25d366; color: white; border: none; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+
+#scanBtn { 
+    width: 100%; 
+    padding: 20px; 
+    background: var(--main-black); 
+    color: var(--white); 
+    border: none; 
+    border-radius: 15px; 
+    font-weight: bold; 
+    font-size: 1.1rem; 
+    margin-top: 25px; 
+    cursor: pointer; 
+    letter-spacing: 1px;
+}
+
+.professional-report { 
+    background: var(--white); 
+    border-radius: 30px; 
+    padding: 25px; 
+    margin-top: 30px; 
+    border: 1px solid var(--peach-light);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.report-header { 
+    text-align: center; 
+    border-bottom: 2px solid var(--peach-light); 
+    padding-bottom: 20px; 
+    margin-bottom: 25px; 
+}
+
+.evidence-panel { 
+    background: var(--peach-light); 
+    border-radius: 15px; 
+    padding: 15px; 
+    font-size: 0.85rem; 
+    border-right: 4px solid var(--peach-accent);
+}
+
+.level-tabs { display: flex; gap: 8px; margin: 20px 0; }
+.level-tabs button { 
+    flex: 1; 
+    padding: 12px; 
+    border: 1px solid #eee; 
+    border-radius: 12px; 
+    background: var(--white); 
+    cursor: pointer; 
+    font-weight: bold; 
+    transition: 0.3s;
+}
+
+.level-tabs button.active { 
+    background: var(--peach-accent); 
+    color: var(--main-black); 
+    border-color: var(--peach-accent); 
+}
+
+.phase-card { 
+    background: var(--white); 
+    padding: 20px; 
+    margin-bottom: 15px; 
+    border-radius: 20px; 
+    border: 1px solid #f1f1f1;
+}
+
+.phase-card h4 { color: var(--main-black); margin: 0 0 10px 0; font-size: 1.1rem; }
+
+.p-item { 
+    background: var(--peach-light); 
+    padding: 15px; 
+    border-radius: 12px; 
+    margin-top: 10px; 
+    font-weight: 500; 
+    border: 1px dashed var(--peach-accent);
+}
+
+.wa-btn { 
+    width: 100%; 
+    padding: 20px; 
+    background: #25d366; 
+    color: white; 
+    border: none; 
+    border-radius: 15px; 
+    font-weight: bold; 
+    font-size: 1rem; 
+    margin-top: 20px; 
+    cursor: pointer; 
+}
+
+.question-card button {
+    background: var(--main-black);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 10px;
+    margin: 5px;
+    border: none;
+}
