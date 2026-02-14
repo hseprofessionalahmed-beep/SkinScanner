@@ -1,6 +1,6 @@
 const video = document.getElementById('video');
 const loading = document.getElementById('loading-overlay');
-const fileInput = document.getElementById('fileInput');
+let skinData = null;
 
 async function startCamera() {
     try {
@@ -11,85 +11,83 @@ async function startCamera() {
 startCamera();
 
 document.getElementById('scanBtn').addEventListener('click', async () => {
-    if (!isModelLoaded) return;
     loading.style.display = 'flex';
-    loading.innerText = "جاري فحص البكسلات...";
-
-    // استخدام requestAnimationFrame لضمان التقاط كادر فيديو نشط
-    requestAnimationFrame(async () => {
-        const problems = await analyzeSkin(video);
-        loading.style.display = 'none';
-        if (problems) renderResults(problems);
-        else alert("يرجى توجيه الوجه للكاميرا بشكل صحيح");
-    });
-});
-
-document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
-
-fileInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    loading.style.display = 'flex';
-    const img = await faceapi.bufferToImage(file);
-    const problems = await analyzeSkin(img);
+    loading.innerText = "جاري مسح طبقات الجلد...";
+    skinData = await analyzeSkin(video);
     loading.style.display = 'none';
-    if (problems) renderResults(problems);
+    
+    if (skinData) {
+        askSmartQuestions();
+    } else {
+        alert("يرجى توجيه الوجه جيداً للكاميرا");
+    }
 });
 
-function renderResults(problems) {
-    const pList = document.getElementById("skinProblems");
-    const rList = document.getElementById("skinRoutine");
-    pList.innerHTML = ""; rList.innerHTML = "";
+function askSmartQuestions() {
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.style.display = "block";
+    resultsDiv.innerHTML = `
+        <div class="card question-card">
+            <h3>🛡️ سؤال الأمان:</h3>
+            <p>هل تلاحظين تحسس بشرتك من العطور أو منتجات التفتيح القوية؟</p>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button onclick="finalDecision(true)" style="background:#e53e3e; color:white;">نعم (حساسة)</button>
+                <button onclick="finalDecision(false)" style="background:#3182ce; color:white;">لا (عادية)</button>
+            </div>
+        </div>`;
+    resultsDiv.scrollIntoView({ behavior: 'smooth' });
+}
 
-    problems.forEach(p => { pList.innerHTML += `<li>• ${p}</li>`; });
+function finalDecision(isSensitive) {
+    const finalSensitivity = isSensitive ? "حساسة" : skinData.sensitivity;
+    renderRoutine(skinData.problems, finalSensitivity);
+}
 
-    let selectedProducts = new Set();
-    let duration = "6-8 أسابيع";
-    let improvement = "40-60%";
+function renderRoutine(problems, sensitivity) {
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = `
+        <div class="status-bar ${sensitivity === 'حساسة' ? 'warn' : 'safe'}">
+            نمط الجلد: <strong>${sensitivity}</strong> | النتائج: ${problems.join(" - ")}
+        </div>
+        <div class="tabs-container">
+            <button id="btn-budget" onclick="showLevel('budget')">اقتصادي 💰</button>
+            <button id="btn-super" onclick="showLevel('super')">سوبر ⭐</button>
+            <button id="btn-premium" onclick="showLevel('premium')">بريميوم 👑</button>
+        </div>
+        <div id="routine-body"></div>
+    `;
+    showLevel('super');
+}
 
-    // توزيع المنتجات بناءً على المشاكل الحقيقية المكتشفة
-    if (problems.includes("تصبغات داكنة") || problems.includes("تصبغات خفيفة")) {
-        routines.pigmentation.items.forEach(i => selectedProducts.add(i));
-        duration = routines.pigmentation.duration;
-        improvement = routines.pigmentation.improvement;
-    }
-    if (problems.includes("حبوب أو تهيج بشرة")) {
-        routines.acne.items.forEach(i => selectedProducts.add(i));
-        duration = routines.acne.duration;
-        improvement = routines.acne.improvement;
-    }
-    if (problems.includes("هالات تحت العين")) {
-        routines.darkCircles.items.forEach(i => selectedProducts.add(i));
-    }
-    if (problems.includes("بشرة صحية ومستقرة ✨")) {
-        routines.healthy.items.forEach(i => selectedProducts.add(i));
-        duration = routines.healthy.duration;
-        improvement = routines.healthy.improvement;
-    }
-
-    const phases = { morning: "☀️ الروتين الصباحي (وقاية)", evening: "🌙 الروتين المسائي (علاج وصيانة)" };
-    let html = "";
+function showLevel(level) {
+    document.querySelectorAll('.tabs-container button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + level).classList.add('active');
     
-    Object.keys(phases).forEach(phase => {
-        let itemsHtml = "";
-        selectedProducts.forEach(path => {
-            const [pPhase, pKey] = path.split('.');
-            if (pPhase === phase) {
-                const p = products[pPhase][pKey];
-                itemsHtml += `
-                    <div class="item">
-                        <strong>${p.name}</strong>
-                        <div class="active-tag">المادة الفعالة: ${p.active}</div>
-                        <div class="goal-text">${p.goal}</div>
-                    </div>`;
-            }
-        });
-        if (itemsHtml) html += `<div class="phase-card"><h4>${phases[phase]}</h4>${itemsHtml}</div>`;
+    const body = document.getElementById("routine-body");
+    const data = productsDb.levels[level];
+    let html = "";
+
+    [1, 2, 3].forEach(num => {
+        const phase = productsDb.phases[num];
+        let items = "";
+        if(num === 1) items = `<div class="p-item">Hyaluronic Acid + Panthenol (صباحاً ومساءً)</div>`;
+        if(num === 2) items = `
+            <div class="p-item">${data.vitC.name} <small>(صباحاً)</small></div>
+            <div class="p-item">${data.arbutin.name} <small>(مساءً)</small></div>
+            <div class="p-item">${data.correction.name} <small>(علاج مكثف)</small></div>`;
+        if(num === 3) items = `<div class="p-item">${data.sunblock.name} <small>(واقي شمس يومي)</small></div>`;
+
+        html += `
+            <div class="phase-box">
+                <h4>${phase.name}</h4>
+                <small>${phase.goal}</small>
+                ${items}
+            </div>`;
     });
 
-    rList.innerHTML = html;
-    document.getElementById("treatmentDuration").innerText = `📅 مدة الاستخدام: ${duration}`;
-    document.getElementById("improvementRate").innerText = improvement;
-    document.getElementById("results").style.display = "block";
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    body.innerHTML = html + `
+        <div class="final-warning">
+            ⚠️ <strong>تنبيه الخبير:</strong> ${level === 'premium' ? 'التركيبة قوية جداً، يرجى الالتزام بالكميات المحددة.' : 'واقي الشمس هو سر نجاح هذه الخطة.'}
+        </div>
+        <button class="wa-btn" onclick="sendToWhatsApp('${level}')">إرسال الخطة كاملة لواتساب ✅</button>`;
 }
