@@ -1,21 +1,20 @@
 function sendWA() {
+    const level = sessionData.level.toUpperCase();
     const ind = sessionData.ai.indicators;
     const msg = `
-*VERONA | Glow Smarter* ✨
+*تقرير مختبر فيرونا (VERONA)* ✨
 --------------------------
-📊 *تقرير فيرونا لتحليل البشرة*
---------------------------
-🛡️ نوع الجلد: ${sessionData.isSensitive ? 'حساسة' : 'عادية'}
-💎 المستوى المختار: ${sessionData.level.toUpperCase()}
+📊 *تحليل الرؤية:* تصبغات [${ind.pigment ? 'نعم' : 'لا'}] | حبوب [${ind.acne ? 'نعم' : 'لا'}]
+💎 *المستوى المختار:* ${level}
 
-📅 *الخطة المقترحة:*
-1. التهيئة: مرطبات حاجز الجلد
-2. العلاج: ${sessionData.level} Professional Choice
-3. الحماية: واقي شمس يومي
+📅 *خطة النضارة المقترحة:*
+1. التهيئة: إصلاح حاجز الجلد.
+2. العلاج: ${sessionData.level} Professional Product.
+3. الوقاية: حماية SPF50 يومية.
 
-⚠️ يرجى الالتزام بالترتيب لضمان أفضل نضارة.
+💡 *نصيحة فيرونا:* الالتزام بواقي الشمس هو سر نجاح الخطة.
 --------------------------
-*VERONA - حيث يلتقي العلم بالجمال*
+*فيرونا - حيث يلتقي العلم بالجمال*
     `;
     window.open(`https://wa.me/201063994139?text=${encodeURIComponent(msg)}`);
 }
