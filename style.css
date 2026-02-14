@@ -1,14 +1,18 @@
-body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #fdf2f8; direction: rtl; margin: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #fdf2f8; direction: rtl; margin: 0; }
 .container { max-width: 500px; margin: auto; padding: 20px; }
-.scanner-box { position: relative; border-radius: 20px; overflow: hidden; background: #000; }
+.scanner-box { position: relative; border-radius: 20px; overflow: hidden; background: #000; box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
 video { width: 100%; height: auto; transform: scaleX(-1); }
-#loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(216,27,96,0.8); color: #fff; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 10; }
-.card { background: #fff; padding: 15px; border-radius: 15px; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-.phase h4 { color: #d81b60; border-bottom: 2px solid #fdf2f8; padding-bottom: 5px; }
-.item { padding: 10px; border-bottom: 1px solid #eee; }
+#loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(216,27,96,0.8); color: #fff; display: flex; align-items: center; justify-content: center; z-index: 10; }
+
+.phase-card { background: #fff; border-radius: 15px; padding: 15px; margin-top: 15px; border-right: 5px solid #d81b60; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.phase-card h4 { color: #d81b60; margin: 0 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+
+.item { padding: 10px 0; border-bottom: 1px dashed #eee; }
 .item:last-child { border: none; }
-.goal { font-size: 0.8em; color: #d81b60; font-weight: bold; margin-top: 3px; }
-.improvement-box { margin-top: 10px; background: #e6fffa; padding: 10px; border-radius: 10px; border: 1px solid #38b2ac; color: #2c7a7b; }
+.active-tag { font-size: 0.85em; color: #666; font-style: italic; }
+.goal-text { font-size: 0.8em; color: #d81b60; font-weight: bold; margin-top: 3px; }
+
+.improvement-box { margin-top: 10px; background: #e6fffa; padding: 10px; border-radius: 10px; color: #2c7a7b; text-align: center; }
 button { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 #scanBtn { background: #d81b60; color: #fff; }
 .secondary-btn { background: #4a5568; color: #fff; }

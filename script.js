@@ -6,20 +6,22 @@ async function startCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         video.srcObject = stream;
-    } catch (err) { console.log("Camera access denied"); }
+    } catch (err) { console.log("Camera access error"); }
 }
 startCamera();
 
 document.getElementById('scanBtn').addEventListener('click', async () => {
     if (!isModelLoaded) return;
     loading.style.display = 'flex';
-    loading.innerText = "جاري التحليل الفوري...";
-    
-    const problems = await analyzeSkin(video);
-    loading.style.display = 'none';
+    loading.innerText = "جاري فحص طبقات الجلد...";
 
-    if (problems) renderResults(problems);
-    else alert("تعذر العثور على الوجه. يرجى الاقتراب من الكاميرا وزيادة الإضاءة.");
+    // مهلة قصيرة لضمان استقرار الصورة
+    setTimeout(async () => {
+        const problems = await analyzeSkin(video);
+        loading.style.display = 'none';
+        if (problems) renderResults(problems);
+        else alert("يرجى الاقتراب من الكاميرا أكثر");
+    }, 200);
 });
 
 document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
@@ -27,22 +29,11 @@ document.getElementById('uploadBtn').addEventListener('click', () => fileInput.c
 fileInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     loading.style.display = 'flex';
-    loading.innerText = "جاري معالجة الصورة...";
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-        const img = new Image();
-        img.onload = async () => {
-            const problems = await analyzeSkin(img);
-            loading.style.display = 'none';
-            if (problems) renderResults(problems);
-            else alert("لم يتم اكتشاف وجه في الصورة المرفوعة.");
-        };
-        img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
+    const img = await faceapi.bufferToImage(file);
+    const problems = await analyzeSkin(img);
+    loading.style.display = 'none';
+    if (problems) renderResults(problems);
 });
 
 function renderResults(problems) {
@@ -53,26 +44,24 @@ function renderResults(problems) {
     problems.forEach(p => { pList.innerHTML += `<li>• ${p}</li>`; });
 
     let selectedProducts = new Set();
-    let maxDuration = "";
-    let maxImprovement = "";
+    let duration = "6-8 أسابيع";
+    let improvement = "40-60%";
 
     if (problems.includes("تصبغات داكنة") || problems.includes("تصبغات خفيفة")) {
         routines.pigmentation.items.forEach(i => selectedProducts.add(i));
-        maxDuration = routines.pigmentation.duration;
-        maxImprovement = routines.pigmentation.improvement;
+        duration = routines.pigmentation.duration;
+        improvement = routines.pigmentation.improvement;
     }
     if (problems.includes("حبوب أو تهيج بشرة")) {
         routines.acne.items.forEach(i => selectedProducts.add(i));
-        maxDuration = routines.acne.duration;
-        maxImprovement = routines.acne.improvement;
+        duration = routines.acne.duration;
+        improvement = routines.acne.improvement;
     }
     if (problems.includes("هالات تحت العين")) {
         routines.darkCircles.items.forEach(i => selectedProducts.add(i));
-        if(!maxDuration) maxDuration = routines.darkCircles.duration;
-        if(!maxImprovement) maxImprovement = routines.darkCircles.improvement;
     }
 
-    const phases = { morning: "☀️ الروتين الصباحي (وقاية وحماية)", evening: "🌙 الروتين المسائي (علاج وصيانة)" };
+    const phases = { morning: "☀️ الروتين الصباحي (وقاية)", evening: "🌙 الروتين المسائي (علاج وصيانة)" };
     let html = "";
     
     Object.keys(phases).forEach(phase => {
@@ -93,8 +82,8 @@ function renderResults(problems) {
     });
 
     rList.innerHTML = html;
-    document.getElementById("treatmentDuration").innerText = `📅 الجدول الزمني: ${maxDuration || "6 أسابيع"}`;
-    document.getElementById("improvementRate").innerText = maxImprovement || "40% - 50%";
+    document.getElementById("treatmentDuration").innerText = `📅 مدة الاستخدام: ${duration}`;
+    document.getElementById("improvementRate").innerText = improvement;
     document.getElementById("results").style.display = "block";
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
