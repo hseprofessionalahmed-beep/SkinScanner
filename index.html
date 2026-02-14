@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Skin Scanner - النسخة الاحترافية</title>
+    <title>AI Skin Scanner Pro - الصالون</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>ماسح البشرة الذكي ✨</h1>
-            <p>حلل بشرتك عبر الكاميرا لايف أو برفع صورة</p>
+            <h1>ماسح البشرة الذكي Pro ✨</h1>
+            <p>تحليل عميق للبشرة وروتين علاجي متكامل</p>
         </header>
 
         <div class="scanner-box">
             <video id="video" autoplay muted playsinline></video>
-            <div id="loading-overlay" style="display:none;">جاري فحص خلايا البشرة...</div>
+            <div id="loading-overlay" style="display:none;">جاري تحليل خلايا البشرة بدقة عالية...</div>
         </div>
 
         <div class="action-buttons">
@@ -27,15 +27,23 @@
         </div>
 
         <div id="results" style="display:none;">
-            <div class="card">
-                <h3>🔍 نتائج التحليل:</h3>
+            <div class="card info-card">
+                <h3>🔍 نتائج التحليل الفني:</h3>
                 <ul id="skinProblems"></ul>
             </div>
-            <div class="card highlight">
-                <h3>🧴 الروتين الثلاثي المقترح:</h3>
-                <ul id="skinRoutine"></ul>
+
+            <div id="skinRoutine"></div>
+
+            <div class="card summary-card">
+                <h3>📅 الخطة الزمنية والنتائج</h3>
+                <p id="treatmentDuration"></p>
+                <div class="improvement-box">
+                    <span>نسبة التحسن المتوقعة:</span>
+                    <strong id="improvementRate"></strong>
+                </div>
             </div>
-            <button id="sendWhatsApp" class="wa-btn">إرسال التقرير للواتساب ✅</button>
+
+            <button id="sendWhatsApp" class="wa-btn">إرسال الخطة العلاجية لواتساب ✅</button>
         </div>
     </div>
 
