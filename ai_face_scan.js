@@ -3,7 +3,6 @@ async function initAI() {
     const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
     try {
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
         isModelLoaded = true;
         document.getElementById('loading-overlay').style.display = 'none';
     } catch (err) { console.error("AI Error", err); }
@@ -17,20 +16,20 @@ async function analyzeSkin(source) {
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 100; canvas.height = 100;
-    ctx.drawImage(source, detection.box.x, detection.box.y, detection.box.width, detection.box.height, 0, 0, 100, 100);
+    canvas.width = 150; canvas.height = 150;
+    ctx.drawImage(source, detection.box.x, detection.box.y, detection.box.width, detection.box.height, 0, 0, 150, 150);
 
-    const data = ctx.getImageData(0, 0, 100, 100).data;
-    let r = 0, d = 0, total = data.length / 4;
+    const data = ctx.getImageData(0, 0, 150, 150).data;
+    let redPixels = 0, darkPixels = 0, total = data.length / 4;
     for (let i = 0; i < data.length; i += 4) {
-        if (data[i] > data[i+1] + 60) r++;
-        if ((data[i] + data[i+1] + data[i+2]) / 3 < 75) d++;
+        if (data[i] > data[i+1] + 60) redPixels++;
+        if ((data[i] + data[i+1] + data[i+2]) / 3 < 80) darkPixels++;
     }
 
     return {
         indicators: {
-            acne: (r/total)*100 > 3 ? 'High' : 'Low',
-            pigment: (d/total)*100 > 12 ? 'High' : 'Low'
+            acne: (redPixels/total)*100 > 2.5,
+            pigment: (darkPixels/total)*100 > 10
         }
     };
 }
