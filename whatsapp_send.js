@@ -1,20 +1,17 @@
 function sendWA() {
-    const level = sessionData.level.toUpperCase();
     const ind = sessionData.ai.indicators;
     const msg = `
-*تقرير مختبر فيرونا (VERONA)* ✨
+*VERONA SKIN ANALYSIS* ✨
 --------------------------
-📊 *تحليل الرؤية الذكي:*
-- تصبغات: [${ind.pigment ? 'رصد مؤشرات' : 'لا يوجد'}]
-- حبوب: [${ind.acne ? 'رصد مؤشرات' : 'لا يوجد'}]
-💎 *المستوى المختار:* ${level}
+👤 نوع البشرة: ${skinTypeLogic[ind.type].name}
+⏳ العمر التقديري: ${ind.skinAge} سنة
+💧 الترطيب: ${Math.round(ind.hydration)}%
+🌟 النضارة: ${Math.round(ind.glow)}%
 
-📅 *خطة النضارة المقترحة:*
-1. التهيئة: Hyaluronic Acid.
-2. العلاج: ${sessionData.level} Professional.
-3. الوقاية: Sunblock SPF50+.
-
-*VERONA - حيث يلتقي العلم بالجمال*
+📅 تم تحديد الخطة العلاجية بنجاح.
+يرجى تحميل تقرير الـ PDF من الموقع للحصول على تفاصيل الروتين.
+--------------------------
+*فيرونا - حيث يلتقي العلم بالجمال*
     `;
     window.open(`https://wa.me/201063994139?text=${encodeURIComponent(msg)}`);
 }
