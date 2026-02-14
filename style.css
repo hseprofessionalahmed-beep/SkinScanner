@@ -1,61 +1,28 @@
-:root { 
-    --black: #1a1a1a; 
-    --peach-bg: #fdf2e9; 
-    --peach-accent: #f5d5b8; 
-    --white: #ffffff;
-    --gray: #718096;
-}
-
-body { 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    background: var(--white); direction: rtl; margin: 0; padding: 15px; color: var(--black);
-}
-
+:root { --black: #1a1a1a; --peach: #fdf2e9; --accent: #f5d5b8; --pink: #d81b60; }
+body { font-family: 'Segoe UI', sans-serif; direction: rtl; padding: 10px; background: #fff; color: var(--black); }
 .container { max-width: 450px; margin: auto; }
-.brand-header { text-align: center; padding: 15px 0; }
-.main-logo { max-width: 160px; height: auto; }
-
-.scanner-box { 
-    position: relative; border-radius: 40px; overflow: hidden; background: #000; 
-    aspect-ratio: 1/1; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 2px solid var(--peach-bg);
-}
-
+.brand-header { text-align: center; padding: 15px; }
+.main-logo { max-width: 150px; }
+.scanner-box { position: relative; border-radius: 40px; overflow: hidden; background: #000; aspect-ratio: 1/1; border: 3px solid var(--peach); }
 video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-
-#loading-overlay { 
-    position: absolute; inset: 0; background: rgba(255,255,255,0.9); 
-    display: flex; align-items: center; justify-content: center; z-index: 10; font-weight: bold;
-}
-
+#loading-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center; z-index: 10; font-weight: bold; }
 .upload-controls { display: flex; flex-direction: column; gap: 10px; margin-top: 25px; }
-.primary-btn, .secondary-btn { 
-    padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; text-align: center; border: none;
-}
+.primary-btn, .secondary-btn { padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; border: none; text-align: center; }
 .primary-btn { background: var(--black); color: white; }
 .secondary-btn { background: #4a4a4a; color: white; }
-.privacy-note { font-size: 0.7rem; color: var(--gray); text-align: center; margin-top: 5px; }
-
-.professional-report { 
-    background: white; border-radius: 30px; padding: 25px; margin-top: 30px; 
-    border: 1px solid var(--peach-bg); box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-}
-
-/* لوحة المشاكل المؤكدة */
-.confirmed-issues-panel {
-    background: var(--peach-bg); border-radius: 15px; padding: 15px; margin-bottom: 25px; border-right: 4px solid var(--peach-accent);
-}
-.confirmed-issues-panel h4 { margin: 0 0 10px 0; font-size: 1rem; }
-.confirmed-issues-panel ul { padding-right: 20px; margin: 5px 0; }
-.confirmed-issues-panel li { font-weight: bold; color: #d81b60; margin-bottom: 5px; }
-
-.level-tabs { display: flex; gap: 8px; margin: 20px 0; }
-.level-tabs button { flex: 1; padding: 12px; border: 1px solid #eee; border-radius: 12px; background: white; cursor: pointer; font-weight: bold; }
-.level-tabs button.active { background: var(--peach-accent); border-color: var(--peach-accent); }
-
-.mapping-logic { background: #f7fafc; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 0.85rem; border-left: 3px solid var(--black); }
-.phase-card { background: #fafafa; padding: 15px; border-radius: 15px; margin-bottom: 12px; }
-.p-item { background: var(--peach-bg); padding: 12px; border-radius: 10px; margin-top: 8px; border: 1px dashed var(--peach-accent); }
-
-.wa-btn { width: 100%; padding: 18px; background: #25d366; color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-.q-block { text-align: center; padding: 20px; background: #f9f9f9; border-radius: 20px; margin-top: 15px; }
-.q-block button { background: var(--black); color: white; border: none; padding: 10px 25px; border-radius: 10px; margin: 10px 5px; cursor: pointer; }
+.professional-report { background: white; padding: 25px; border-radius: 30px; border: 1px solid var(--peach); margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+.analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--peach); padding: 15px; border-radius: 20px; margin-bottom: 20px; }
+.grid-item { display: flex; flex-direction: column; font-size: 0.85rem; }
+.grid-item strong { font-size: 0.7rem; color: #666; }
+.grid-item span { font-weight: bold; color: var(--pink); margin-top: 2px; }
+.level-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+.level-tabs button { flex: 1; padding: 12px; font-size: 0.8rem; border-radius: 10px; border: 1px solid #eee; background: white; cursor: pointer; font-weight: bold; }
+.level-tabs button.active { background: var(--accent); border-color: var(--accent); }
+.treatment-box { background: var(--black); color: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
+.treatment-box h4 { margin: 0 0 8px 0; color: var(--accent); }
+.phase-card { background: #fafafa; padding: 15px; border-radius: 15px; margin-bottom: 10px; }
+.p-item { background: var(--peach); padding: 10px; border-radius: 10px; border: 1px dashed var(--accent); margin-top: 5px; font-size: 0.9rem; }
+.wa-btn { width: 100%; padding: 18px; background: #25d366; color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+.q-block { text-align: center; }
+.q-block button { background: var(--black); color: white; border: none; padding: 12px 25px; border-radius: 12px; margin: 8px 4px; cursor: pointer; }
+.report-title { text-align: center; border-bottom: 2px solid var(--black); padding-bottom: 10px; margin-bottom: 20px; letter-spacing: 2px; }
