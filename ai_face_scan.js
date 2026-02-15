@@ -5,7 +5,7 @@ async function initAI() {
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
         isModelLoaded = true;
         document.getElementById('loading-overlay').style.display = 'none';
-    } catch (err) { console.error("Model Load Error", err); }
+    } catch (err) { console.error("AI Error:", err); }
 }
 initAI();
 
@@ -17,6 +17,9 @@ async function analyzeSkin(source) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = 150; canvas.height = 150;
+    
+    // --- نظام تصحيح الإضاءة التلقائي ---
+    ctx.filter = 'brightness(1.1) contrast(1.1) saturate(1.1)'; 
     ctx.drawImage(source, detection.box.x, detection.box.y, detection.box.width, detection.box.height, 0, 0, 150, 150);
 
     const data = ctx.getImageData(0, 0, 150, 150).data;
@@ -24,31 +27,38 @@ async function analyzeSkin(source) {
 
     for (let i = 0; i < data.length; i += 4) {
         let avg = (data[i] + data[i+1] + data[i+2]) / 3;
-        if (data[i] > data[i+1] + 55) r++; // Acne/Redness
-        if (avg < 95) d++; // Pigment
-        if (avg < 50) vd++; // Deep Pigment
-        if (avg > 190) s++; // Shine/Oily
-        if (avg > 120 && avg < 165) p++; // Pale/Dry
+        
+        // فحص الاحمرار (تجنب الحساسية العالية للظلال المحمرة)
+        if (data[i] > data[i+1] + 75) r++; 
+        
+        // فحص التصبغات مع فلترة الظلال العميقة (avg < 55)
+        if (avg < 55) d++; 
+        if (avg < 30) vd++; 
+
+        // فحص اللمعان (الدهنية) والشحوب (الجفاف)
+        if (avg > 225) s++; 
+        if (avg > 140 && avg < 180) p++; 
     }
 
     let skinType = "normal";
-    if (s/total > 0.12) skinType = "oily";
-    else if (p/total > 0.35) skinType = "dry";
+    if (s/total > 0.22) skinType = "oily";
+    else if (p/total > 0.48) skinType = "dry";
 
-    // العمر التقديري للبشرة (معادلة تعتمد على الاحمرار والبهتان)
-    let skinAgeBonus = (r/total)*20 + (vd/total)*30;
-    let estimatedAge = Math.floor(22 + skinAgeBonus);
+    // حساب عمر البشرة: يبدأ من 18 ويزداد ببطء شديد
+    let baseAge = 18;
+    let penalty = (r/total)*20 + (vd/total)*40;
+    let finalAge = Math.floor(baseAge + penalty);
 
     return {
         indicators: {
             type: skinType,
-            acne: (r/total)*100 > 2.5,
-            pigment: (d/total)*100 > 10,
-            isDeep: (vd/total)*100 > 3,
-            dark_circles: (d/total)*100 > 7,
-            hydration: Math.max(25, 100 - (p/total)*120),
-            glow: Math.max(15, 100 - (r/total)*180),
-            skinAge: estimatedAge
+            acne: (r/total)*100 > 5.0, 
+            pigment: (d/total)*100 > 15, 
+            isDeep: (vd/total)*100 > 6,
+            dark_circles: (d/total)*100 > 14,
+            hydration: Math.max(45, 100 - (p/total)*110),
+            glow: Math.max(35, 100 - (r/total)*160),
+            skinAge: finalAge
         }
     };
 }
