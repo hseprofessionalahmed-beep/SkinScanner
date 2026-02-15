@@ -1,27 +1,57 @@
-function buildRoutine(data) {
-  const r = document.getElementById("result");
-  r.classList.remove("hidden");
+function buildRoutine(level){
 
-  let routine = "🧴 **مرحلة الترطيب**\n";
-  if(data.level==="eco"){
-    routine += "- Nivea Soft (مرطب اقتصادي)\n- Vitamin C\n";
-  } else if(data.level==="super"){
-    routine += "- La Roche-Posay Hydraphase (سوبر)\n- Vitamin C + Hyaluronic Acid\n";
-  } else {
-    routine += "- Skinceuticals Hydrating B5 (ألترا)\n- Vitamin C + Hyaluronic Acid + Niacinamide\n";
-  }
+let routine = "روتين علاجي متكامل:\n\n";
 
-  routine += "\n🔥 **مرحلة العلاج**\n";
-  if(data.acne) routine += "- Salicylic Acid 2%\n- Azelaic Acid 10%\n";
-  if(data.pigmentation) routine += "- Alpha Arbutin 2%\n- Niacinamide 5%\n";
+routine += "🧴 المرحلة 1: الترطيب\n";
 
-  routine += "\n☀️ **مرحلة الصيانة / الحماية**\n- Sunscreen SPF50\n";
-  if(data.level==="eco") routine += "- Sunblock Nivea (اقتصادي)\n";
-  else if(data.level==="super") routine += "- La Roche-Posay Anthelios (سوبر)\n";
-  else routine += "- Skinceuticals Physical Fusion (ألترا)\n";
+if(level==="eco"){
+routine +=
+"• المنتج: مرطب جلسرين اقتصادي\n"+
+"• المواد الفعالة: Glycerin + Panthenol\n"+
+"• الاستخدام: مرتين يومياً\n"+
+"• مدة النتائج: 3 أسابيع\n"+
+"• نسبة التحسن: 60%\n\n";
+}
+else if(level==="super"){
+routine +=
+"• المنتج: Hyaluronic Cream متقدم\n"+
+"• المواد الفعالة: Hyaluronic Acid + Vitamin C\n"+
+"• الاستخدام: مرتين يومياً\n"+
+"• مدة النتائج: أسبوعين\n"+
+"• نسبة التحسن: 75%\n\n";
+}
+else{
+routine +=
+"• المنتج: Advanced Repair Cream\n"+
+"• المواد الفعالة: Hyaluronic + Niacinamide + Peptides\n"+
+"• الاستخدام: مرتين يومياً\n"+
+"• مدة النتائج: 7-10 أيام\n"+
+"• نسبة التحسن: 90%\n\n";
+}
 
-  r.innerHTML = `<pre>${routine}</pre>`;
-  window.finalRoutine = routine;
+routine += "🔥 المرحلة 2: العلاج\n";
 
-  document.getElementById("whatsappBtn").classList.remove("hidden");
+if(scanData.acne){
+routine +=
+"• Salicylic Acid 2%\n"+
+"• Azelaic Acid 10%\n"+
+"• الاستخدام: مساءً\n"+
+"• التحسن: 70% خلال أسبوعين\n\n";
+}
+
+if(scanData.pigmentation){
+routine +=
+"• Alpha Arbutin 2%\n"+
+"• Niacinamide 5%\n"+
+"• الاستخدام: صباحاً ومساءً\n"+
+"• التحسن: 65% خلال 3 أسابيع\n\n";
+}
+
+routine += "☀️ المرحلة 3: الحماية\n"+
+"• واقي شمس SPF50\n"+
+"• الاستخدام: صباحاً يومياً\n"+
+"• يمنع رجوع المشكلة بنسبة 80%\n\n";
+
+document.getElementById("result").classList.remove("hidden");
+document.getElementById("result").innerText = routine;
 }
