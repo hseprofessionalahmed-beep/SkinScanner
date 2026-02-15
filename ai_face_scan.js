@@ -18,40 +18,45 @@ async function analyzeSkin(source) {
     const ctx = canvas.getContext('2d');
     canvas.width = 150; canvas.height = 150;
     
-    // --- فلتر معالجة الإضاءة التلقائي قبل التحليل ---
-    ctx.filter = 'brightness(1.1) contrast(1.1)'; 
+    // رفع التباين بشدة لرصد "النقاط" (النمش) بوضوح
+    ctx.filter = 'contrast(1.6) brightness(1.1)'; 
     ctx.drawImage(source, detection.box.x, detection.box.y, detection.box.width, detection.box.height, 0, 0, 150, 150);
 
     const data = ctx.getImageData(0, 0, 150, 150).data;
-    let r = 0, d = 0, vd = 0, s = 0, p = 0, total = data.length / 4;
+    let acnePixels = 0, frecklePixels = 0, total = data.length / 4;
+    let brightnessSum = 0;
 
     for (let i = 0; i < data.length; i += 4) {
-        let avg = (data[i] + data[i+1] + data[i+2]) / 3;
-        
-        if (data[i] > data[i+1] + 75) r++; // احمرار/حبوب
-        if (avg < 55) d++; // تصبغات (تم تقليل الحساسية لتجاوز الظلال)
-        if (avg < 30) vd++; // تصبغات عميقة
-        if (avg > 225) s++; // لمعان دهني
-        if (avg > 140 && avg < 180) p++; // بهتان/جفاف
+        let r = data[i], g = data[i+1], b = data[i+2];
+        let avg = (r + g + b) / 3;
+        brightnessSum += avg;
+
+        // 1. رصد النمش (النقاط البنية): اللون البني يتميز بتقارب الأحمر والأخضر وانخفاض الأزرق
+        // تم ضبط هذه المعادلة لرصد النمش المشتت في الصورة الثالثة
+        if (avg < 130 && r > b + 20 && Math.abs(r - g) < 25) {
+            frecklePixels++;
+        }
+
+        // 2. رصد الحبوب (اللون الأحمر الصريح):
+        // تم رفع العتبة لـ +55 لتجنب اعتبار خدود الأطفال الوردية "حبوباً"
+        if (r > g + 55 && r > b + 55) {
+            acnePixels++;
+        }
     }
 
-    let skinType = "normal";
-    if (s/total > 0.22) skinType = "oily";
-    else if (p/total > 0.48) skinType = "dry";
-
-    let baseAge = 18;
-    let finalAge = Math.floor(baseAge + (r/total)*20 + (vd/total)*40);
+    const globalAvg = brightnessSum / total;
+    // تحديد النوع بناءً على متوسط الإضاءة وتوزيع البكسلات
+    let type = (globalAvg > 190) ? "dry" : (globalAvg < 140 ? "oily" : "normal");
 
     return {
         indicators: {
-            type: skinType,
-            acne: (r/total)*100 > 5.0, 
-            pigment: (d/total)*100 > 15, 
-            isDeep: (vd/total)*100 > 6,
-            dark_circles: (d/total)*100 > 14,
-            hydration: Math.max(45, 100 - (p/total)*110),
-            glow: Math.max(35, 100 - (r/total)*160),
-            skinAge: finalAge
+            type: type,
+            acne: (acnePixels / total) * 100 > 1.0, // حساسية للحبوب الحقيقية فقط
+            pigment: (frecklePixels / total) * 100 > 4.0, // رصد النمش بذكاء
+            dark_circles: (frecklePixels / total) * 100 > 7.0,
+            hydration: Math.min(98, globalAvg / 2.2),
+            glow: Math.max(20, 100 - ((frecklePixels + acnePixels) / total * 150)),
+            skinAge: Math.floor(18 + (frecklePixels / total) * 60) // العمر يزداد مع التصبغات
         }
     };
 }
