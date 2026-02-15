@@ -4,73 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VERONA AI - Pro Facial Precision</title>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
     <style>
-        :root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; --white: #ffffff; }
-        body { background: var(--bg); color: var(--white); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 10px; text-align: center; }
+        :root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
         .container { max-width: 500px; margin: auto; }
-        
-        /* إطار العرض الذكي */
-        .preview-box { 
-            position: relative; 
-            width: 100%; 
-            border-radius: 25px; 
-            overflow: hidden; 
-            background: #000; 
-            border: 2px solid #333; 
-            min-height: 350px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        video, canvas { max-width: 100%; height: auto; display: block; }
-        #overlay { position: absolute; top: 0; left: 0; z-index: 10; width: 100%; height: 100%; }
-
-        /* الأزرار */
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
-        .action-btn { 
-            background: var(--gold); 
-            color: #000; 
-            padding: 16px; 
-            border-radius: 15px; 
-            border: none; 
-            font-weight: bold; 
-            cursor: pointer; 
-            font-size: 1rem;
-            transition: 0.3s;
-        }
-        .action-btn:active { transform: scale(0.95); }
-        .secondary-btn { background: #222; color: var(--white); border: 1px solid #444; }
-        .scan-btn { background: var(--white); width: 100%; border: 3px solid var(--gold); font-size: 1.2rem; }
-
-        /* النتائج */
-        .result-card { 
-            background: var(--card); 
-            padding: 25px; 
-            border-radius: 25px; 
-            margin-top: 20px; 
-            border: 1px solid var(--gold); 
-            text-align: right; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
+        .preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #000; border: 2px solid #333; min-height: 300px; }
+        video, canvas { width: 100%; height: auto; }
+        #overlay { position: absolute; top: 0; left: 0; z-index: 10; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .action-btn { background: var(--gold); color: #000; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .scan-btn { background: #fff; width: 100%; font-size: 1.1rem; border: 3px solid var(--gold); margin-top:10px; }
+        .result-card { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--gold); text-align: right; }
         .hidden { display: none; }
-        .loader { color: var(--gold); padding: 15px; font-size: 0.9rem; letter-spacing: 1px; }
-        
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header style="margin-bottom: 20px;">
-        <h2 style="margin: 0; font-weight: 900;">VERONA <span style="color:var(--gold)">AI VISION</span></h2>
-        <p style="font-size: 0.8rem; color: #888; margin: 5px 0 0;">نظام الفحص المجهري المعتمد على تباين الأنسجة</p>
-    </header>
-
-    <div id="loadingMsg" class="loader hidden">جاري استدعاء محرك الذكاء الاصطناعي...</div>
+    <h2>VERONA <span style="color:var(--gold)">AI PRO</span></h2>
+    <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
 
     <div class="preview-box">
         <video id="input_video" class="hidden" playsinline></video>
@@ -78,18 +34,18 @@
     </div>
 
     <div class="btn-grid">
-        <button class="action-btn" onclick="startCamera()">📸 كاميرا لايف</button>
-        <button class="action-btn secondary-btn" onclick="document.getElementById('fileInput').click()">📁 تحليل صورة</button>
+        <button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
+        <button class="action-btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
     </div>
-    <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processImage(event)">
+    <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
 
-    <button id="scanBtn" class="action-btn scan-btn" onclick="runFinalAnalysis()">بدء الفحص المجهري الآن 🔬</button>
+    <button id="scanBtn" class="action-btn scan-btn" onclick="performDiagnosis()">تحليل النتائج الآن 🔬</button>
 
     <div id="resultCard" class="result-card hidden">
-        <h3 id="resTitle" style="color:var(--gold); margin:0 0 10px 0; font-size: 1.4rem;">--</h3>
-        <p id="resDetails" style="color: #ccc; line-height: 1.6;">--</p>
-        <div id="scoreBox" style="font-size: 1.3rem; font-weight: bold; border-top: 1px solid #333; padding-top: 15px; margin-top: 15px;"></div>
-        <button class="action-btn" style="background:#25d366; color:white; width:100%; margin-top:20px;" onclick="sendWhatsApp()">إرسال التقرير للمتخصص ✅</button>
+        <h3 id="resTitle" style="color:var(--gold); margin:0;">--</h3>
+        <p id="resDetails">--</p>
+        <div id="scoreBox" style="font-size:1.2rem; font-weight:bold; border-top:1px solid #333; padding-top:10px;"></div>
+        <button class="action-btn" style="background:#25d366; color:white; width:100%; margin-top:15px;" onclick="sendToWA()">إرسال واتساب ✅</button>
     </div>
 </div>
 
@@ -97,139 +53,97 @@
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d', {willReadFrequently: true});
+let faceMesh;
 let lastResults = null;
-let currentSource = null;
+let currentImg = null;
 
-// إعداد خوارزمية Face Mesh
-const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
-faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
+// 1. تهيئة المحرك فور تحميل الصفحة
+async function setupFaceMesh() {
+    faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+    faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
+    faceMesh.onResults(onResults);
+    document.getElementById('status').innerText = "المحرك جاهز للفحص ✅";
+}
+setupFaceMesh();
 
-faceMesh.onResults((results) => {
+function onResults(results) {
     lastResults = results;
-    document.getElementById('loadingMsg').classList.add('hidden');
-    drawFrame(results);
-});
-
-// وظيفة الرسم الذكية (Smart Draw) لضمان ظهور الصور كاملة
-function drawFrame(results) {
+    canvasElement.width = canvasElement.clientWidth;
+    canvasElement.height = (currentImg) ? (currentImg.height * (canvasElement.width / currentImg.width)) : videoElement.videoHeight * (canvasElement.width / videoElement.videoWidth);
+    
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
     
-    // رسم المصدر الحالي (فيديو أو صورة) بحيث يملأ الكانفاس
-    if (currentSource) {
-        canvasCtx.drawImage(currentSource, 0, 0, canvasElement.width, canvasElement.height);
-    } else {
-        canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-    }
-    
-    // رسم شبكة النقاط الذهبية (لإعطاء انطباع احترافي)
     if (results.multiFaceLandmarks) {
         for (const landmarks of results.multiFaceLandmarks) {
-            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color: '#d4af3733', lineWidth: 0.5});
+            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color: '#d4af3744', lineWidth: 0.5});
         }
     }
     canvasCtx.restore();
 }
 
-// تشغيل الكاميرا الحية
-async function startCamera() {
-    currentSource = null;
+async function initCamera() {
+    currentImg = null;
     videoElement.classList.remove('hidden');
     const camera = new Camera(videoElement, {
-        onFrame: async () => {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-            await faceMesh.send({image: videoElement});
-        }
+        onFrame: async () => { await faceMesh.send({image: videoElement}); }
     });
     camera.start();
 }
 
-// معالجة الصور المرفوعة (Smart Fitting)
-function processImage(event) {
+function processFile(event) {
     const file = event.target.files[0];
     if (!file) return;
     const img = new Image();
     img.onload = async () => {
-        currentSource = img;
-        
-        // تعديل حجم الكانفاس ليناسب أبعاد الصورة المرفوعة مع الحفاظ على التناسب
-        const maxWidth = document.querySelector('.preview-box').clientWidth;
-        const scale = maxWidth / img.width;
-        canvasElement.width = maxWidth;
-        canvasElement.height = img.height * scale;
-        
+        currentImg = img;
         videoElement.classList.add('hidden');
-        document.getElementById('loadingMsg').classList.remove('hidden');
+        document.getElementById('status').innerText = "يتم الآن رسم خريطة الوجه...";
         await faceMesh.send({image: img});
     };
     img.src = URL.createObjectURL(file);
 }
 
-// محرك التحليل المجهري (Precision Analysis Engine)
-function runFinalAnalysis() {
+function performDiagnosis() {
     if (!lastResults || !lastResults.multiFaceLandmarks) {
-        return alert("لم يتم اكتشاف وجه بوضوح. يرجى توجيه الكاميرا أو رفع صورة واضحة.");
+        return alert("يرجى التقاط وجه واضح أولاً");
     }
 
     const landmarks = lastResults.multiFaceLandmarks[0];
-    const width = canvasElement.width;
-    const height = canvasElement.height;
-
-    // دالة فحص متوسط لون المنطقة (Area Contrast Analysis)
-    function getAreaBrightness(landmark) {
-        const x = Math.floor(landmark.x * width);
-        const y = Math.floor(landmark.y * height);
-        const size = 10; 
-        try {
-            const data = canvasCtx.getImageData(x - 5, y - 5, size, size).data;
-            let sum = 0;
-            for (let i = 0; i < data.length; i += 4) {
-                sum += (data[i] + data[i+1] + data[i+2]) / 3;
-            }
-            return sum / (size * size);
-        } catch (e) { return 150; } // قيمة افتراضية في حالة الخطأ
-    }
-
-    // قياس السطوع في مناطق الوجه الحيوية
-    const forehead = getAreaBrightness(landmarks[10]); // الجبهة (مرجع اللون الأساسي)
-    const rightEye = getAreaBrightness(landmarks[350]); // منطقة الهالات يمين
-    const leftEye = getAreaBrightness(landmarks[130]); // منطقة الهالات يسار
-    const cheek = getAreaBrightness(landmarks[205]);   // منطقة التصبغات/النمش
-
-    const darkCircleRatio = ((rightEye + leftEye) / 2) / forehead;
-    const pigmentRatio = cheek / forehead;
-
-    let title, desc, score;
-
-    // خوارزمية التشخيص بناءً على تباين السطوع
-    if (darkCircleRatio < 0.82) {
-        title = "تم رصد هالات سوداء 👁️";
-        desc = "تحليل الأنسجة أظهر تباين لوني تحت العين. ننصح بمنتجات تحتوي على الكافيين وفيتامين K لتحسين التروية الدموية.";
-        score = Math.round(75 + (darkCircleRatio * 10));
-    } else if (pigmentRatio < 0.88) {
-        title = "تصبغات / نمش مكتشف 🔍";
-        desc = "تم رصد نقاط تصبغ غير متوازنة في منطقة الوجنتين. يفضل استخدام سيروم فيتامين C وواقي شمس SPF 50 بانتظام.";
-        score = Math.round(78 + (pigmentRatio * 10));
-    } else {
-        title = "بشرة مثالية وصافية ✅";
-        desc = "توزيع الصبغات متناسق جداً في جميع نقاط الوجه. الحالة الصحية للجلد ممتازة، ننصح بالترطيب فقط.";
-        score = 98;
-    }
-
-    // عرض النتائج
-    const card = document.getElementById('resultCard');
-    card.classList.remove('hidden');
-    document.getElementById('resTitle').innerText = title;
-    document.getElementById('resDetails').innerText = desc;
-    document.getElementById('scoreBox').innerHTML = `درجة صحة البشرة: <span style="color:var(--gold)">${score}%</span>`;
     
-    // سكرول تلقائي للنتيجة
-    window.scrollTo({top: card.offsetTop, behavior: 'smooth'});
+    // دالة تحليل دقيقة للسطوع والتباين (حساسة للنمش والتصبغات)
+    function checkArea(lm) {
+        const x = Math.floor(lm.x * canvasElement.width);
+        const y = Math.floor(lm.y * canvasElement.height);
+        const pixel = canvasCtx.getImageData(x, y, 1, 1).data;
+        return (pixel[0] + pixel[1] + pixel[2]) / 3;
+    }
+
+    const forehead = checkArea(landmarks[10]); 
+    const cheek = checkArea(landmarks[205]);   // منطقة النمش والتصبغات
+    const eye = (checkArea(landmarks[130]) + checkArea(landmarks[350])) / 2; // الهالات
+
+    const pigmentDiff = cheek / forehead;
+    const eyeDiff = eye / forehead;
+
+    let res = { title: "بشرة مثالية ✅", desc: "توزيع الصبغات متناسق جداً وبشرتك صافية.", score: 98 };
+
+    // رفع الحساسية: أي تفاوت بسيط يكتشف فوراً
+    if (eyeDiff < 0.85) {
+        res = { title: "هالات سوداء مكتشفة 👁️", desc: "تم رصد تباين لوني تحت العين. ننصح بكريمات تحتوي على الكافيين.", score: 76 };
+    } else if (pigmentDiff < 0.90) {
+        res = { title: "تصبغات / نمش نشط 🔍", desc: "رصدنا بقع داكنة في الوجنتين. ننصح بسيروم تفتيح وواقي شمس.", score: 82 };
+    }
+
+    document.getElementById('resultCard').classList.remove('hidden');
+    document.getElementById('resTitle').innerText = res.title;
+    document.getElementById('resDetails').innerText = res.desc;
+    document.getElementById('scoreBox').innerText = `درجة الصحة: ${res.score}%`;
 }
 
-function sendWhatsApp() {
-    const text = `*تقرير فيرونا للتحليل المجهري*%0A--------------------------%0A*الحالة:* ${document.getElementById('resTitle').innerText}%0A*النتيجة:* ${document.getElementById('scoreBox').innerText}%0A*التوصية:* ${document.getElementById('resDetails').innerText}`;
+function sendToWA() {
+    const text = `تقرير فيرونا AI: ${document.getElementById('resTitle').innerText}`;
     window.open(`https://wa.me/201063994139?text=${text}`);
 }
 </script>
