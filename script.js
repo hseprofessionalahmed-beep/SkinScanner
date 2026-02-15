@@ -1,31 +1,47 @@
-function buildSkinProblems(scan) {
-  const problems = [];
+let scanResult = {};
 
-  if (scan.acne)
-    problems.push({ key: "acne", title: "حبوب / تهيج بشرة" });
+function startScan() {
+  const file = document.getElementById("imageInput").files[0];
+  if (!file) {
+    alert("❗ رفع صورة إلزامي");
+    return;
+  }
 
-  if (scan.pigmentation)
-    problems.push({ key: "pigmentation", title: "تصبغات داكنة" });
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
 
-  if (scan.darkCircles)
-    problems.push({ key: "darkCircles", title: "هالات تحت العين" });
-
-  return problems;
+  img.onload = () => {
+    scanResult = analyzeFace(img);
+    startQuestions();
+  };
 }
 
-function generateQuestions(problems) {
-  const questions = [];
+function startQuestions() {
+  const q = document.getElementById("questions");
+  q.classList.remove("hidden");
 
-  problems.forEach(p => {
-    if (p.key === "acne")
-      questions.push("هل الحبوب ملتهبة؟");
+  q.innerHTML = `
+    <div class="card">
+      <p>هل لديك حبوب؟</p>
+      <button onclick="answerAcne(true)">نعم</button>
+      <button onclick="answerAcne(false)">لا</button>
+    </div>
+  `;
+}
 
-    if (p.key === "pigmentation")
-      questions.push("هل تزيد التصبغات مع الشمس؟");
+function answerAcne(hasAcne) {
+  const q = document.getElementById("questions");
 
-    if (p.key === "darkCircles")
-      questions.push("ما لون الهالات؟");
-  });
+  if (!hasAcne) {
+    buildRoutine({ acne: false });
+    return;
+  }
 
-  return questions;
+  q.innerHTML = `
+    <div class="card">
+      <p>نوع الحبوب؟</p>
+      <button onclick="buildRoutine({acne:true,type:'inflamed'})">ملتهبة</button>
+      <button onclick="buildRoutine({acne:true,type:'comedonal'})">غير ملتهبة</button>
+    </div>
+  `;
 }
