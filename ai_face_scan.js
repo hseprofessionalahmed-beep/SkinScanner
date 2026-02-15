@@ -1,53 +1,35 @@
-let isModelLoaded = false;
-
-async function loadAI() {
-    try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights/');
-        isModelLoaded = true;
-    } catch (e) {
-        console.warn("Mode: Color Analysis Only");
-        isModelLoaded = true;
-    }
-}
-loadAI();
-
+// محرك VERONA للتحليل الضوئي المباشر
 async function analyzeSkin(source) {
-    let detection = null;
-    if (isModelLoaded) {
-        try {
-            const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.1 });
-            detection = await faceapi.detectSingleFace(source, options);
-        } catch(e) {}
-    }
-
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 150; canvas.height = 150;
+    
+    // تصغير الصورة لسرعة التحليل ومنع تهنيج المتصفح
+    canvas.width = 100; 
+    canvas.height = 100;
+    ctx.drawImage(source, 0, 0, 100, 100);
 
-    if (detection) {
-        const { x, y, width, height } = detection.box;
-        ctx.drawImage(source, x, y, width, height, 0, 0, 150, 150);
-    } else {
-        ctx.drawImage(source, 0, 0, source.width || 300, source.height || 300, 0, 0, 150, 150);
-    }
+    const imgData = ctx.getImageData(0, 0, 100, 100).data;
+    let rSum = 0, gSum = 0, bSum = 0, redPoints = 0, darkPoints = 0;
 
-    const data = ctx.getImageData(0, 0, 150, 150).data;
-    let rSum = 0, gSum = 0, bSum = 0, acne = 0, pigment = 0;
-
-    for (let i = 0; i < data.length; i += 4) {
-        let r = data[i], g = data[i+1], b = data[i+2];
+    for (let i = 0; i < imgData.length; i += 4) {
+        let r = imgData[i], g = imgData[i+1], b = imgData[i+2];
         rSum += r; gSum += g; bSum += b;
-        if (r > g + 40 && r > b + 40) acne++;
-        if ((r + g + b) / 3 < 120 && r > b + 15) pigment++;
+
+        // رصد الاحمرار (الحبوب)
+        if (r > g + 40 && r > b + 40) redPoints++;
+        // رصد التصبغات (النمش والبقع)
+        if ((r + g + b) / 3 < 110 && r > b + 10) darkPoints++;
     }
 
-    const avg = (rSum + gSum + bSum) / (150 * 150 * 3);
+    const avg = (rSum + gSum + bSum) / (100 * 100 * 3);
+    
+    // إرجاع النتائج فوراً
     return {
-        type: avg > 175 ? "جافة" : (avg < 125 ? "دهنية" : "عادية"),
-        acne: (acne / 22500) * 100 > 0.5,
-        pigment: (pigment / 22500) * 100 > 1.0,
-        glow: Math.max(30, 100 - (acne + pigment)/150),
-        hydration: Math.min(99, avg / 2.2),
-        age: Math.floor(18 + (pigment / 900))
+        type: avg > 170 ? "جافة" : (avg < 120 ? "دهنية" : "عادية"),
+        acne: (redPoints / 10000) * 100 > 0.5,
+        pigment: (darkPoints / 10000) * 100 > 1.0,
+        glow: Math.max(30, 100 - (redPoints + darkPoints) / 100),
+        hydration: Math.min(99, avg / 2.1),
+        age: Math.floor(18 + (darkPoints / 500))
     };
 }
