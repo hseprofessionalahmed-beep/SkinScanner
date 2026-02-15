@@ -2,55 +2,49 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>AI Skin Scanner</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skin Scanner Pro</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <div class="app">
 
-  <!-- شعار أكبر بخلفية بيضاء -->
+  <!-- Logo -->
   <div class="logo-container">
-    <img src="logo.png" alt="Logo" class="logo-img">
+    <img src="logo.png" class="logo-img">
   </div>
 
-  <h1>AI Skin Scanner</h1>
+  <h2>تحليل البشرة الذكي</h2>
 
-  <input type="text" id="username" placeholder="👤 اسم المستخدم">
-
-  <!-- اختيار وضع الصورة -->
+  <!-- اختيار الوضع -->
   <div class="mode-select">
     <button onclick="chooseMode('camera')">📸 كاميرا</button>
     <button onclick="chooseMode('file')">📁 رفع صورة</button>
   </div>
+
+  <!-- الكاميرا -->
+  <video id="video" autoplay class="hidden"></video>
+  <canvas id="canvas" class="hidden"></canvas>
+  <button id="captureBtn" class="hidden">بدء التحليل</button>
 
   <!-- رفع صورة -->
   <div id="fileUpload" class="hidden">
     <input type="file" id="imageInput" accept="image/*">
   </div>
 
-  <!-- كاميرا + مستطيل تفاعلي -->
-  <div class="upload-box" style="position: relative;">
-    <video id="video" autoplay playsinline width="320" height="240" style="border-radius:12px; background:#000; z-index:1;"></video>
-    <canvas id="overlay" width="320" height="240" style="position:absolute; top:0; left:0; z-index:2;"></canvas>
-  </div>
+  <!-- نتيجة التحليل -->
+  <div id="analysisResult" class="hidden"></div>
 
-  <button id="captureBtn" style="margin-top:10px;">📸 التقط الصورة</button>
-  <div id="instructions" class="hidden"></div>
+  <!-- اختيار مستوى الروتين -->
+  <div id="levelSelect" class="hidden"></div>
 
-  <div id="evidence-panel" class="hidden">
-    <h3>🔍 مؤشرات التحليل</h3>
-    <ul id="indicatorsList"></ul>
-  </div>
-
-  <div id="questions" class="hidden"></div>
+  <!-- الروتين النهائي -->
   <div id="result" class="hidden"></div>
-  <button id="whatsappBtn" class="hidden">📲 إرسال الروتين واتساب</button>
+
 </div>
 
-<script src="ai_face_scan.js"></script>
-<script src="routine_data.js"></script>
-<script src="whatsapp_send.js"></script>
 <script src="script.js"></script>
+<script src="routine.js"></script>
 </body>
 </html>
