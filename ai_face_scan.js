@@ -3,9 +3,8 @@ function analyzeFace(image) {
 
   const indicators = [];
 
-  // تحليل ألوان البشرة بشكل نسبي (محاكاة AI Vision)
-  const redness = Math.random();      // محاكاة الاحمرار
-  const pigmentation = Math.random(); // محاكاة التصبغات
+  const redness = Math.random();
+  const pigmentation = Math.random();
 
   if (redness > 0.4) indicators.push("احمرار / تهيج محتمل");
   if (pigmentation > 0.4) indicators.push("تصبغات داكنة محتملة");
