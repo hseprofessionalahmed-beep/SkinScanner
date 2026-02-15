@@ -3,22 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI - Professional Diagnosis</title>
+    <title>VERONA AI - Pro Vision (Camera & Photo)</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --gold: #d4af37; --bg: #000; --card: #151515; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; text-align: center; margin: 0; }
+        :root { --gold: #d4af37; --bg: #000; --card: #151515; --blue: #0a84ff; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; text-align: center; margin: 0; padding-bottom: 50px; }
         .container { padding: 15px; max-width: 500px; margin: auto; }
-        .preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #111; border: 2px solid #333; }
-        video, canvas { width: 100%; }
+        
+        .preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #111; border: 2px solid #333; min-height: 300px; }
+        video, canvas { width: 100%; display: block; }
         #overlay { position: absolute; top: 0; left: 0; z-index: 10; }
-        .action-btn { background: var(--gold); color: #000; padding: 18px; width: 100%; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 1.1rem; }
+
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .action-btn { background: var(--gold); color: #000; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .secondary-btn { background: #333; color: white; }
+        
         .result-card { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--gold); text-align: right; animation: slideUp 0.5s ease; }
         .hidden { display: none; }
-        .loader { color: var(--gold); padding: 20px; }
+        .loader { color: var(--gold); padding: 20px; font-weight: bold; }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
@@ -26,20 +30,27 @@
 
 <div class="container">
     <h2 style="margin-bottom:10px;">VERONA <span style="color:var(--gold)">AI VISION PRO</span></h2>
-    <div id="loadingMsg" class="loader">جاري تشغيل محرك الذكاء الاصطناعي...</div>
+    
+    <div id="loadingMsg" class="loader hidden">جاري معالجة الصورة بالذكاء الاصطناعي...</div>
 
     <div class="preview-box">
-        <video id="input_video" playsinline></video>
+        <video id="input_video" class="hidden" playsinline></video>
         <canvas id="overlay"></canvas>
+        <canvas id="image_canvas" class="hidden"></canvas>
     </div>
 
-    <button id="scanBtn" class="action-btn" onclick="processSkinAnalysis()">تحليل الحالة الآن 🔬</button>
+    <div class="btn-grid">
+        <button class="action-btn" onclick="startCamera()">📸 فتح الكاميرا</button>
+        <button class="action-btn secondary-btn" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
+    </div>
+    <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processImage(event)">
+
+    <button id="scanBtn" class="action-btn" style="width:100%; margin-top:15px; background:white;" onclick="runFinalAnalysis()">بدء التحليل المجهري 🔬</button>
 
     <div id="resultCard" class="result-card hidden">
-        <h3 id="resTitle" style="color:var(--gold); margin-top:0;">نتائج الفحص المجهري</h3>
+        <h3 id="resTitle" style="color:var(--gold); margin-top:0;">نتائج الفحص</h3>
         <div id="resDetails"></div>
-        <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
-        <button class="action-btn" style="background:#25d366; color:white;" onclick="sendWhatsApp()">إرسال التقرير للواتساب ✅</button>
+        <button class="action-btn" style="background:#25d366; color:white; width:100%; margin-top:15px;" onclick="sendWhatsApp()">إرسال للواتساب ✅</button>
     </div>
 </div>
 
@@ -47,93 +58,108 @@
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d');
+const fileInput = document.getElementById('fileInput');
 let lastResults = null;
+let mode = 'idle'; // 'camera' or 'image'
 
+// إعداد Face Mesh
 const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
 faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
-faceMesh.onResults((results) => {
-    document.getElementById('loadingMsg').classList.add('hidden');
-    lastResults = results;
-    drawFrame(results);
-});
+faceMesh.onResults(onResults);
 
-function drawFrame(results) {
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
+function onResults(results) {
+    lastResults = results;
+    document.getElementById('loadingMsg').classList.add('hidden');
+    
+    // رسم النقاط للزينة والاحترافية
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     if (results.multiFaceLandmarks) {
         for (const landmarks of results.multiFaceLandmarks) {
-            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color: '#d4af3733', lineWidth: 0.5});
+            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color: '#d4af3744', lineWidth: 0.5});
         }
     }
 }
 
-async function processSkinAnalysis() {
+// تشغيل الكاميرا
+async function startCamera() {
+    mode = 'camera';
+    videoElement.classList.remove('hidden');
+    const camera = new Camera(videoElement, {
+        onFrame: async () => {
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            await faceMesh.send({image: videoElement});
+        },
+        width: 640, height: 480
+    });
+    camera.start();
+}
+
+// معالجة الصورة المرفوعة
+function processImage(event) {
+    mode = 'image';
+    const file = event.target.files[0];
+    if (!file) return;
+
+    document.getElementById('loadingMsg').classList.remove('hidden');
+    const img = new Image();
+    img.onload = async () => {
+        // رسم الصورة على الكانفاس أولاً
+        canvasElement.width = img.width;
+        canvasElement.height = img.height;
+        canvasCtx.drawImage(img, 0, 0, img.width, img.height);
+        
+        // إرسال الصورة للذكاء الاصطناعي لتحليل النقاط
+        await faceMesh.send({image: img});
+        videoElement.classList.add('hidden');
+    };
+    img.src = URL.createObjectURL(file);
+}
+
+// التحليل النهائي عند ضغط الزر
+async function runFinalAnalysis() {
     if (!lastResults || !lastResults.multiFaceLandmarks) {
-        alert("يرجى توجيه الوجه نحو الكاميرا أولاً");
+        alert("يرجى التقاط وجه واضح أولاً");
         return;
     }
 
-    document.getElementById('scanBtn').innerText = "جاري القراءة...";
     const landmarks = lastResults.multiFaceLandmarks[0];
     
-    // إنشاء كانفاس مخفي لتحليل البكسلات
-    const tempCanvas = document.createElement('canvas');
-    const tCtx = tempCanvas.getContext('2d');
-    tempCanvas.width = videoElement.videoWidth;
-    tempCanvas.height = videoElement.videoHeight;
-    tCtx.drawImage(videoElement, 0, 0);
-
-    // دالة لجلب لون بكسل عند نقطة معينة
-    function getPixelColor(landmark) {
-        const x = landmark.x * tempCanvas.width;
-        const y = landmark.y * tempCanvas.height;
-        const p = tCtx.getImageData(x, y, 1, 1).data;
-        return (p[0] + p[1] + p[2]) / 3; // السطوع
+    // سحب بيانات البكسلات من الكانفاس الحالي
+    const imageData = canvasCtx.getImageData(0, 0, canvasElement.width, canvasElement.height);
+    
+    function getBrightness(landmark) {
+        const x = Math.floor(landmark.x * canvasElement.width);
+        const y = Math.floor(landmark.y * canvasElement.height);
+        const index = (y * canvasElement.width + x) * 4;
+        const r = imageData.data[index];
+        const g = imageData.data[index+1];
+        const b = imageData.data[index+2];
+        return (r + g + b) / 3;
     }
 
-    // تحليل المناطق:
-    const forehead = getPixelColor(landmarks[10]); // الجبهة (مرجع)
-    const leftEye = getPixelColor(landmarks[230]); // تحت العين اليسرى
-    const rightEye = getPixelColor(landmarks[450]); // تحت العين اليمنى
-    const cheek = getPixelColor(landmarks[205]);   // الوجنة
+    const forehead = getBrightness(landmarks[10]);
+    const eyeUnder = (getBrightness(landmarks[230]) + getBrightness(landmarks[450])) / 2;
+    const cheek = getBrightness(landmarks[205]);
 
-    const darkCircleRatio = ((leftEye + rightEye) / 2) / forehead;
+    const darkCircleRatio = eyeUnder / forehead;
     const pigmentRatio = cheek / forehead;
 
-    let title = "", desc = "", score = 95;
+    let res = { title: "", desc: "", score: 95 };
 
-    // المنطق الاحترافي للنتائج
-    if (darkCircleRatio < 0.75) {
-        title = "تم رصد هالات سوداء 👁️";
-        desc = "يوجد تباين لوني تحت العين بنسبة " + Math.round((1-darkCircleRatio)*100) + "%. ننصح بكريمات تحتوي على الكافيين وفيتامين K.";
-        score = 78;
-    } else if (pigmentRatio < 0.82) {
-        title = "تصبغات / نمش مكتشف 🔍";
-        desc = "تم رصد تفاوت في لون الوجنتين مقارنة بالجبهة. يفضل استخدام سيروم تفتيح وواقي شمس.";
-        score = 82;
+    if (darkCircleRatio < 0.78) {
+        res = { title: "تم رصد هالات سوداء 👁️", desc: "يوجد تباين لوني تحت العين مقارنة بالجبهة. ننصح بمنتجات الكافيين.", score: 75 };
+    } else if (pigmentRatio < 0.85) {
+        res = { title: "تصبغات / نمش 🔍", desc: "تم اكتشاف بقع داكنة في منطقة الوجنتين. ننصح بسيروم فيتامين C.", score: 80 };
     } else {
-        title = "بشرة صافية ومستقرة ✅";
-        desc = "توزيع الإضاءة على نقاط الوجه متساوي جداً. بشرتك في حالة صحية ممتازة.";
-        score = 98;
+        res = { title: "بشرة مثالية ✅", desc: "توزيع الصبغات متناسق جداً والوجه مشرق. استمري على الروتين الحالي.", score: 98 };
     }
 
-    showFinalResult(title, desc, score);
-}
-
-function showFinalResult(title, desc, score) {
     document.getElementById('resultCard').classList.remove('hidden');
-    document.getElementById('resTitle').innerText = title;
-    document.getElementById('resDetails').innerHTML = `<p>${desc}</p><p>درجة صحة البشرة: <b>${score}%</b></p>`;
-    document.getElementById('scanBtn').innerText = "إعادة الفحص 🔄";
+    document.getElementById('resTitle').innerText = res.title;
+    document.getElementById('resDetails').innerHTML = `<p>${res.desc}</p><p>درجة صحة البشرة: <b>${res.score}%</b></p>`;
     window.scrollTo(0, document.body.scrollHeight);
 }
-
-const camera = new Camera(videoElement, {
-    onFrame: async () => { await faceMesh.send({image: videoElement}); },
-    width: 640, height: 480
-});
-camera.start();
 
 function sendWhatsApp() {
     const text = `تقرير فيرونا AI:%0Aالحالة: ${document.getElementById('resTitle').innerText}%0Aالتفاصيل: ${document.getElementById('resDetails').innerText}`;
