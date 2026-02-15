@@ -3,35 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA | AI Skin Lab</title>
+    <title>VERONA AI | معمل فحص البشرة الذكي</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header class="brand-header">
-            <img src="logo.png" alt="VERONA" class="main-logo">
+            <h1 class="logo-text">VERONA <span>AI</span></h1>
+            <p class="tagline">تقنية الفحص المجهري الرقمي للبشرة</p>
         </header>
 
-        <div class="scanner-box">
-            <video id="video" autoplay muted playsinline></video>
-            <div id="loading-overlay">جاري تشغيل محرك فيرونا العبقري...</div>
+        <div class="scanner-container">
+            <div class="scanner-box">
+                <video id="video" autoplay muted playsinline></video>
+                <div id="loading-overlay">جاري تشغيل محرك الذكاء الاصطناعي...</div>
+            </div>
+            
+            <div class="scan-ui">
+                <div class="scanner-line"></div>
+            </div>
         </div>
 
-        <div class="upload-controls">
-            <button id="scanBtn" class="primary-btn">بدء الفحص الذكي 📸</button>
-            <label for="imageUpload" class="secondary-btn">رفع صورة من الاستوديو 📁</label>
-            <input type="file" id="imageUpload" accept="image/*" style="display:none;">
-            <p class="privacy-note">🔒 فحص آمن: يتم التحليل محلياً دون تخزين بياناتك.</p>
+        <div class="controls">
+            <button id="scanBtn" class="main-btn">بدء الفحص المباشر 📸</button>
+            <div class="upload-area">
+                <label for="imageUpload" class="alt-btn">رفع صورة من الاستوديو 📁</label>
+                <input type="file" id="imageUpload" accept="image/*" hidden>
+            </div>
         </div>
 
-        <div id="results" style="display:none;"></div>
+        <div id="results" class="results-section" style="display:none;"></div>
     </div>
 
-    <script src="routine_data.js"></script>
     <script src="ai_face_scan.js"></script>
     <script src="script.js"></script>
-    <script src="whatsapp_send.js"></script>
 </body>
 </html>
