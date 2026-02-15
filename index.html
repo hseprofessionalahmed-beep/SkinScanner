@@ -8,6 +8,7 @@
 </head>
 <body>
   <div class="app">
+    <img src="logo.png" alt="Logo" style="width:100px; margin-bottom:10px;">
     <h1>AI Skin Scanner</h1>
 
     <input type="text" id="username" placeholder="👤 اسم المستخدم">
@@ -28,11 +29,13 @@
 
     <div id="questions" class="hidden"></div>
     <div id="result" class="hidden"></div>
-    <button id="whatsappBtn" class="hidden" onclick="sendWhatsApp()">📲 إرسال الروتين واتساب</button>
+    <button id="whatsappBtn" class="hidden">📲 إرسال الروتين واتساب</button>
   </div>
 
-  <script src="face-ai.js"></script>
-  <script src="routine.js"></script>
+  <!-- استدعاء ملفاتك بالترتيب الصحيح -->
+  <script src="ai_face_scan.js"></script>
+  <script src="routine_data.js"></script>
+  <script src="whatsapp_send.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
