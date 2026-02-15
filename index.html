@@ -14,8 +14,9 @@
     <input type="text" id="username" placeholder="👤 اسم المستخدم">
 
     <!-- Camera Capture -->
-    <div class="upload-box">
+    <div class="upload-box" style="position: relative;">
       <video id="video" autoplay playsinline width="320" height="240" style="border-radius:12px; background:#000;"></video>
+      <canvas id="overlay" width="320" height="240" style="position:absolute; top:0; left:0;"></canvas>
       <button id="captureBtn">📸 التقط الصورة</button>
     </div>
 
@@ -24,6 +25,9 @@
       <h3>🔍 مؤشرات التحليل</h3>
       <ul id="indicatorsList"></ul>
     </div>
+
+    <!-- Instructions -->
+    <div id="instructions" class="hidden"></div>
 
     <!-- Questions -->
     <div id="questions" class="hidden"></div>
