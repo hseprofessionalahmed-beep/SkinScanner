@@ -2,9 +2,13 @@ let scanResult = {};
 let videoStream = null;
 let detector = null;
 
-// تشغيل الكاميرا عند تحميل الصفحة
+const video = document.getElementById("video");
+const overlay = document.getElementById("overlay");
+const ctx = overlay.getContext("2d");
+const instructionsDiv = document.getElementById("instructions");
+
+// تشغيل الكاميرا
 async function initCamera() {
-  const video = document.getElementById("video");
   try {
     videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     video.srcObject = videoStream;
@@ -13,81 +17,108 @@ async function initCamera() {
     if ('FaceDetector' in window) {
       detector = new FaceDetector({ fastMode: true });
     } else {
-      alert("⚠️ جهازك لا يدعم FaceDetector، الصورة لن يتم تحليلها بشكل دقيق.");
+      instructionsDiv.classList.remove("hidden");
+      instructionsDiv.innerText = "⚠️ جهازك لا يدعم FaceDetector، سيتم استخدام الإطار التوجيهي الأصفر فقط.";
     }
+
+    requestAnimationFrame(drawFaceOverlay);
+
   } catch (err) {
     alert("❗ لم يتمكن التطبيق من الوصول للكاميرا. تأكد من السماح بالوصول.");
   }
 }
 
-// التقاط الصورة والتحقق من الجودة
-async function captureImage() {
-  const video = document.getElementById("video");
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+// رسم المربع التفاعلي حول الوجه
+async function drawFaceOverlay() {
+  ctx.clearRect(0, 0, overlay.width, overlay.height);
 
-  // التحقق من الإضاءة
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  let brightness = 0;
-  for (let i = 0; i < imageData.data.length; i += 4) {
-    brightness += (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
-  }
-  brightness = brightness / (imageData.data.length / 4);
-  if (brightness < 40) {
-    alert("⚠️ الإضاءة ضعيفة، حاول زيادة الإضاءة أمام وجهك.");
-    return;
-  }
+  let faceDetected = false;
+  let color = 'red';
+  let message = "";
 
-  // التحقق من الوجه (إن وجد FaceDetector)
   if (detector) {
     try {
-      const faces = await detector.detect(canvas);
-      if (faces.length === 0) {
-        alert("⚠️ لم يتم التعرف على الوجه، تأكد من مواجهة الكاميرا مباشرة.");
-        return;
-      }
+      const faces = await detector.detect(video);
+      if (faces.length > 0) {
+        const face = faces[0].boundingBox;
+        const faceArea = face.width * face.height;
+        const frameArea = overlay.width * overlay.height;
+        const centerX = face.x + face.width / 2;
+        const centerY = face.y + face.height / 2;
 
-      // نتحقق من حجم الوجه بالنسبة للإطار
-      const face = faces[0].boundingBox;
-      const faceArea = face.width * face.height;
-      const frameArea = canvas.width * canvas.height;
-      if (faceArea < frameArea * 0.1) {
-        alert("⚠️ وجهك بعيد جداً، اقترب أكثر للكاميرا.");
-        return;
-      }
+        const sizeGood = faceArea >= frameArea * 0.1;
+        const centered = Math.abs(centerX - overlay.width/2) < overlay.width*0.2 &&
+                         Math.abs(centerY - overlay.height/2) < overlay.height*0.2;
 
-      // تحذير لو الوجه غير مركزي
-      const centerX = face.x + face.width / 2;
-      const centerY = face.y + face.height / 2;
-      if (Math.abs(centerX - canvas.width / 2) > canvas.width * 0.2 ||
-          Math.abs(centerY - canvas.height / 2) > canvas.height * 0.2) {
-        alert("⚠️ حاول وضع وجهك في منتصف الكاميرا.");
-        return;
-      }
+        // تحديد لون المربع وتعليمات
+        if (sizeGood && centered) {
+          color = 'green';
+          message = "👍 وجهك جيد ومستعد للفحص";
+        } else {
+          color = 'red';
+          if (!sizeGood) message = "⚠️ اقترب أكثر للكاميرا";
+          else if (!centered) message = "⚠️ ضع وجهك في منتصف الكاميرا";
+        }
 
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(face.x, face.y, face.width, face.height);
+        faceDetected = true;
+
+      } else {
+        message = "⚠️ لم يتم التعرف على الوجه، واجه الكاميرا مباشرة";
+      }
     } catch (err) {
       console.log("Face detection failed:", err);
     }
   }
 
-  // كل شيء جيد -> نبدأ الفحص
-  startScan(canvas);
+  // Fallback: مستطيل أصفر لإرشاد الوجه إذا الجهاز لا يدعم FaceDetector
+  if (!detector) {
+    ctx.strokeStyle = 'yellow';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(overlay.width*0.25, overlay.height*0.15, overlay.width*0.5, overlay.height*0.7);
+    message = "⚠️ ضع وجهك داخل المستطيل الأصفر";
+  }
+
+  instructionsDiv.classList.remove("hidden");
+  instructionsDiv.innerText = message;
+
+  requestAnimationFrame(drawFaceOverlay);
+}
+
+// التقاط الصورة والتحقق من الإضاءة
+async function captureImage() {
+  const canvasCapture = document.createElement("canvas");
+  canvasCapture.width = video.videoWidth;
+  canvasCapture.height = video.videoHeight;
+  const ctxCapture = canvasCapture.getContext("2d");
+  ctxCapture.drawImage(video, 0, 0, canvasCapture.width, canvasCapture.height);
+
+  const imageData = ctxCapture.getImageData(0,0,canvasCapture.width,canvasCapture.height);
+  let brightness = 0;
+  for (let i=0;i<imageData.data.length;i+=4){
+    brightness += (imageData.data[i]+imageData.data[i+1]+imageData.data[i+2])/3;
+  }
+  brightness = brightness / (imageData.data.length/4);
+  if (brightness<40){
+    alert("⚠️ الإضاءة ضعيفة، حاول زيادة الإضاءة أمام وجهك.");
+    return;
+  }
+
+  startScan(canvasCapture);
 }
 
 // تحليل الوجه بالصورة الملتقطة
-function startScan(imgOrCanvas) {
+function startScan(imgOrCanvas){
   scanResult = analyzeFace(imgOrCanvas);
   startQuestions();
 }
 
-// الأسئلة (تبقى كما هي)
+// الأسئلة
 function startQuestions() {
   const q = document.getElementById("questions");
   q.classList.remove("hidden");
-
   q.innerHTML = `
     <div class="card">
       <p>هل لديك حبوب؟</p>
@@ -97,13 +128,9 @@ function startQuestions() {
   `;
 }
 
-function answerAcne(hasAcne) {
+function answerAcne(hasAcne){
   const q = document.getElementById("questions");
-  if (!hasAcne) {
-    buildRoutine({ acne: false });
-    return;
-  }
-
+  if (!hasAcne){ buildRoutine({acne:false}); return; }
   q.innerHTML = `
     <div class="card">
       <p>نوع الحبوب؟</p>
@@ -113,8 +140,5 @@ function answerAcne(hasAcne) {
   `;
 }
 
-// عند الضغط على زر التقاط الصورة
 document.getElementById("captureBtn").addEventListener("click", captureImage);
-
-// بدء الكاميرا تلقائي عند تحميل الصفحة
 window.addEventListener("load", initCamera);
