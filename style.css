@@ -1,153 +1,17 @@
-:root {
-    --black: #1a1a1a;
-    --peach: #fdf2e9;
-    --accent: #f5d5b8;
-    --pink: #d81b60;
-    --green: #28a745;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    direction: rtl;
-    padding: 10px;
-    background: #fff;
-    color: var(--black);
-    line-height: 1.6;
-}
-
-.container { max-width: 450px; margin: auto; }
-
-/* تنسيق لوحة النتائج الشاملة */
-.analysis-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    background: var(--peach);
-    padding: 15px;
-    border-radius: 20px;
-    margin-bottom: 20px;
-    border: 1px solid var(--accent);
-}
-
-.grid-item {
-    display: flex;
-    flex-direction: column;
-    padding: 5px;
-}
-
-.grid-item strong {
-    font-size: 0.75rem;
-    color: #666;
-    margin-bottom: 2px;
-}
-
-.grid-item span {
-    font-weight: bold;
-    color: var(--pink);
-    font-size: 1rem;
-}
-
-/* التقرير والروتين */
-.professional-report {
-    background: white;
-    padding: 25px;
-    border-radius: 30px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-    margin-top: 20px;
-}
-
-.report-title {
-    text-align: center;
-    font-size: 1.4rem;
-    border-bottom: 2px solid var(--black);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    letter-spacing: 1px;
-}
-
-.treatment-box {
-    background: var(--black);
-    color: white;
-    padding: 18px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-}
-
-.treatment-box h4 { margin: 0 0 8px 0; color: var(--accent); }
-
-/* أزرار الانتقال بين المستويات */
-.level-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.level-tabs button {
-    flex: 1;
-    padding: 12px;
-    border-radius: 12px;
-    border: 1px solid #eee;
-    background: #f9f9f9;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.level-tabs button.active {
-    background: var(--accent);
-    border-color: var(--accent);
-}
-
-/* مراحل الروتين */
-.phase-card {
-    background: #fbfbfb;
-    padding: 15px;
-    border-radius: 18px;
-    margin-bottom: 12px;
-    border-right: 4px solid var(--black);
-}
-
-.p-item {
-    background: var(--peach);
-    padding: 10px;
-    border-radius: 10px;
-    margin-top: 8px;
-    font-size: 0.9rem;
-}
-
-/* الأزرار النهائية */
-.wa-btn {
-    width: 100%;
-    padding: 18px;
-    background: #25d366;
-    color: white;
-    border: none;
-    border-radius: 15px;
-    font-weight: bold;
-    font-size: 1.1rem;
-    cursor: pointer;
-    margin-top: 15px;
-}
-
-.primary-btn {
-    width: 100%;
-    padding: 18px;
-    background: var(--black);
-    color: white;
-    border: none;
-    border-radius: 15px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-/* تحسينات الكاميرا */
-.scanner-box {
-    position: relative;
-    border-radius: 40px;
-    overflow: hidden;
-    background: #000;
-    aspect-ratio: 1/1;
-    border: 4px solid var(--peach);
-}
-
-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+:root { --main: #000; --gold: #c5a059; --bg: #fdfdfd; }
+body { font-family: sans-serif; background: var(--bg); margin: 0; direction: rtl; }
+.container { max-width: 500px; margin: auto; padding: 20px; text-align: center; }
+.logo-text { font-size: 2.5rem; letter-spacing: -2px; }
+.logo-text span { color: var(--gold); }
+.scanner-box { position: relative; border-radius: 30px; overflow: hidden; background: #000; aspect-ratio: 1/1; border: 5px solid #eee; }
+video { width: 100%; height: 100%; object-fit: cover; }
+#loading-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.main-btn { width: 100%; padding: 15px; background: var(--main); color: #fff; border-radius: 50px; border: none; font-size: 1.1rem; cursor: pointer; margin-top: 20px; }
+.alt-btn { display: block; margin-top: 15px; color: #666; text-decoration: underline; cursor: pointer; }
+.report-card { background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-top: 30px; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+.stat { background: #f9f9f9; padding: 15px; border-radius: 15px; }
+.stat span { display: block; font-size: 0.8rem; color: #888; }
+.stat strong { font-size: 1.2rem; }
+.routine-info { margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+.pdf-btn { width: 100%; margin-top: 10px; padding: 10px; background: #444; color: #fff; border: none; border-radius: 10px; }
