@@ -18,8 +18,8 @@ async function analyzeSkin(source) {
     const ctx = canvas.getContext('2d');
     canvas.width = 150; canvas.height = 150;
     
-    // --- نظام تصحيح الإضاءة التلقائي ---
-    ctx.filter = 'brightness(1.1) contrast(1.1) saturate(1.1)'; 
+    // --- فلتر معالجة الإضاءة التلقائي قبل التحليل ---
+    ctx.filter = 'brightness(1.1) contrast(1.1)'; 
     ctx.drawImage(source, detection.box.x, detection.box.y, detection.box.width, detection.box.height, 0, 0, 150, 150);
 
     const data = ctx.getImageData(0, 0, 150, 150).data;
@@ -28,26 +28,19 @@ async function analyzeSkin(source) {
     for (let i = 0; i < data.length; i += 4) {
         let avg = (data[i] + data[i+1] + data[i+2]) / 3;
         
-        // فحص الاحمرار (تجنب الحساسية العالية للظلال المحمرة)
-        if (data[i] > data[i+1] + 75) r++; 
-        
-        // فحص التصبغات مع فلترة الظلال العميقة (avg < 55)
-        if (avg < 55) d++; 
-        if (avg < 30) vd++; 
-
-        // فحص اللمعان (الدهنية) والشحوب (الجفاف)
-        if (avg > 225) s++; 
-        if (avg > 140 && avg < 180) p++; 
+        if (data[i] > data[i+1] + 75) r++; // احمرار/حبوب
+        if (avg < 55) d++; // تصبغات (تم تقليل الحساسية لتجاوز الظلال)
+        if (avg < 30) vd++; // تصبغات عميقة
+        if (avg > 225) s++; // لمعان دهني
+        if (avg > 140 && avg < 180) p++; // بهتان/جفاف
     }
 
     let skinType = "normal";
     if (s/total > 0.22) skinType = "oily";
     else if (p/total > 0.48) skinType = "dry";
 
-    // حساب عمر البشرة: يبدأ من 18 ويزداد ببطء شديد
     let baseAge = 18;
-    let penalty = (r/total)*20 + (vd/total)*40;
-    let finalAge = Math.floor(baseAge + penalty);
+    let finalAge = Math.floor(baseAge + (r/total)*20 + (vd/total)*40);
 
     return {
         indicators: {
