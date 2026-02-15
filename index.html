@@ -1,165 +1,47 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>Skin Scanner AI</title>
+  <title>AI Skin Scanner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Style -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- Face API -->
-  <script defer src="https://unpkg.com/face-api.js"></script>
 </head>
 
 <body>
 
-  <!-- Header -->
-  <header class="app-header">
-    <h1>🔍 Skin Scanner AI</h1>
-    <p>تحليل ذكي للبشرة + روتين مخصص</p>
-  </header>
+<div class="app">
 
-  <!-- Upload / Camera -->
-  <section class="scan-section">
+  <h1>AI Skin Scanner</h1>
 
-    <div class="upload-controls">
-      <input type="file" id="imageUpload" accept="image/*">
-      <button id="cameraBtn">📸 فحص بالكاميرا</button>
-    </div>
+  <!-- Username -->
+  <input type="text" id="username" placeholder="👤 اسم المستخدم">
 
-    <div class="image-preview">
-      <img id="previewImage" alt="صورة الوجه">
-    </div>
+  <!-- Image Upload -->
+  <div class="upload-box">
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="startScan()">📸 ابدأ الفحص</button>
+  </div>
 
-    <button id="scanBtn" disabled>🧠 بدء الفحص</button>
-
-  </section>
-
-  <!-- Evidence Panel -->
-  <section id="evidence-panel" class="panel hidden">
-    <h2>📊 المؤشرات المكتشفة</h2>
+  <!-- Indicators -->
+  <div id="evidence-panel" class="hidden">
+    <h3>🔍 مؤشرات التحليل</h3>
     <ul id="indicatorsList"></ul>
-  </section>
+  </div>
 
   <!-- Questions -->
-  <section id="questions-panel" class="panel hidden">
-    <h2>❓ أسئلة توضيحية</h2>
-    <div id="questionsContainer"></div>
-    <button id="continueBtn">➡️ متابعة</button>
-  </section>
+  <div id="questions" class="hidden"></div>
 
-  <!-- Routine -->
-  <section id="routine-panel" class="panel hidden">
-    <h2>🧴 الروتين المقترح</h2>
-    <div id="routineContainer"></div>
-    <button id="whatsappBtn">📲 إرسال التقرير على واتساب</button>
-  </section>
+  <!-- Result -->
+  <div id="result" class="hidden"></div>
 
-  <!-- Footer -->
-  <footer class="app-footer">
-    <p>Powered by AI Vision • Not a medical diagnosis</p>
-  </footer>
+  <!-- WhatsApp -->
+  <button id="whatsappBtn" class="hidden" onclick="sendWhatsApp()">📲 إرسال الروتين واتساب</button>
 
-  <!-- Scripts -->
-  <script src="face_ai.js"></script>
-  <script src="script.js"></script>
-  <script src="routine.js"></script>
-  <script src="whats_up.js"></script>
+</div>
 
-  <!-- Main Logic -->
-  <script>
-    const imageUpload = document.getElementById("imageUpload");
-    const previewImage = document.getElementById("previewImage");
-    const scanBtn = document.getElementById("scanBtn");
-
-    const indicatorsList = document.getElementById("indicatorsList");
-    const evidencePanel = document.getElementById("evidence-panel");
-    const questionsPanel = document.getElementById("questions-panel");
-    const routinePanel = document.getElementById("routine-panel");
-
-    const questionsContainer = document.getElementById("questionsContainer");
-    const routineContainer = document.getElementById("routineContainer");
-
-    let detectedProblems = [];
-    let finalRoutine = [];
-
-    imageUpload.addEventListener("change", () => {
-      const file = imageUpload.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = e => {
-        previewImage.src = e.target.result;
-        scanBtn.disabled = false;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    scanBtn.addEventListener("click", async () => {
-      indicatorsList.innerHTML = "";
-      evidencePanel.classList.remove("hidden");
-
-      const scan = await analyzeFace(previewImage);
-      detectedProblems = buildSkinProblems(scan);
-
-      if (detectedProblems.length === 0) {
-        indicatorsList.innerHTML = "<li>لم يتم رصد مشاكل واضحة بالبشرة</li>";
-        return;
-      }
-
-      detectedProblems.forEach(p => {
-        const li = document.createElement("li");
-        li.textContent = p.title;
-        indicatorsList.appendChild(li);
-      });
-
-      const questions = generateQuestions(detectedProblems);
-      if (questions.length > 0) {
-        questionsPanel.classList.remove("hidden");
-        questionsContainer.innerHTML = "";
-
-        questions.forEach(q => {
-          const div = document.createElement("div");
-          div.className = "question";
-          div.innerHTML = `
-            <p>${q}</p>
-            <label><input type="radio" name="${q}" value="yes"> نعم</label>
-            <label><input type="radio" name="${q}" value="no"> لا</label>
-          `;
-          questionsContainer.appendChild(div);
-        });
-      } else {
-        showRoutine();
-      }
-    });
-
-    document.getElementById("continueBtn").addEventListener("click", showRoutine);
-
-    function showRoutine() {
-      questionsPanel.classList.add("hidden");
-      routinePanel.classList.remove("hidden");
-
-      finalRoutine = buildRoutine(detectedProblems);
-      routineContainer.innerHTML = "";
-
-      finalRoutine.forEach(r => {
-        const div = document.createElement("div");
-        div.className = "routine-card";
-        div.innerHTML = `
-          <strong>${r.ingredient}</strong>
-          <p>${r.role}</p>
-          <small>${r.usage}</small>
-        `;
-        routineContainer.appendChild(div);
-      });
-    }
-
-    document.getElementById("whatsappBtn").addEventListener("click", () => {
-      sendWhatsAppReport(detectedProblems, finalRoutine);
-    });
-  </script>
+<script src="face-ai.js"></script>
+<script src="routine.js"></script>
+<script src="script.js"></script>
 
 </body>
 </html>
-
