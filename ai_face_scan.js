@@ -1,47 +1,42 @@
 let isModelLoaded = false;
-async function loadAI() {
+async function initAI() {
+    const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
     try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights/');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
         isModelLoaded = true;
-    } catch (e) { isModelLoaded = true; }
+        document.getElementById('loading-overlay').style.display = 'none';
+    } catch (err) { console.error("AI Error", err); }
 }
-loadAI();
+initAI();
 
 async function analyzeSkin(source) {
-    let detection = null;
-    if (isModelLoaded) {
-        try {
-            detection = await faceapi.detectSingleFace(source, new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.1 }));
-        } catch(e) {}
-    }
+    if (!isModelLoaded) return null;
+    const detection = await faceapi.detectSingleFace(source, new faceapi.TinyFaceDetectorOptions());
+    if (!detection) return null;
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = 150; canvas.height = 150;
-
-    if (detection) {
-        const { x, y, width, height } = detection.box;
-        ctx.drawImage(source, x, y, width, height, 0, 0, 150, 150);
-    } else {
-        ctx.drawImage(source, 0, 0, source.width || 300, source.height || 300, 0, 0, 150, 150);
-    }
+    ctx.drawImage(source, detection.box.x, detection.box.y, detection.box.width, detection.box.height, 0, 0, 150, 150);
 
     const data = ctx.getImageData(0, 0, 150, 150).data;
-    let rSum = 0, gSum = 0, bSum = 0, redPoints = 0, darkPoints = 0;
-
+    let red = 0, dark = 0, veryDark = 0, gray = 0, total = data.length / 4;
+    
     for (let i = 0; i < data.length; i += 4) {
-        let r = data[i], g = data[i+1], b = data[i+2];
-        rSum += r; gSum += g; bSum += b;
-        if (r > g + 40 && r > b + 40) redPoints++; // حبوب
-        if ((r + g + b) / 3 < 115 && r > b + 15) darkPoints++; // تصبغات
+        let avg = (data[i] + data[i+1] + data[i+2]) / 3;
+        if (data[i] > data[i+1] + 60) red++; 
+        if (avg < 90) dark++; 
+        if (avg < 55) veryDark++; 
+        if (avg < 125) gray++; 
     }
 
-    const avg = (rSum + gSum + bSum) / (150 * 150 * 3);
     return {
-        type: avg > 175 ? "dry" : (avg < 125 ? "oily" : "normal"),
-        acne: (redPoints / 22500) * 100 > 0.5,
-        pigment: (darkPoints / 22500) * 100 > 1.0,
-        glow: Math.max(30, 100 - (redPoints + darkPoints) / 150),
-        hydration: Math.min(99, avg / 2.2)
+        indicators: {
+            acne: (red/total)*100 > 2.5,
+            pigment: (dark/total)*100 > 10,
+            isDeep: (veryDark/total)*100 > 3.5,
+            dark_circles: (dark/total)*100 > 8,
+            dryness: (gray/total)*100 > 35
+        }
     };
 }
