@@ -3,40 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI - Deep Facial Analysis</title>
+    <title>VERONA AI - Professional Diagnosis</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --gold: #d4af37; --bg: #000; }
+        :root { --gold: #d4af37; --bg: #000; --card: #151515; }
         body { background: var(--bg); color: #fff; font-family: sans-serif; text-align: center; margin: 0; }
-        .container { padding: 20px; max-width: 500px; margin: auto; }
-        .preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #111; }
-        video, canvas { width: 100%; display: block; }
-        #overlay { position: absolute; top: 0; left: 0; z-index: 10; pointer-events: none; }
-        .btn { background: var(--gold); color: #000; padding: 15px 30px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .status-card { background: #1a1a1a; padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid #333; text-align: right; }
+        .container { padding: 15px; max-width: 500px; margin: auto; }
+        .preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #111; border: 2px solid #333; }
+        video, canvas { width: 100%; }
+        #overlay { position: absolute; top: 0; left: 0; z-index: 10; }
+        .action-btn { background: var(--gold); color: #000; padding: 18px; width: 100%; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 1.1rem; }
+        .result-card { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--gold); text-align: right; animation: slideUp 0.5s ease; }
         .hidden { display: none; }
         .loader { color: var(--gold); padding: 20px; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>VERONA <span style="color:var(--gold)">AI VISION PRO</span></h2>
-    
-    <div id="loadingMsg" class="loader">جاري تحميل محرك الذكاء الاصطناعي...</div>
+    <h2 style="margin-bottom:10px;">VERONA <span style="color:var(--gold)">AI VISION PRO</span></h2>
+    <div id="loadingMsg" class="loader">جاري تشغيل محرك الذكاء الاصطناعي...</div>
 
     <div class="preview-box">
-        <video id="input_video"></video>
+        <video id="input_video" playsinline></video>
         <canvas id="overlay"></canvas>
     </div>
 
-    <button class="btn" onclick="startScanning()">بدء الفحص المجهري</button>
+    <button id="scanBtn" class="action-btn" onclick="processSkinAnalysis()">تحليل الحالة الآن 🔬</button>
 
-    <div id="resultCard" class="status-card hidden">
-        <h3 id="diagnosisTitle" style="color:var(--gold)">--</h3>
-        <p id="diagnosisText">--</p>
-        <div id="eyeAnalysis" style="border-top:1px solid #333; padding-top:10px;"></div>
+    <div id="resultCard" class="result-card hidden">
+        <h3 id="resTitle" style="color:var(--gold); margin-top:0;">نتائج الفحص المجهري</h3>
+        <div id="resDetails"></div>
+        <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
+        <button class="action-btn" style="background:#25d366; color:white;" onclick="sendWhatsApp()">إرسال التقرير للواتساب ✅</button>
     </div>
 </div>
 
@@ -44,71 +47,98 @@
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d');
+let lastResults = null;
 
-// إعداد Face Mesh من Google
-const faceMesh = new FaceMesh({locateFile: (file) => {
-    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-}});
-
-faceMesh.setOptions({
-    maxNumFaces: 1,
-    refineLandmarks: true,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
+const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
+faceMesh.onResults((results) => {
+    document.getElementById('loadingMsg').classList.add('hidden');
+    lastResults = results;
+    drawFrame(results);
 });
 
-faceMesh.onResults(onResults);
-
-function onResults(results) {
-    document.getElementById('loadingMsg').classList.add('hidden');
+function drawFrame(results) {
     canvasElement.width = videoElement.videoWidth;
     canvasElement.height = videoElement.videoHeight;
-    
-    canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    
     if (results.multiFaceLandmarks) {
         for (const landmarks of results.multiFaceLandmarks) {
-            // رسم نقاط الوجه (اختياري - للزينة والاحترافية)
-            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color: '#d4af37', lineWidth: 0.5});
-            
-            // هنا تكمن القوة: استخراج منطقة تحت العين بدقة
-            analyzeSkinAreas(landmarks, results.image);
+            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color: '#d4af3733', lineWidth: 0.5});
         }
     }
-    canvasCtx.restore();
 }
 
-function analyzeSkinAreas(landmarks, image) {
-    // نقطة تحت العين اليمنى (Index 350) واليسرى (Index 130)
-    // الكود الآن يعرف مكان الهالات بالضبط!
-    const rightEyeUnder = landmarks[350];
-    const cheekArea = landmarks[425];
+async function processSkinAnalysis() {
+    if (!lastResults || !lastResults.multiFaceLandmarks) {
+        alert("يرجى توجيه الوجه نحو الكاميرا أولاً");
+        return;
+    }
 
-    // سيتم استدعاء تحليل اللون لهذه النقاط فقط
-    // وهذا يمنع اعتبار "ظلال الرضيع" تصبغات لأنه سيفحص فقط الجلد المستوي
-}
-
-function startScanning() {
-    const camera = new Camera(videoElement, {
-        onFrame: async () => {
-            await faceMesh.send({image: videoElement});
-        },
-        width: 640,
-        height: 480
-    });
-    camera.start();
+    document.getElementById('scanBtn').innerText = "جاري القراءة...";
+    const landmarks = lastResults.multiFaceLandmarks[0];
     
-    setTimeout(() => {
-        document.getElementById('resultCard').classList.remove('hidden');
-        document.getElementById('diagnosisTitle').innerText = "تم تحليل 468 نقطة";
-        document.getElementById('diagnosisText').innerText = "تم عزل الظلال وفحص تصبغات الوجنتين والهالات السوداء بدقة مجهرية.";
-    }, 3000);
+    // إنشاء كانفاس مخفي لتحليل البكسلات
+    const tempCanvas = document.createElement('canvas');
+    const tCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = videoElement.videoWidth;
+    tempCanvas.height = videoElement.videoHeight;
+    tCtx.drawImage(videoElement, 0, 0);
+
+    // دالة لجلب لون بكسل عند نقطة معينة
+    function getPixelColor(landmark) {
+        const x = landmark.x * tempCanvas.width;
+        const y = landmark.y * tempCanvas.height;
+        const p = tCtx.getImageData(x, y, 1, 1).data;
+        return (p[0] + p[1] + p[2]) / 3; // السطوع
+    }
+
+    // تحليل المناطق:
+    const forehead = getPixelColor(landmarks[10]); // الجبهة (مرجع)
+    const leftEye = getPixelColor(landmarks[230]); // تحت العين اليسرى
+    const rightEye = getPixelColor(landmarks[450]); // تحت العين اليمنى
+    const cheek = getPixelColor(landmarks[205]);   // الوجنة
+
+    const darkCircleRatio = ((leftEye + rightEye) / 2) / forehead;
+    const pigmentRatio = cheek / forehead;
+
+    let title = "", desc = "", score = 95;
+
+    // المنطق الاحترافي للنتائج
+    if (darkCircleRatio < 0.75) {
+        title = "تم رصد هالات سوداء 👁️";
+        desc = "يوجد تباين لوني تحت العين بنسبة " + Math.round((1-darkCircleRatio)*100) + "%. ننصح بكريمات تحتوي على الكافيين وفيتامين K.";
+        score = 78;
+    } else if (pigmentRatio < 0.82) {
+        title = "تصبغات / نمش مكتشف 🔍";
+        desc = "تم رصد تفاوت في لون الوجنتين مقارنة بالجبهة. يفضل استخدام سيروم تفتيح وواقي شمس.";
+        score = 82;
+    } else {
+        title = "بشرة صافية ومستقرة ✅";
+        desc = "توزيع الإضاءة على نقاط الوجه متساوي جداً. بشرتك في حالة صحية ممتازة.";
+        score = 98;
+    }
+
+    showFinalResult(title, desc, score);
 }
 
-// استدعاء ملفات التحكم في الكاميرا
+function showFinalResult(title, desc, score) {
+    document.getElementById('resultCard').classList.remove('hidden');
+    document.getElementById('resTitle').innerText = title;
+    document.getElementById('resDetails').innerHTML = `<p>${desc}</p><p>درجة صحة البشرة: <b>${score}%</b></p>`;
+    document.getElementById('scanBtn').innerText = "إعادة الفحص 🔄";
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
+const camera = new Camera(videoElement, {
+    onFrame: async () => { await faceMesh.send({image: videoElement}); },
+    width: 640, height: 480
+});
+camera.start();
+
+function sendWhatsApp() {
+    const text = `تقرير فيرونا AI:%0Aالحالة: ${document.getElementById('resTitle').innerText}%0Aالتفاصيل: ${document.getElementById('resDetails').innerText}`;
+    window.open(`https://wa.me/201063994139?text=${text}`);
+}
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 </body>
 </html>
