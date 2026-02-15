@@ -1,43 +1,55 @@
-function analyzeFace(image) {
-  console.log("🧠 AI analyzing image...");
+const videoElement = document.getElementById('input_video');
+const canvasElement = document.getElementById('overlay');
+const canvasCtx = canvasElement.getContext('2d', {willReadFrequently:true});
+let faceMesh;
+let lastResults = null;
+let currentImg = null;
 
-  const indicators = [];
-  const brightness = getBrightness(image); // سطوع الصورة
-  const redness = Math.random();            // محاكاة الاحمرار
-  const pigmentation = Math.random();       // محاكاة التصبغات
+async function setupFaceMesh() {
+    faceMesh = new FaceMesh({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+    });
+    faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
+    faceMesh.onResults(onResults);
+    document.getElementById('status').innerText = "المحرك جاهز للفحص ✅";
+}
+setupFaceMesh();
 
-  // تعليمات للمستخدم
-  const instructionsDiv = document.getElementById("instructions");
-  if (brightness < 50) {
-    instructionsDiv.innerText = "⚠️ الإضاءة ضعيفة، حاول زيادة الضوء";
-  } else {
-    instructionsDiv.innerText = "✅ الصورة واضحة";
-  }
+function onResults(results) {
+    lastResults = results;
+    canvasElement.width = canvasElement.clientWidth;
+    canvasElement.height = (currentImg) ? (currentImg.height*(canvasElement.width/currentImg.width)) : videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
 
-  if (redness > 0.4) indicators.push("احمرار / تهيج محتمل");
-  if (pigmentation > 0.4) indicators.push("تصبغات داكنة محتملة");
-  if (indicators.length === 0) indicators.push("بشرة متوازنة");
+    canvasCtx.save();
+    canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
+    canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
 
-  document.getElementById("indicatorsList").innerHTML =
-    indicators.map(i => `<li>• ${i}</li>`).join("");
-
-  document.getElementById("evidence-panel").classList.remove("hidden");
-
-  return { redness, pigmentation, brightness };
+    if (results.multiFaceLandmarks) {
+        for (const landmarks of results.multiFaceLandmarks) {
+            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color:'#d4af3744', lineWidth:0.5});
+        }
+    }
+    canvasCtx.restore();
 }
 
-// دالة تقدير سطوع الصورة
-function getBrightness(image) {
-  const canvas = document.createElement("canvas");
-  canvas.width = image.width || 320;
-  canvas.height = image.height || 240;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-  const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
-  let colorSum = 0;
-  for(let i=0; i<data.length; i+=4){
-    const avg = (data[i]+data[i+1]+data[i+2])/3;
-    colorSum += avg;
-  }
-  return colorSum / (canvas.width*canvas.height);
+async function initCamera() {
+    currentImg = null;
+    videoElement.classList.remove('hidden');
+    const camera = new Camera(videoElement, {
+        onFrame: async () => { await faceMesh.send({image:videoElement}); }
+    });
+    camera.start();
+}
+
+function processFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const img = new Image();
+    img.onload = async () => {
+        currentImg = img;
+        videoElement.classList.add('hidden');
+        document.getElementById('status').innerText = "يتم الآن رسم خريطة الوجه...";
+        await faceMesh.send({image:img});
+    };
+    img.src = URL.createObjectURL(file);
 }
