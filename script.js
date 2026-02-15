@@ -1,18 +1,16 @@
 const expertDB = {
-    acne: { title: "بشرة معرضة للحبوب", active: "Salicylic Acid", products: { budget: "Starville Soap", super: "Starville Gel", premium: "Effaclar Duo+" } },
-    pigment: { title: "تصبغات ونمش", active: "Vit C / Alpha Arbutin", products: { budget: "Garnier Bright", super: "Natavis Serum", premium: "Vichy C10" } },
-    clear: { title: "بشرة متوازنة", active: "Hyaluronic Acid", products: { budget: "Eva Skin", super: "L'Oreal Serum", premium: "Vichy Mineral 89" } }
+    acne: { title: "معرضة للحبوب", products: { budget: "Starville Soap", super: "Starville Gel", premium: "Effaclar Duo+" } },
+    pigment: { title: "تصبغات ونمش", products: { budget: "Garnier Bright", super: "Natavis Serum", premium: "Vichy C10" } },
+    clear: { title: "بشرة متوازنة", products: { budget: "Eva Skin", super: "L'Oreal Serum", premium: "Vichy Mineral 89" } }
 };
 
-let session = { ai: null, level: 'super' };
+let currentResult = null;
 
 async function init() {
-    const v = document.getElementById('video');
     try {
-        const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        v.srcObject = s;
-        document.getElementById('loading-overlay').style.display = 'none';
-    } catch(e) {}
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        document.getElementById('video').srcObject = stream;
+    } catch(e) { console.log("Camera blocked"); }
 }
 init();
 
@@ -20,10 +18,11 @@ document.getElementById('scanBtn').onclick = () => process(document.getElementBy
 
 document.getElementById('imageUpload').onchange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-    const img = new Image();
-    img.onload = () => process(img);
-    img.src = URL.createObjectURL(file);
+    if (file) {
+        const img = new Image();
+        img.onload = () => process(img);
+        img.src = URL.createObjectURL(file);
+    }
 };
 
 async function process(src) {
@@ -32,55 +31,36 @@ async function process(src) {
     loader.innerText = "جاري استخراج النتائج...";
 
     try {
-        const res = await analyzeSkin(src);
-        if (res) {
-            session.ai = res;
-            showResults();
+        currentResult = await analyzeSkin(src);
+        if (currentResult) {
+            renderUI();
+        } else {
+            alert("لم نتمكن من تحليل الصورة، جرب صورة أوضح");
         }
-    } catch(err) {
-        console.error(err);
+    } catch (err) {
+        alert("حدث خطأ أثناء العرض، لكن النوع المكتشف: " + (currentResult ? currentResult.type : "غير معروف"));
     } finally {
         loader.style.display = 'none';
     }
 }
 
-function showResults() {
-    const container = document.getElementById('results');
-    const ind = session.ai.indicators;
+function renderUI() {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.style.cssText = "display: block !important; background: #fff; padding: 20px; color: #000; margin-top: 20px; border-radius: 10px;";
     
-    // إجبار الحاوية على الظهور
-    container.setAttribute("style", "display: block !important; opacity: 1; visibility: visible;");
+    let key = currentResult.acne ? 'acne' : (currentResult.pigment ? 'pigment' : 'clear');
+    let data = expertDB[key];
 
-    container.innerHTML = `
-        <div id="report" style="background:#fff; padding:20px; border-radius:15px; border:2px solid #c5a059; margin-top:20px; color:#000;">
-            <h2 style="text-align:center;">تقرير VERONA AI</h2>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:right;">
-                <p>النوع: <b>${ind.type}</b></p>
-                <p>العمر: <b>${ind.age}</b></p>
-                <p>النضارة: <b>${Math.round(ind.glow)}%</b></p>
-                <p>الترطيب: <b>${Math.round(ind.hydration)}%</b></p>
-            </div>
-            <div style="display:flex; gap:5px; margin:15px 0;">
-                <button onclick="updateLvl('budget')" style="flex:1; padding:8px;">اقتصادي</button>
-                <button onclick="updateLvl('super')" style="flex:1; padding:8px; background:#000; color:#fff;">سوبر</button>
-                <button onclick="updateLvl('premium')" style="flex:1; padding:8px;">بريميوم</button>
-            </div>
-            <div id="routine-info"></div>
-        </div>
-        <button onclick="window.open('https://wa.me/?text=تم فحص بشرتي بنجاح')" style="width:100%; padding:15px; background:#25d366; color:#fff; border:none; border-radius:50px; margin-top:10px; font-weight:bold;">واتساب ✅</button>
-    `;
-    updateLvl('super');
-    window.scrollTo({ top: container.offsetTop, behavior: 'smooth' });
-}
-
-function updateLvl(l) {
-    const ind = session.ai.indicators;
-    let key = ind.acne ? 'acne' : (ind.pigment ? 'pigment' : 'clear');
-    const data = expertDB[key];
-    document.getElementById('routine-info').innerHTML = `
-        <div style="border-top:1px solid #eee; padding-top:10px; text-align:right;">
-            <p>التشخيص: <b>${data.title}</b></p>
-            <p>المنتج: <b style="color:#c5a059;">${data.products[l]}</b></p>
+    resultsDiv.innerHTML = `
+        <div style="text-align: right; border: 2px solid #c5a059; padding: 15px; border-radius: 10px;">
+            <h2 style="text-align: center;">تقرير VERONA AI</h2>
+            <p>النوع: <b>${currentResult.type}</b></p>
+            <p>النضارة: <b>${Math.round(currentResult.glow)}%</b></p>
+            <p>الحالة: <b>${data.title}</b></p>
+            <hr>
+            <p>المنتج الموصى به (سوبر):<br><b style="color: #c5a059; font-size: 1.2rem;">${data.products.super}</b></p>
+            <button onclick="location.reload()" style="width: 100%; padding: 10px; margin-top: 10px; background: #eee; border: none;">إعادة الفحص 🔄</button>
         </div>
     `;
+    window.scrollTo(0, resultsDiv.offsetTop);
 }
