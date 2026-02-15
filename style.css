@@ -1,23 +1,181 @@
-:root { --black: #1a1a1a; --peach: #fdf2e9; --accent: #f5d5b8; }
-body { font-family: 'Segoe UI', sans-serif; direction: rtl; padding: 10px; background: #fff; }
-.container { max-width: 450px; margin: auto; }
-.brand-header { text-align: center; padding: 10px; }
-.main-logo { max-width: 140px; }
-.scanner-box { position: relative; border-radius: 35px; overflow: hidden; background: #000; aspect-ratio: 1/1; border: 2px solid var(--peach); }
-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-#loading-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 10; font-weight: bold; }
-.upload-controls { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-.primary-btn, .secondary-btn { padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; text-align: center; border: none; }
-.primary-btn { background: var(--black); color: white; }
-.secondary-btn { background: #4a4a4a; color: white; }
-.professional-report { background: white; padding: 20px; border-radius: 20px; border: 1px solid var(--peach); margin-top: 20px; }
-.confirmed-issues-panel { background: var(--peach); padding: 15px; border-radius: 12px; margin-bottom: 20px; border-right: 4px solid var(--accent); }
-.level-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
-.level-tabs button { flex: 1; padding: 10px; font-size: 0.8rem; border-radius: 8px; border: 1px solid #eee; background: white; font-weight: bold; }
-.level-tabs button.active { background: var(--accent); }
-.mapping-logic { background: #f7fafc; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 0.85rem; border-left: 3px solid var(--black); }
-.phase-card { background: #fafafa; padding: 15px; border-radius: 15px; margin-bottom: 10px; }
-.p-item { background: var(--peach); padding: 10px; border-radius: 8px; border: 1px dashed var(--accent); margin-top: 5px; }
-.wa-btn { width: 100%; padding: 18px; background: #25d366; color: white; border: none; border-radius: 15px; font-weight: bold; margin-top: 10px; }
-.q-block button { background: var(--black); color: white; border: none; padding: 10px 20px; border-radius: 10px; margin: 5px; cursor: pointer; }
-@media print { .wa-btn, .primary-btn, .level-tabs { display: none; } }
+/* Reset */
+* {
+  box-sizing: border-box;
+  font-family: "Cairo", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f5f7fa;
+  color: #222;
+}
+
+/* Header */
+.app-header {
+  background: linear-gradient(135deg, #2c7be5, #00d2ff);
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.app-header p {
+  margin-top: 6px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* Sections */
+.scan-section {
+  padding: 20px;
+  text-align: center;
+}
+
+.upload-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.upload-controls input,
+.upload-controls button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.upload-controls input {
+  background: #fff;
+  border: 1px solid #ccc;
+}
+
+.upload-controls button {
+  background: #2c7be5;
+  color: #fff;
+}
+
+/* Image preview */
+.image-preview {
+  margin: 15px 0;
+}
+
+.image-preview img {
+  max-width: 220px;
+  border-radius: 12px;
+  display: none;
+}
+
+.image-preview img[src] {
+  display: inline-block;
+}
+
+/* Scan button */
+#scanBtn {
+  background: #00c851;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#scanBtn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+/* Panels */
+.panel {
+  background: #fff;
+  margin: 20px;
+  padding: 15px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+/* Hidden */
+.hidden {
+  display: none;
+}
+
+/* Indicators */
+#indicatorsList {
+  padding-right: 20px;
+}
+
+#indicatorsList li {
+  margin-bottom: 6px;
+  color: #d6336c;
+  font-weight: 600;
+}
+
+/* Questions */
+.question {
+  background: #f1f3f5;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.question p {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.question label {
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+/* Routine cards */
+.routine-card {
+  background: linear-gradient(135deg, #fff, #f8f9fa);
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.routine-card strong {
+  display: block;
+  color: #2c7be5;
+  margin-bottom: 4px;
+}
+
+.routine-card small {
+  color: #555;
+}
+
+/* WhatsApp */
+#whatsappBtn {
+  background: #25d366;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Footer */
+.app-footer {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  padding: 15px;
+}
