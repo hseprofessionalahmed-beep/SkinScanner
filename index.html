@@ -1,46 +1,7 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-  <meta charset="UTF-8">
-  <title>AI Skin Scanner</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="app">
-    <h1>AI Skin Scanner</h1>
-
-    <!-- Username -->
-    <input type="text" id="username" placeholder="👤 اسم المستخدم">
-
-    <!-- Camera Capture -->
-    <div class="upload-box" style="position: relative;">
-      <video id="video" autoplay playsinline width="320" height="240" style="border-radius:12px; background:#000;"></video>
-      <canvas id="overlay" width="320" height="240" style="position:absolute; top:0; left:0;"></canvas>
-      <button id="captureBtn">📸 التقط الصورة</button>
-    </div>
-
-    <!-- Indicators -->
-    <div id="evidence-panel" class="hidden">
-      <h3>🔍 مؤشرات التحليل</h3>
-      <ul id="indicatorsList"></ul>
-    </div>
-
-    <!-- Instructions -->
-    <div id="instructions" class="hidden"></div>
-
-    <!-- Questions -->
-    <div id="questions" class="hidden"></div>
-
-    <!-- Result -->
-    <div id="result" class="hidden"></div>
-
-    <!-- WhatsApp -->
-    <button id="whatsappBtn" class="hidden" onclick="sendWhatsApp()">📲 إرسال الروتين واتساب</button>
-  </div>
-
-  <script src="face-ai.js"></script>
-  <script src="routine.js"></script>
-  <script src="script.js"></script>
-</body>
-</html>
+<div class="upload-box" style="position: relative;">
+  <video id="video" autoplay playsinline width="320" height="240" style="border-radius:12px; background:#000;"></video>
+  <canvas id="overlay" width="320" height="240" style="position:absolute; top:0; left:0;"></canvas>
+</div>
+<!-- ضع الزر خارج الفيديو/Canvas -->
+<button id="captureBtn">📸 التقط الصورة</button>
+<div id="instructions" class="hidden"></div>
