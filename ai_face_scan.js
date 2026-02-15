@@ -4,9 +4,8 @@ async function loadAI() {
     try {
         await faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights/');
         isModelLoaded = true;
-        console.log("AI Ready");
     } catch (e) {
-        console.warn("Using Color Scan Mode");
+        console.warn("Mode: Color Analysis Only");
         isModelLoaded = true;
     }
 }
@@ -29,7 +28,6 @@ async function analyzeSkin(source) {
         const { x, y, width, height } = detection.box;
         ctx.drawImage(source, x, y, width, height, 0, 0, 150, 150);
     } else {
-        // إذا لم يجد وجهاً، يحلل وسط الصورة تلقائياً
         ctx.drawImage(source, 0, 0, source.width || 300, source.height || 300, 0, 0, 150, 150);
     }
 
@@ -45,13 +43,11 @@ async function analyzeSkin(source) {
 
     const avg = (rSum + gSum + bSum) / (150 * 150 * 3);
     return {
-        indicators: {
-            type: avg > 170 ? "جافة" : (avg < 120 ? "دهنية" : "عادية"),
-            acne: (acne / 22500) * 100 > 0.5,
-            pigment: (pigment / 22500) * 100 > 1.0,
-            glow: Math.max(30, 100 - (acne + pigment)/150),
-            hydration: Math.min(99, avg / 2.2),
-            age: Math.floor(18 + (pigment / 900))
-        }
+        type: avg > 175 ? "جافة" : (avg < 125 ? "دهنية" : "عادية"),
+        acne: (acne / 22500) * 100 > 0.5,
+        pigment: (pigment / 22500) * 100 > 1.0,
+        glow: Math.max(30, 100 - (acne + pigment)/150),
+        hydration: Math.min(99, avg / 2.2),
+        age: Math.floor(18 + (pigment / 900))
     };
 }
