@@ -13,12 +13,11 @@
     <input type="text" id="username" placeholder="👤 اسم المستخدم">
 
     <div class="upload-box" style="position: relative;">
-      <video id="video" autoplay playsinline width="320" height="240" style="border-radius:12px; background:#000;"></video>
-      <canvas id="overlay" width="320" height="240" style="position:absolute; top:0; left:0;"></canvas>
+      <video id="video" autoplay playsinline width="320" height="240" style="border-radius:12px; background:#000; z-index:1;"></video>
+      <canvas id="overlay" width="320" height="240" style="position:absolute; top:0; left:0; z-index:2;"></canvas>
     </div>
 
-    <!-- ضع الزر خارج الفيديو/Canvas -->
-    <button id="captureBtn">📸 التقط الصورة</button>
+    <button id="captureBtn" style="margin-top:10px;">📸 التقط الصورة</button>
 
     <div id="instructions" class="hidden"></div>
 
