@@ -8,16 +8,15 @@ const ctx = overlay.getContext("2d");
 const instructionsDiv = document.getElementById("instructions");
 const captureBtn = document.getElementById("captureBtn");
 
-// تعطيل الزر حتى تشغيل الكاميرا
-captureBtn.disabled = true;
+captureBtn.disabled = true; // تعطيل الزر حتى تشغيل الكاميرا
 
-// تشغيل الكاميرا
+// بدء الكاميرا
 async function initCamera() {
   try {
-    videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
     video.srcObject = videoStream;
 
-    // تأكد أن الفيديو جاهز للعرض
+    // انتظر الفيديو ليصبح جاهز
     await new Promise(resolve => {
       video.onloadedmetadata = () => {
         video.play();
@@ -25,10 +24,8 @@ async function initCamera() {
       };
     });
 
-    // تفعيل الزر الآن
-    captureBtn.disabled = false;
+    captureBtn.disabled = false; // تفعيل الزر بعد جاهزية الفيديو
 
-    // دعم FaceDetector
     if ('FaceDetector' in window) {
       detector = new FaceDetector({ fastMode: true });
     } else {
@@ -40,15 +37,15 @@ async function initCamera() {
 
   } catch (err) {
     alert("❗ لم يتمكن التطبيق من الوصول للكاميرا. تأكد من السماح بالوصول.");
+    console.error(err);
   }
 }
 
-// رسم المربع التفاعلي
+// رسم المربع التفاعلي على الفيديو
 async function drawFaceOverlay() {
   ctx.clearRect(0, 0, overlay.width, overlay.height);
-
-  let color = 'red';
   let message = "";
+  let color = 'red';
 
   if (detector) {
     try {
@@ -64,29 +61,20 @@ async function drawFaceOverlay() {
         const centered = Math.abs(centerX - overlay.width/2) < overlay.width*0.2 &&
                          Math.abs(centerY - overlay.height/2) < overlay.height*0.2;
 
-        if (sizeGood && centered) {
-          color = 'green';
-          message = "👍 وجهك جيد ومستعد للفحص";
-        } else {
-          color = 'red';
-          if (!sizeGood) message = "⚠️ اقترب أكثر للكاميرا";
-          else if (!centered) message = "⚠️ ضع وجهك في منتصف الكاميرا";
-        }
+        color = (sizeGood && centered) ? 'green' : 'red';
+        message = (sizeGood && centered) ? "👍 وجهك جيد ومستعد للفحص" :
+                  !sizeGood ? "⚠️ اقترب أكثر للكاميرا" :
+                  "⚠️ ضع وجهك في منتصف الكاميرا";
 
         ctx.strokeStyle = color;
         ctx.lineWidth = 3;
         ctx.strokeRect(face.x, face.y, face.width, face.height);
-
       } else {
         message = "⚠️ لم يتم التعرف على الوجه، واجه الكاميرا مباشرة";
       }
-    } catch (err) {
-      console.log("Face detection failed:", err);
-    }
-  }
-
-  // Fallback: مستطيل أصفر
-  if (!detector) {
+    } catch(e) { console.log(e); }
+  } else {
+    // fallback مستطيل اصفر
     ctx.strokeStyle = 'yellow';
     ctx.lineWidth = 2;
     ctx.strokeRect(overlay.width*0.25, overlay.height*0.15, overlay.width*0.5, overlay.height*0.7);
@@ -99,9 +87,9 @@ async function drawFaceOverlay() {
   requestAnimationFrame(drawFaceOverlay);
 }
 
-// التقاط الصورة والتحقق من الإضاءة
+// التقاط الصورة مع التحقق من جاهزية الفيديو
 async function captureImage() {
-  if (video.videoWidth === 0 || video.videoHeight === 0) {
+  if (!video.videoWidth || !video.videoHeight) {
     alert("❗ الفيديو غير جاهز بعد، انتظر ثوانٍ ثم حاول مرة أخرى");
     return;
   }
@@ -112,6 +100,7 @@ async function captureImage() {
   const ctxCapture = canvasCapture.getContext("2d");
   ctxCapture.drawImage(video, 0, 0, canvasCapture.width, canvasCapture.height);
 
+  // التحقق من الإضاءة
   const imageData = ctxCapture.getImageData(0,0,canvasCapture.width,canvasCapture.height);
   let brightness = 0;
   for (let i=0;i<imageData.data.length;i+=4){
@@ -132,7 +121,7 @@ function startScan(imgOrCanvas){
   startQuestions();
 }
 
-// الأسئلة
+// أسئلة تتابعية
 function startQuestions() {
   const q = document.getElementById("questions");
   q.classList.remove("hidden");
@@ -157,6 +146,5 @@ function answerAcne(hasAcne){
   `;
 }
 
-// أحداث
 captureBtn.addEventListener("click", captureImage);
-window.addEventListener("load", initCamera);
+window.addEventListener("load", initCamera);ط
