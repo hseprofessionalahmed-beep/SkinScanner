@@ -1,155 +1,82 @@
-// 1. قاعدة بيانات المنتجات والمنطق (كانت مفقودة)
-const skinTypeLogic = {
-    oily: { name: "دهنية", traits: "لمعان ومسام واسعة" },
-    dry: { name: "جافة", traits: "ملمس مشدود وقشور" },
-    combined: { name: "مختلطة", traits: "T-Zone دهنية" },
-    normal: { name: "عادية", traits: "متوازنة" }
+const skinTypeData = {
+    oily: { name: "دهنية", label: "نشاط دهني ملحوظ" },
+    dry: { name: "جافة", label: "نقص في الترطيب الطبيعي" },
+    normal: { name: "عادية", label: "توازن مثالي" }
 };
 
-const expertLogic = {
-    pigmentation_surface: {
-        title: "تصبغات سطحية / نمش",
-        active: "Alpha Arbutin + Vitamin C",
-        levels: {
-            budget: { name: "Garnier Fast Bright", why: "تفتيح اقتصادي." },
-            super: { name: "Natavis Whitening Serum", why: "علاج مركز لتوحيد اللون." },
-            premium: { name: "La Roche-Posay Pure Vit C10", why: "نضارة فرنسية طبية." }
-        }
-    },
-    acne: {
-        title: "بشرة معرضة للحبوب",
-        active: "Salicylic Acid (BHA)",
-        levels: {
-            budget: { name: "Starville Acne Soap", why: "تنظيف عميق للمسام." },
-            super: { name: "Starville Acne Serum", why: "علاج الحبوب وتهدئة البشرة." },
-            premium: { name: "Effaclar Duo(+)", why: "علاج متكامل للحبوب والآثار." }
-        }
-    },
-    dark_circles: {
-        title: "هالات وإجهاد العين",
-        active: "Caffeine + Hyaluronic",
-        levels: {
-            budget: { name: "Garnier Eye Roll-on", why: "ترطيب وتبريد." },
-            super: { name: "Starville Eye Contour", why: "تقليل الهالات والانتفاخ." },
-            premium: { name: "Vichy Mineral 89 Eyes", why: "إصلاح حاجز البشرة حول العين." }
-        }
-    }
+const expertDatabase = {
+    acne: { title: "بشرة معرضة للحبوب", active: "Salicylic Acid", products: { budget: "Starville Acne Soap", super: "Starville Gel", premium: "Effaclar Duo+" } },
+    pigment: { title: "تصبغات ونمش", active: "Vitamin C + Arbutin", products: { budget: "Garnier Bright", super: "Natavis Serum", premium: "La Roche Pure C10" } },
+    clear: { title: "بشرة صافية", active: "Hyaluronic Acid", products: { budget: "Eva Skin", super: "L'Oreal Revitalift", premium: "Vichy 89" } }
 };
 
-// 2. متغيرات الجلسة
-const video = document.getElementById('video');
-const loading = document.getElementById('loading-overlay');
-const imgUpload = document.getElementById('imageUpload');
-let sessionData = { ai: null, answers: {}, level: 'super' };
+let sessionData = { ai: null, level: 'super' };
 
-// 3. تشغيل الكاميرا
-async function startCamera() {
+// تشغيل الكاميرا فورياً
+async function init() {
+    const video = document.getElementById('video');
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         video.srcObject = stream;
-    } catch (e) { 
-        if(loading) loading.innerText = "يرجى السماح بالكاميرا أو رفع صورة";
-    }
+    } catch (e) { console.error("Camera error"); }
 }
-startCamera();
+init();
 
-// 4. معالجة الصور
-document.getElementById('scanBtn').addEventListener('click', () => processSource(video));
-imgUpload.addEventListener('change', async (e) => {
-    if (e.target.files[0]) {
-        const img = await faceapi.bufferToImage(e.target.files[0]);
-        processSource(img);
-    }
-});
+document.getElementById('scanBtn').onclick = () => process(document.getElementById('video'));
+document.getElementById('imageUpload').onchange = async (e) => {
+    const img = await faceapi.bufferToImage(e.target.files[0]);
+    process(img);
+};
 
-async function processSource(source) {
-    loading.style.display = 'flex';
-    loading.innerText = "جاري الفحص المجهري...";
-    // التأكد من وجود دالة analyzeSkin في الملف الآخر
-    if (typeof analyzeSkin === "function") {
-        sessionData.ai = await analyzeSkin(source);
-        loading.style.display = 'none';
-        if (sessionData.ai) showDecisionTree();
-    } else {
-        alert("خطأ: محرك التحليل لم يتم تحميله بعد.");
-    }
+async function process(src) {
+    const loader = document.getElementById('loading-overlay');
+    loader.style.display = 'flex';
+    loader.innerText = "تحليل مجهري للطبقات...";
+    
+    sessionData.ai = await analyzeSkin(src);
+    loader.style.display = 'none';
+    
+    if (sessionData.ai) renderReport();
+    else alert("لم يتم التعرف على الوجه");
 }
 
-function showDecisionTree() {
-    const results = document.getElementById("results");
-    results.style.display = "block";
+function renderReport() {
+    const res = document.getElementById('results');
+    res.style.display = 'block';
     const ind = sessionData.ai.indicators;
     
-    // إذا كانت البشرة صافية تماماً (مثل حالة الطفل السليم)
-    if (!ind.acne && !ind.pigment && ind.glow > 85) {
-        renderFinal();
-        return;
-    }
-
-    let html = `<div class="professional-report"><div class="q-block">`;
-    if (ind.pigment) {
-        html += `<h3>تحليل البقع المكتشفة:</h3><p>هل تلاحظين أن النمش يزداد وضوحاً مع الشمس؟</p>
-                 <button onclick="saveStep('depth', 'surface')">نعم</button>
-                 <button onclick="saveStep('depth', 'deep')">لا، بقع ثابتة</button>`;
-    } else {
-        html += `<p>اكتمل التحليل. عرض النتائج؟</p><button onclick="renderFinal()">نعم</button>`;
-    }
-    results.innerHTML = html + `</div></div>`;
-    results.scrollIntoView({ behavior: 'smooth' });
-}
-
-function saveStep(k, v) { sessionData.answers[k] = v; renderFinal(); }
-
-function renderFinal() {
-    const results = document.getElementById("results");
-    const ind = sessionData.ai.indicators;
-    
-    results.innerHTML = `
-        <div class="professional-report" id="report-to-print">
-            <h2 class="report-title">VERONA AI REPORT</h2>
-            <div class="analysis-grid">
-                <div class="grid-item"><strong>👤 النوع:</strong> <span>${skinTypeLogic[ind.type].name}</span></div>
-                <div class="grid-item"><strong>⏳ العمر:</strong> <span>${ind.skinAge} سنة</span></div>
-                <div class="grid-item"><strong>💧 الترطيب:</strong> <span>${Math.round(ind.hydration)}%</span></div>
-                <div class="grid-item"><strong>🌟 النضارة:</strong> <span>${Math.round(ind.glow)}%</span></div>
-                <div class="grid-item"><strong>🚫 الحبوب:</strong> <span>${ind.acne ? 'مرصودة' : 'صافية'}</span></div>
-                <div class="grid-item"><strong>✨ التصبغات:</strong> <span>${ind.pigment ? 'موجودة' : 'لا يوجد'}</span></div>
+    res.innerHTML = `
+        <div class="report-card" id="pdf-content">
+            <h2 class="report-head">تقرير الحالة الرقمي</h2>
+            <div class="stats-grid">
+                <div class="stat"><span>النوع</span><strong>${skinTypeData[ind.type].name}</strong></div>
+                <div class="stat"><span>العمر التقديري</span><strong>${ind.skinAge} سنة</strong></div>
+                <div class="stat"><span>النضارة</span><strong>${Math.round(ind.glow)}%</strong></div>
+                <div class="stat"><span>الترطيب</span><strong>${Math.round(ind.hydration)}%</strong></div>
             </div>
-            <div class="level-tabs">
-                <button id="l-budget" onclick="updateLvl('budget')">اقتصادي</button>
-                <button id="l-super" class="active" onclick="updateLvl('super')">سوبر</button>
-                <button id="l-premium" onclick="updateLvl('premium')">بريميوم</button>
-            </div>
-            <div id="report-content"></div>
-        </div>`;
-    updateLvl('super');
+            <div id="routine-box"></div>
+        </div>
+        <button onclick="downloadPDF()" class="pdf-btn">تحميل التقرير PDF 📄</button>
+    `;
+    updateRoutine();
 }
 
-function updateLvl(lvl) {
-    sessionData.level = lvl;
-    document.querySelectorAll('.level-tabs button').forEach(b => b.classList.remove('active'));
-    document.getElementById('l-' + lvl).classList.add('active');
-
+function updateRoutine() {
     const ind = sessionData.ai.indicators;
-    
-    if (!ind.acne && !ind.pigment && ind.glow > 85) {
-        document.getElementById('report-content').innerHTML = `
-            <div class="treatment-box" style="background:#28a745;">
-                <h4>بشرة مثالية ✨</h4>
-                <p>بشرتك صحية جداً. ننصح فقط بواقي الشمس SPF50.</p>
-            </div>`;
-        return;
-    }
+    let key = ind.acne ? 'acne' : (ind.pigment ? 'pigment' : 'clear');
+    const data = expertDatabase[key];
+    const product = data.products[sessionData.level];
 
-    let key = ind.acne ? 'acne' : (ind.pigment ? 'pigmentation_surface' : 'dark_circles');
-    const data = expertLogic[key];
-    const p = data.levels[lvl];
+    document.getElementById('routine-box').innerHTML = `
+        <div class="routine-info">
+            <h3>الهدف المكتشف: ${data.title}</h3>
+            <p>المادة الأساسية: ${data.active}</p>
+            <div class="product-item">المنتج المقترح: <b>${product}</b></div>
+        </div>
+    `;
+}
 
-    let html = `<div class="treatment-box"><h4>🛡️ الخطة العلاجية:</h4><p>المادة الفعالة: ${data.active}</p></div>`;
-    [1, 2, 3].forEach(n => {
-        let title = n===1 ? "غسول" : (n===2 ? "علاج" : "حماية");
-        let desc = n===1 ? `مناسب للبشرة ${skinTypeLogic[ind.type].name}` : (n===2 ? `<b>${p.name}</b>` : "Sunblock SPF50+");
-        html += `<div class="phase-card"><h4>مرحلة ${n}</h4><p>${desc}</p></div>`;
-    });
-    document.getElementById('report-content').innerHTML = html;
+function downloadPDF() {
+    const element = document.getElementById('pdf-content');
+    html2pdf().from(element).save('Verona-Report.pdf');
 }
