@@ -3,7 +3,7 @@ function analyzeFace(image) {
 
   const indicators = [];
 
-  // تحليل الألوان بشكل نسبي
+  // تحليل ألوان البشرة بشكل نسبي (محاكاة AI Vision)
   const redness = Math.random();      // محاكاة الاحمرار
   const pigmentation = Math.random(); // محاكاة التصبغات
 
@@ -11,7 +11,6 @@ function analyzeFace(image) {
   if (pigmentation > 0.4) indicators.push("تصبغات داكنة محتملة");
   if (indicators.length === 0) indicators.push("بشرة متوازنة");
 
-  // عرض النتائج
   document.getElementById("indicatorsList").innerHTML =
     indicators.map(i => `<li>• ${i}</li>`).join("");
 
