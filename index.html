@@ -1,47 +1,77 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skin Scanner Pro</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VERONA AI Skin Scanner</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
-<div class="app">
+<div class="app-container">
+    <header>
+        <div class="logo-box">
+            <img src="logo.png" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3065/3065319.png'">
+        </div>
+        <h1>VERONA <span class="gold-text">AI SCANNER</span></h1>
+        <p class="subtitle">تحليل احترافي مدعوم بالذكاء الاصطناعي</p>
+    </header>
 
-  <!-- Logo -->
-  <div class="logo-container">
-    <img src="logo.png" class="logo-img">
-  </div>
+    <main>
+        <div class="mode-cards">
+            <div class="card" onclick="chooseMode('camera')">
+                <span class="icon">📸</span>
+                <span>كاميرا</span>
+            </div>
+            <div class="card" onclick="document.getElementById('imageInput').click()">
+                <span class="icon">📁</span>
+                <span>رفع صورة</span>
+            </div>
+            <input type="file" id="imageInput" accept="image/*" class="hidden">
+        </div>
 
-  <h2>تحليل البشرة الذكي</h2>
+        <div class="preview-area">
+            <video id="video" autoplay playsinline class="hidden"></video>
+            <canvas id="canvas" class="hidden"></canvas>
+            <button id="captureBtn" class="action-btn hidden">بدء الفحص الآن</button>
+        </div>
 
-  <!-- اختيار الوضع -->
-  <div class="mode-select">
-    <button onclick="chooseMode('camera')">📸 كاميرا</button>
-    <button onclick="chooseMode('file')">📁 رفع صورة</button>
-  </div>
+        <div id="analysisResult" class="result-card hidden">
+            <h3>نتائج الفحص الرقمي</h3>
+            <div class="score-container">
+                <div class="score-circle">
+                    <span id="skinScore">--</span>
+                    <small>درجة الصحة</small>
+                </div>
+            </div>
+            <canvas id="skinChart"></canvas>
+            <div id="analysisText" class="status-list"></div>
+        </div>
 
-  <!-- الكاميرا -->
-  <video id="video" autoplay class="hidden"></video>
-  <canvas id="canvas" class="hidden"></canvas>
-  <button id="captureBtn" class="hidden">بدء التحليل</button>
+        <div id="levelSelect" class="level-box hidden">
+            <h3>اختر فئة الروتين</h3>
+            <div class="level-btns">
+                <button class="lvl-btn" onclick="buildRoutine('eco')">اقتصادي</button>
+                <button class="lvl-btn active" onclick="buildRoutine('super')">سوبر</button>
+                <button class="lvl-btn" onclick="buildRoutine('ultra')">ألترا</button>
+            </div>
+        </div>
 
-  <!-- رفع صورة -->
-  <div id="fileUpload" class="hidden">
-    <input type="file" id="imageInput" accept="image/*">
-  </div>
+        <div id="routine-output" class="hidden">
+            <div id="finalRoutine" class="routine-paper"></div>
+            <div class="actions-grid">
+                <button onclick="sendWhatsApp()" class="wa-btn">واتساب ✅</button>
+                <button onclick="savePDF()" class="pdf-btn">حفظ PDF 📄</button>
+            </div>
+        </div>
+    </main>
+</div>
 
-  <!-- نتيجة التحليل -->
-  <div id="analysisResult" class="hidden"></div>
-
-  <!-- اختيار مستوى الروتين -->
-  <div id="levelSelect" class="hidden"></div>
-
-  <!-- الروتين النهائي -->
-  <div id="result" class="hidden"></div>
-
+<div id="loading" class="loader-overlay hidden">
+    <div class="spinner"></div>
+    <p>جاري المسح المجهري...</p>
 </div>
 
 <script src="script.js"></script>
