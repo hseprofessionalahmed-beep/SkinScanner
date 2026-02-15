@@ -1,36 +1,24 @@
 const skinTypeData = {
-    oily: { name: "دهنية", label: "نشاط دهني ملحوظ" },
-    dry: { name: "جافة", label: "نقص في الترطيب الطبيعي" },
-    normal: { name: "عادية", label: "توازن مثالي" }
+    oily: { name: "دهنية" },
+    dry: { name: "جافة" },
+    normal: { name: "عادية" }
 };
 
 const expertDatabase = {
     acne: { 
         title: "بشرة معرضة للحبوب", 
         active: "Salicylic Acid", 
-        products: { 
-            budget: "صابونة ستارفيل (Starville Acne Soap)", 
-            super: "سيروم ستارفيل (Starville Acne Serum)", 
-            premium: "إيفاكلار ديو (Effaclar Duo+)" 
-        } 
+        products: { budget: "Starville Acne Soap", super: "Starville Gel", premium: "Effaclar Duo+" } 
     },
     pigment: { 
         title: "تصبغات ونمش", 
-        active: "Vitamin C + Arbutin", 
-        products: { 
-            budget: "جارنييه فاست برايت (Garnier Bright)", 
-            super: "سيروم ناتافيس (Natavis Whitening)", 
-            premium: "سيروم فيشي سي 10 (Vichy Liftactiv C10)" 
-        } 
+        active: "Alpha Arbutin + Vit C", 
+        products: { budget: "Garnier Bright", super: "Natavis Whitening", premium: "Vichy Liftactiv C10" } 
     },
     clear: { 
-        title: "بشرة صافية (للحماية)", 
+        title: "بشرة مثالية", 
         active: "Hyaluronic Acid", 
-        products: { 
-            budget: "إيفا سكين كير (Eva Skin Clinic)", 
-            super: "لوريال ريفيتاليفت (L'Oreal Hyaluronic)", 
-            premium: "فيشي مينرال 89 (Vichy Mineral 89)" 
-        } 
+        products: { budget: "Eva Skin", super: "L'Oreal Revitalift", premium: "Vichy Mineral 89" } 
     }
 };
 
@@ -42,26 +30,30 @@ async function init() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         video.srcObject = stream;
-    } catch (e) { console.error("Camera error"); }
+    } catch (e) { console.error("Camera Access Denied"); }
 }
 init();
 
 document.getElementById('scanBtn').onclick = () => process(document.getElementById('video'));
 document.getElementById('imageUpload').onchange = async (e) => {
-    const img = await faceapi.bufferToImage(e.target.files[0]);
-    process(img);
+    if (e.target.files[0]) {
+        const img = await faceapi.bufferToImage(e.target.files[0]);
+        process(img);
+    }
 };
 
 async function process(src) {
     const loader = document.getElementById('loading-overlay');
     loader.style.display = 'flex';
-    loader.innerText = "جاري التحليل الرقمي...";
+    loader.innerText = "تحليل VERONA الرقمي...";
     
-    sessionData.ai = await analyzeSkin(src);
-    loader.style.display = 'none';
-    
-    if (sessionData.ai) renderReport();
-    else alert("لم يتم التعرف على الوجه");
+    // تأخير بسيط لضمان ثبات الصورة
+    setTimeout(async () => {
+        sessionData.ai = await analyzeSkin(src);
+        loader.style.display = 'none';
+        if (sessionData.ai) renderReport();
+        else alert("تعذر التعرف على الوجه. يرجى تحسين الإضاءة.");
+    }, 500);
 }
 
 function renderReport() {
@@ -71,26 +63,25 @@ function renderReport() {
     
     res.innerHTML = `
         <div class="report-card" id="pdf-content">
-            <h2 class="report-head">تقرير VERONA للذكاء الاصطناعي</h2>
+            <h2 class="report-head">تقرير الحالة الرقمي</h2>
             <div class="stats-grid">
                 <div class="stat"><span>النوع</span><strong>${skinTypeData[ind.type].name}</strong></div>
-                <div class="stat"><span>العمر التقديري</span><strong>${ind.skinAge} سنة</strong></div>
+                <div class="stat"><span>العمر</span><strong>${ind.skinAge} سنة</strong></div>
                 <div class="stat"><span>النضارة</span><strong>${Math.round(ind.glow)}%</strong></div>
-                <div class="stat)<span>الترطيب</span><strong>${Math.round(ind.hydration)}%</strong></div>
+                <div class="stat"><span>الترطيب</span><strong>${Math.round(ind.hydration)}%</strong></div>
             </div>
-            
-            <div class="level-selector">
-                <button onclick="changeLevel('budget')" id="btn-budget">اقتصادي</button>
-                <button onclick="changeLevel('super')" id="btn-super" class="active">سوبر</button>
-                <button onclick="changeLevel('premium')" id="btn-premium">بريميوم</button>
+            <div class="level-selector" style="display:flex; gap:5px; margin:15px 0;">
+                <button onclick="changeLevel('budget')" id="btn-budget" style="flex:1; padding:10px;">اقتصادي</button>
+                <button onclick="changeLevel('super')" id="btn-super" class="active" style="flex:1; padding:10px;">سوبر</button>
+                <button onclick="changeLevel('premium')" id="btn-premium" style="flex:1; padding:10px;">بريميوم</button>
             </div>
-
             <div id="routine-box"></div>
         </div>
-        <button onclick="sendWhatsApp()" class="wa-btn">إرسال التقرير عبر الواتساب ✅</button>
-        <button onclick="downloadPDF()" class="pdf-btn">تحميل التقرير PDF 📄</button>
+        <button onclick="sendWhatsApp()" class="wa-btn" style="width:100%; padding:15px; background:#25d366; color:#fff; border-radius:50px; border:none; margin-top:10px; font-weight:bold;">إرسال للواتساب ✅</button>
+        <button onclick="downloadPDF()" class="pdf-btn" style="width:100%; margin-top:10px; padding:10px; background:#444; color:#fff; border:none; border-radius:10px;">تحميل PDF 📄</button>
     `;
     updateRoutine();
+    res.scrollIntoView({ behavior: 'smooth' });
 }
 
 function changeLevel(lvl) {
@@ -107,14 +98,12 @@ function updateRoutine() {
     const product = data.products[sessionData.level];
 
     document.getElementById('routine-box').innerHTML = `
-        <div class="routine-info">
-            <h3 style="color:#c5a059;">الهدف: ${data.title}</h3>
-            <p><strong>المادة الفعالة الموصى بها:</strong> ${data.active}</p>
-            <div class="product-item" style="background:#f0f0f0; padding:15px; border-radius:10px; border-right:5px solid #000;">
-                <span>المنتج المرشح (${sessionData.level}):</span><br>
-                <strong style="font-size:1.1rem;">${product}</strong>
+        <div class="routine-info" style="text-align:right; border-top:1px solid #eee; padding-top:15px;">
+            <h4 style="color:#c5a059; margin:0;">التشخيص: ${data.title}</h4>
+            <p style="font-size:0.9rem;">المادة الفعالة: ${data.active}</p>
+            <div style="background:#f9f9f9; padding:10px; border-right:4px solid #000;">
+                المنتج المقترح:<br><strong>${product}</strong>
             </div>
-            <p style="font-size:0.8rem; margin-top:10px; color:#666;">* المرحلة الثالثة دائماً هي واقي الشمس SPF50.</p>
         </div>
     `;
 }
@@ -125,24 +114,15 @@ function sendWhatsApp() {
     const data = expertDatabase[key];
     const product = data.products[sessionData.level];
 
-    const message = `*تقرير فحص البشرة من VERONA AI*%0A%0A` +
-                    `👤 نوع البشرة: ${skinTypeData[ind.type].name}%0A` +
-                    `⏳ العمر التقديري: ${ind.skinAge} سنة%0A` +
-                    `🌟 النضارة: ${Math.round(ind.glow)}%25%0A` +
-                    `💧 الترطيب: ${Math.round(ind.hydration)}%25%0A` +
-                    `--------------------------%0A` +
-                    `🎯 التشخيص: ${data.title}%0A` +
-                    `🧪 المادة الفعالة: ${data.active}%0A` +
-                    `🛍️ المنتج المقترح: ${product}%0A` +
-                    `--------------------------%0A` +
-                    `تم التحليل بواسطة ذكاء VERONA الاصطناعي.`;
-
-    window.open(`https://wa.me/?text=${message}`, '_blank');
+    const text = `*تقرير فيرونا AI للبشرة*%0A` +
+                 `نوع البشرة: ${skinTypeData[ind.type].name}%0A` +
+                 `العمر التقديري: ${ind.skinAge} سنة%0A` +
+                 `التشخيص: ${data.title}%0A` +
+                 `المنتج الموصى به: ${product}`;
+    window.open(`https://wa.me/?text=${text}`, '_blank');
 }
 
 function downloadPDF() {
     const element = document.getElementById('pdf-content');
-    const opt = { margin: 0.5, filename: 'Verona-Skin-Report.pdf', html2canvas: { scale: 2 } };
-    html2pdf().set(opt).from(element).save();
+    html2pdf().from(element).save('Verona-Report.pdf');
 }
-
