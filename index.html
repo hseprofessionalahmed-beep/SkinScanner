@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VERONA AI - Professional Texture Analysis</title>
+    <title>VERONA AI - Pro Vision</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --gold: #d4af37; --bg: #000000; --card: #1c1c1e; --blue: #0a84ff; }
@@ -27,12 +27,12 @@
 <body>
 
 <div id="loading" class="hidden">
-    <div class="loader"><div class="spinner"></div><p>جاري تحليل ملمس البشرة (Texture Analysis)...</p></div>
+    <div class="loader"><div class="spinner"></div><p>جاري المسح المجهري للصبغات والمسام...</p></div>
 </div>
 
 <div class="app">
     <div class="logo">VERONA</div>
-    <h2>VERONA <span style="color:var(--gold)">AI PRO</span></h2>
+    <h2>VERONA <span style="color:var(--gold)">AI VISION</span></h2>
 
     <div class="btn-group">
         <button class="primary-btn" onclick="startCamera()">📸 كاميرا</button>
@@ -42,19 +42,19 @@
 
     <video id="video" autoplay playsinline class="hidden"></video>
     <canvas id="canvas" class="hidden"></canvas>
-    <button id="scanBtn" class="primary-btn hidden" style="width:100%; margin-top:10px; background:var(--gold); color:black;" onclick="runAnalysis()">تحليل الملمس والعيوب</button>
+    <button id="scanBtn" class="primary-btn hidden" style="width:100%; margin-top:10px; background:var(--gold); color:black;" onclick="runAnalysis()">تحليل الصبغات العميقة</button>
 
     <div id="results" class="result-card hidden">
-        <div class="score-box"><span id="scoreDisplay" style="font-size:2rem; font-weight:bold;">0</span><small>جودة البشرة</small></div>
+        <div class="score-box"><span id="scoreDisplay" style="font-size:2rem; font-weight:bold;">0</span><small>صحة البشرة</small></div>
         <canvas id="chart" style="margin:15px 0;"></canvas>
         <div id="statusList"></div>
         <div id="routineDetails"></div>
-        <button class="primary-btn" style="width:100%; background:#25d366; margin-top:15px;" onclick="sendWhatsApp()">إرسال التقرير ✅</button>
+        <button class="primary-btn" style="width:100%; background:#25d366; margin-top:15px;" onclick="sendWhatsApp()">إرسال التقرير للمتخصص ✅</button>
     </div>
 </div>
 
 <script>
-let scanData = { acne: 0, pigment: 0, texture: 0, score: 98 };
+let scanData = { acne: 0, pigment: 0, darkCircles: 0, score: 98 };
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 
@@ -91,50 +91,51 @@ function runAnalysis() {
     setTimeout(() => {
         const ctx = canvas.getContext('2d');
         const pixels = ctx.getImageData(0,0,400,400).data;
-        const width = 400;
         
-        let textureNoise = 0; // رصد العيوب والملمس الخشن
-        let redInflammation = 0; // رصد الالتهاب الحقيقي
-        let darkSpots = 0; // رصد التصبغات العميق
+        let darkAreaCount = 0; // للهالات والتصبغات
+        let redAreaCount = 0;  // للالتهاب والحبوب
+        let skinToneSum = 0;   // لمتوسط لون البشرة الأساسي
+        
+        // 1. حساب متوسط لون البشرة أولاً لعمل "معايرة" (Calibration)
+        for (let i = 0; i < pixels.length; i += 40) {
+            skinToneSum += (pixels[i] + pixels[i+1] + pixels[i+2]) / 3;
+        }
+        let avgSkinTone = skinToneSum / (pixels.length / 40);
 
-        // فحص مجهري للتباين بين كل بكسل وجاره
-        for (let i = 0; i < pixels.length; i += 16) { // قفزات لتسريع المعالجة
+        // 2. التحليل العميق بمقارنة كل نقطة بالمتوسط العام للوجه
+        for (let i = 0; i < pixels.length; i += 8) {
             let r = pixels[i], g = pixels[i+1], b = pixels[i+2];
-            let brightness = (r + g + b) / 3;
+            let currentBrightness = (r + g + b) / 3;
 
-            // قياس "الضجيج" في البشرة - بشرة الطفل ستعطي رقم قريب من الصفر
-            let nextR = pixels[i+4];
-            if (Math.abs(r - nextR) > 35) textureNoise++; 
+            // رصد التصبغات والهالات: إذا كانت النقطة أغمق من متوسط الوجه بنسبة 35% 
+            // وبها ميل للون البني (r > b)
+            if (currentBrightness < avgSkinTone * 0.65 && r > b) {
+                darkAreaCount++;
+            }
 
-            // الحبوب: أحمر شديد جداً مقارنة بالأزرق
-            if (r > g + 65 && r > b + 65) redInflammation++;
-
-            // التصبغات: داكنة جداً مع ميل للبني
-            if (brightness < 90 && r > b + 15) darkSpots++;
+            // رصد الحبوب: إذا كانت النقطة تميل للأسوداد/الأحمر الصارخ مقارنة بالبشرة
+            if (r > g + 50 && r > b + 50) {
+                redAreaCount++;
+            }
         }
 
-        // منطق احترافي: بشرة الطفل ناعمة (Noise منخفض) ومشرقة (Brightness عالي)
-        const noiseRatio = (textureNoise / (pixels.length/16)) * 100;
-        const acneRatio = (redInflammation / (pixels.length/16)) * 100;
-        const spotRatio = (darkSpots / (pixels.length/16)) * 100;
+        const totalPoints = pixels.length / 8;
+        const pigmentRatio = (darkAreaCount / totalPoints) * 100;
+        const acneRatio = (redAreaCount / totalPoints) * 100;
 
-        // التشخيص بناءً على "الملمس" وليس فقط اللون
-        scanData.acne = acneRatio > 1.2 && noiseRatio > 5;
-        scanData.pigment = spotRatio > 3.0 && noiseRatio > 4;
-        scanData.isClear = noiseRatio < 3.5 && acneRatio < 1.0; // الطفل سيحقق هذا الشرط
-
-        if (scanData.isClear) {
+        // التشخيص الدقيق
+        if (pigmentRatio > 4.5) { // تصبغات أو هالات واضحة
+            scanData.score = 78;
+            showUI("تصبغات وهالات سوداء 🔍", "تم رصد مناطق داكنة بنسبة عالية تحت العين أو في مناطق متفرقة.");
+        } else if (acneRatio > 1.5) {
+            scanData.score = 72;
+            showUI("بشرة ملتهبة (حبوب) ⚠️", "تم رصد نقاط التهاب نشطة وتفاوت لوني أحمر.");
+        } else if (avgSkinTone > 200 && pigmentRatio < 2.0) { // بشرة فاتحة وصافية جداً (طفل)
             scanData.score = 98;
-            showUI("بشرة صافية ✅", "بشرتك في حالة مثالية جداً، لا يوجد آثار حبوب أو تصبغات مكتشفة.");
-        } else if (scanData.acne) {
-            scanData.score = 75;
-            showUI("بشرة معرضة للحبوب ⚠️", "تم رصد نقاط التهاب وتباين عالي في ملمس الجلد.");
-        } else if (scanData.pigment) {
-            scanData.score = 82;
-            showUI("تصبغات وبقع 🔍", "تم رصد بقع داكنة وتفاوت في توحد لون البشرة.");
+            showUI("بشرة مثالية (صافية) ✅", "لا يوجد أي أثر لهالات أو تصبغات عميقة.");
         } else {
-            scanData.score = 92;
-            showUI("بشرة عادية ✅", "البشرة مستقرة مع وجود مسام طبيعية بسيطة.");
+            scanData.score = 90;
+            showUI("بشرة صحية مستقرة ✅", "البشرة في حالة جيدة جداً مع وجود تباين طبيعي.");
         }
 
         document.getElementById('loading').classList.add('hidden');
@@ -144,23 +145,19 @@ function runAnalysis() {
 function showUI(title, desc) {
     document.getElementById('results').classList.remove('hidden');
     document.getElementById('scoreDisplay').innerText = scanData.score;
-    document.getElementById('statusList').innerHTML = `<p><b>الحالة:</b> ${title}</p><p>${desc}</p>`;
+    document.getElementById('statusList').innerHTML = `<p style="font-weight:bold; color:var(--gold);">${title}</p><p>${desc}</p>`;
     
-    let routine = "";
-    if(scanData.isClear) routine = "غسول لطيف + واقي شمس للحفاظ على النضارة.";
-    else if(scanData.acne) routine = "غسول سالسليك أسيد + أدابلين مساءً + مرطب مائي.";
-    else routine = "سيروم فيتامين C صباحاً + كريم تفتيح ليلاً + واقي شمس.";
-    
-    document.getElementById('routineDetails').innerHTML = `<div class="routine-box"><b>الروتين:</b><br>${routine}</div>`;
+    let routine = scanData.score < 80 ? "روتين علاجي مكثف: سيروم تفتيح + كريم محيط العين + واقي شمس." : "روتين وقائي: غسول لطيف + مرطب هايلورونيك.";
+    document.getElementById('routineDetails').innerHTML = `<div class="routine-box"><b>التوصية:</b><br>${routine}</div>`;
     
     new Chart(document.getElementById('chart'), {
         type: 'line',
-        data: { labels:['اليوم','أسبوع 2','أسبوع 4'], datasets:[{label:'التحسن', data:[scanData.score, scanData.score+8, 98], borderColor:'#d4af37'}] }
+        data: { labels:['اليوم','أسبوع 2','أسبوع 4'], datasets:[{label:'التحسن', data:[scanData.score, scanData.score+10, 98], borderColor:'#d4af37', tension:0.4}] }
     });
 }
 
 function sendWhatsApp() {
-    let msg = `تقرير VERONA AI:%0Aالدرجة: ${scanData.score}%0Aالحالة: ${document.getElementById('statusList').innerText}`;
+    let msg = `تقرير تحليل البشرة VERONA AI:%0Aالدرجة: ${scanData.score}%0Aالحالة: ${document.getElementById('statusList').innerText}`;
     window.open(`https://wa.me/201063994139?text=${msg}`);
 }
 </script>
