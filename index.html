@@ -2,79 +2,132 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VERONA AI Skin Scanner</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERONA AI - PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --gold: #d4af37; --bg: #0a0a0a; --card: #1a1a1a; }
+        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; text-align: center; }
+        .app { padding: 20px; max-width: 400px; margin: auto; }
+        .logo { width: 80px; height: 80px; background: white; border-radius: 20px; margin: 20px auto; display: flex; align-items: center; justify-content: center; color: black; font-weight: bold; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+        button { padding: 15px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; }
+        .primary-btn { background: #0a84ff; color: white; }
+        .secondary-btn { background: var(--card); color: white; border: 1px solid #333; }
+        video, canvas { width: 100%; border-radius: 15px; background: #000; margin-top: 10px; }
+        .hidden { display: none; }
+        .result-card { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--gold); }
+        .loader { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:100; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
 
-<div class="app-container">
-    <header>
-        <div class="logo-box">
-            <img src="logo.png" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3065/3065319.png'">
-        </div>
-        <h1>VERONA <span class="gold-text">AI SCANNER</span></h1>
-        <p class="subtitle">تحليل احترافي مدعوم بالذكاء الاصطناعي</p>
-    </header>
+<div id="loading" class="hidden"><div class="loader"><div class="spinner"></div><p>جاري التحليل الرقمي...</p></div></div>
 
-    <main>
-        <div class="mode-cards">
-            <div class="card" onclick="chooseMode('camera')">
-                <span class="icon">📸</span>
-                <span>كاميرا</span>
-            </div>
-            <div class="card" onclick="document.getElementById('imageInput').click()">
-                <span class="icon">📁</span>
-                <span>رفع صورة</span>
-            </div>
-            <input type="file" id="imageInput" accept="image/*" class="hidden">
-        </div>
+<div class="app">
+    <div class="logo">VERONA</div>
+    <h2>VERONA <span style="color:var(--gold)">AI SCANNER</span></h2>
 
-        <div class="preview-area">
-            <video id="video" autoplay playsinline class="hidden"></video>
-            <canvas id="canvas" class="hidden"></canvas>
-            <button id="captureBtn" class="action-btn hidden">بدء الفحص الآن</button>
-        </div>
+    <div class="btn-group">
+        <button class="primary-btn" onclick="startCamera()">📸 كاميرا</button>
+        <button class="secondary-btn" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
+    </div>
+    <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="handleFile(event)">
 
-        <div id="analysisResult" class="result-card hidden">
-            <h3>نتائج الفحص الرقمي</h3>
-            <div class="score-container">
-                <div class="score-circle">
-                    <span id="skinScore">--</span>
-                    <small>درجة الصحة</small>
-                </div>
-            </div>
-            <canvas id="skinChart"></canvas>
-            <div id="analysisText" class="status-list"></div>
-        </div>
+    <video id="video" autoplay playsinline class="hidden"></video>
+    <canvas id="canvas" class="hidden"></canvas>
+    <button id="scanBtn" class="primary-btn hidden" style="width:100%; margin-top:10px;" onclick="runAnalysis()">ابدأ الفحص المجهري</button>
 
-        <div id="levelSelect" class="level-box hidden">
-            <h3>اختر فئة الروتين</h3>
-            <div class="level-btns">
-                <button class="lvl-btn" onclick="buildRoutine('eco')">اقتصادي</button>
-                <button class="lvl-btn active" onclick="buildRoutine('super')">سوبر</button>
-                <button class="lvl-btn" onclick="buildRoutine('ultra')">ألترا</button>
-            </div>
-        </div>
-
-        <div id="routine-output" class="hidden">
-            <div id="finalRoutine" class="routine-paper"></div>
-            <div class="actions-grid">
-                <button onclick="sendWhatsApp()" class="wa-btn">واتساب ✅</button>
-                <button onclick="savePDF()" class="pdf-btn">حفظ PDF 📄</button>
-            </div>
-        </div>
-    </main>
+    <div id="results" class="result-card hidden">
+        <h3>التقرير المجهري</h3>
+        <div id="scoreDisplay" style="font-size: 2rem; color: var(--gold); font-weight: bold;">0</div>
+        <canvas id="chart"></canvas>
+        <div id="details" style="text-align: right; margin-top: 15px;"></div>
+        <button class="primary-btn" style="width:100%; background:#25d366; margin-top:10px;" onclick="alert('جاري التوجيه للواتساب...')">إرسال للواتساب ✅</button>
+    </div>
 </div>
 
-<div id="loading" class="loader-overlay hidden">
-    <div class="spinner"></div>
-    <p>جاري المسح المجهري...</p>
-</div>
+<script>
+let scanData = { acne: false, pigment: false, score: 95 };
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
 
-<script src="script.js"></script>
-<script src="routine.js"></script>
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        video.srcObject = stream;
+        video.classList.remove('hidden');
+        document.getElementById('scanBtn').classList.remove('hidden');
+    } catch (err) {
+        alert("فشل فتح الكاميرا. يرجى التأكد من إعطاء الإذن للمتصفح.");
+    }
+}
+
+function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const img = new Image();
+    img.onload = () => {
+        canvas.classList.remove('hidden');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 400; canvas.height = 400;
+        ctx.drawImage(img, 0, 0, 400, 400);
+        runAnalysis();
+    };
+    img.src = URL.createObjectURL(file);
+}
+
+async function runAnalysis() {
+    document.getElementById('loading').classList.remove('hidden');
+    
+    // تأكد من التقاط صورة من الفيديو إذا كانت الكاميرا مفتوحة
+    if (!video.classList.contains('hidden')) {
+        const ctx = canvas.getContext('2d');
+        canvas.width = 400; canvas.height = 400;
+        ctx.drawImage(video, 0, 0, 400, 400);
+    }
+
+    // محاكاة تحليل لمدة 1.5 ثانية
+    setTimeout(() => {
+        const ctx = canvas.getContext('2d');
+        const pixels = ctx.getImageData(0,0,400,400).data;
+        let r=0, darks=0;
+        
+        for(let i=0; i<pixels.length; i+=4) {
+            r += pixels[i];
+            if((pixels[i]+pixels[i+1]+pixels[i+2])/3 < 100 && pixels[i] > pixels[i+2]+15) darks++;
+        }
+
+        const avgR = r / (pixels.length/4);
+        scanData.acne = avgR > 160;
+        scanData.pigment = (darks / (pixels.length/4)) * 100 > 2.5;
+        scanData.score = 95 - (scanData.acne?15:0) - (scanData.pigment?10:0);
+
+        displayResults();
+        document.getElementById('loading').classList.add('hidden');
+    }, 1500);
+}
+
+function displayResults() {
+    document.getElementById('results').classList.remove('hidden');
+    document.getElementById('scoreDisplay').innerText = scanData.score + "%";
+    document.getElementById('details').innerHTML = `
+        <p>• درجة الالتهاب: ${scanData.acne ? 'مرتفعة' : 'طبيعية ✅'}</p>
+        <p>• التصبغات: ${scanData.pigment ? 'مكتشفة' : 'صافية ✅'}</p>
+        <p>• التوصية: روتين ${scanData.acne ? 'علاج الحبوب' : 'النضارة والترطيب'}</p>
+    `;
+    
+    // رسم بياني بسيط
+    new Chart(document.getElementById('chart'), {
+        type: 'line',
+        data: {
+            labels: ['اليوم', 'أسبوع 2', 'أسبوع 4'],
+            datasets: [{ label: 'التحسن المتوقع', data: [scanData.score, scanData.score+10, 98], borderColor: '#d4af37' }]
+        }
+    });
+}
+</script>
 </body>
 </html>
