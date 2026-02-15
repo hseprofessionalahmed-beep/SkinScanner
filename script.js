@@ -1,83 +1,90 @@
-let scanResult = {};
-let videoStream = null;
+let scanData = {};
+
 const video = document.getElementById("video");
-const overlay = document.getElementById("overlay");
-const ctx = overlay.getContext("2d");
-const instructionsDiv = document.getElementById("instructions");
+const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
 
-captureBtn.disabled = true;
-
 function chooseMode(mode){
-  if(mode==='camera'){
+  if(mode==="camera"){
     document.getElementById("fileUpload").classList.add("hidden");
-    captureBtn.style.display = 'block';
-    initCamera();
-  } else {
-    captureBtn.style.display = 'none';
+    video.classList.remove("hidden");
+    captureBtn.classList.remove("hidden");
+
+    navigator.mediaDevices.getUserMedia({video:true})
+    .then(stream => video.srcObject = stream);
+  }else{
+    video.classList.add("hidden");
+    captureBtn.classList.add("hidden");
     document.getElementById("fileUpload").classList.remove("hidden");
   }
 }
 
-async function initCamera() {
-  try{
-    videoStream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:'user'}, audio:false });
-    video.srcObject = videoStream;
-    await new Promise(res=>video.onloadedmetadata=res);
-    captureBtn.disabled=false;
-    requestAnimationFrame(drawOverlay);
-  }catch(e){
-    alert("❌ لم يتمكن التطبيق من الوصول للكاميرا.");
-    console.error(e);
+captureBtn.onclick = function(){
+  canvas.classList.remove("hidden");
+  const ctx = canvas.getContext("2d");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video,0,0);
+  analyzeImage();
+};
+
+document.getElementById("imageInput").addEventListener("change", function(){
+  const file = this.files[0];
+  if(!file) return;
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+  img.onload = function(){
+    canvas.classList.remove("hidden");
+    const ctx = canvas.getContext("2d");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img,0,0);
+    analyzeImage();
   }
+});
+
+function analyzeImage(){
+  const ctx = canvas.getContext("2d");
+  const imageData = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+
+  let brightness=0, redAvg=0;
+
+  for(let i=0;i<imageData.length;i+=4){
+    brightness += (imageData[i]+imageData[i+1]+imageData[i+2])/3;
+    redAvg += imageData[i];
+  }
+
+  brightness /= (imageData.length/4);
+  redAvg /= (imageData.length/4);
+
+  scanData.acne = redAvg>150;
+  scanData.pigmentation = brightness<110;
+  scanData.dryness = brightness>180;
+
+  showAnalysis();
 }
 
-function drawOverlay(){
-  ctx.clearRect(0,0,overlay.width,overlay.height);
-  ctx.strokeStyle='yellow';
-  ctx.lineWidth=2;
-  ctx.strokeRect(overlay.width*0.25, overlay.height*0.15, overlay.width*0.5, overlay.height*0.7);
-  instructionsDiv.classList.remove("hidden");
-  instructionsDiv.innerText="⚠️ ضع وجهك داخل المستطيل الأصفر";
-  requestAnimationFrame(drawOverlay);
+function showAnalysis(){
+  const div = document.getElementById("analysisResult");
+  div.classList.remove("hidden");
+
+  div.innerText =
+  "نتيجة التحليل:\n\n"+
+  "حبوب/التهاب: "+(scanData.acne?"محتمل":"منخفض")+"\n"+
+  "تصبغات: "+(scanData.pigmentation?"محتملة":"خفيفة")+"\n"+
+  "جفاف: "+(scanData.dryness?"محتمل":"طبيعي")+"\n";
+
+  showLevelSelection();
 }
 
-function captureImage(){
-  if(!video.videoWidth || !video.videoHeight){ alert("❗ الفيديو غير جاهز"); return; }
-  const canvas=document.createElement("canvas");
-  canvas.width=video.videoWidth; canvas.height=video.videoHeight;
-  canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
-  startScan(canvas);
-}
+function showLevelSelection(){
+  const levelDiv = document.getElementById("levelSelect");
+  levelDiv.classList.remove("hidden");
 
-function startScan(imgOrCanvas){
-  scanResult=analyzeFace(imgOrCanvas);
-  startQuestions();
-}
-
-function startQuestions(){
-  const q=document.getElementById("questions");
-  q.classList.remove("hidden");
-  q.innerHTML=`
-    <div class="card">
-      <p>هل لديك حبوب؟</p>
-      <button onclick="answerAcne(true)">نعم</button>
-      <button onclick="answerAcne(false)">لا</button>
-    </div>
+  levelDiv.innerHTML = `
+  <h3>اختر مستوى الروتين</h3>
+  <button onclick="buildRoutine('eco')">اقتصادي</button>
+  <button onclick="buildRoutine('super')">سوبر</button>
+  <button onclick="buildRoutine('ultra')">ألترا</button>
   `;
 }
-
-function answerAcne(hasAcne){
-  const q=document.getElementById("questions");
-  if(!hasAcne){ buildRoutine({acne:false, level:'eco', pigmentation:scanResult.pigmentation>0.4}); return; }
-  q.innerHTML=`
-    <div class="card">
-      <p>نوع الحبوب؟</p>
-      <button onclick="buildRoutine({acne:true,type:'inflamed', level:'eco', pigmentation:scanResult.pigmentation>0.4})">ملتهبة</button>
-      <button onclick="buildRoutine({acne:true,type:'comedonal', level:'eco', pigmentation:scanResult.pigmentation>0.4})">غير ملتهبة</button>
-    </div>
-  `;
-}
-
-captureBtn.addEventListener("click",captureImage);
-window.addEventListener("load",()=>{});
