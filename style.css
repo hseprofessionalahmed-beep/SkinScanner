@@ -1,45 +1,81 @@
 :root {
-    --bg: #000000;
-    --card: #1c1c1e;
     --gold: #d4af37;
-    --blue: #0a84ff;
+    --bg: #0a0a0a;
+    --card: #161616;
 }
 
 body {
-    margin: 0; background: var(--bg); color: white;
-    font-family: -apple-system, sans-serif; text-align: center;
+    background: var(--bg);
+    color: #fff;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 10px;
+    text-align: center;
 }
 
-.app-container { padding: 20px; max-width: 450px; margin: auto; }
+.container {
+    max-width: 500px;
+    margin: auto;
+}
 
-.logo-box { width: 70px; height: 70px; background: white; border-radius: 15px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
-.logo-box img { width: 50px; }
+.preview-box {
+    position: relative;
+    width: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #000;
+    border: 2px solid #333;
+    min-height: 300px;
+}
+
+video, canvas {
+    width: 100%;
+    height: auto;
+}
+
+#overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+.btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.action-btn {
+    background: var(--gold);
+    color: #000;
+    padding: 15px;
+    border-radius: 12px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.file-btn { background:#333; color:#fff; }
+
+.scan-btn {
+    background: #fff;
+    width: 100%;
+    font-size: 1.1rem;
+    border: 3px solid var(--gold);
+    margin-top:10px;
+}
+
+.result-card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 20px;
+    margin-top: 20px;
+    border: 1px solid var(--gold);
+    text-align: right;
+}
+
 .gold-text { color: var(--gold); }
-.subtitle { color: #8e8e93; font-size: 0.8rem; }
-
-.mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-.card { background: var(--card); padding: 15px; border-radius: 15px; cursor: pointer; border: 1px solid #333; }
-
-.action-btn { width: 100%; padding: 15px; background: var(--blue); border: none; border-radius: 12px; color: white; font-weight: bold; }
-
-.result-card, .routine-paper { background: var(--card); border-radius: 18px; padding: 20px; margin-top: 15px; text-align: right; border: 1px solid #333; }
-
-.score-circle { width: 100px; height: 100px; border: 3px solid var(--gold); border-radius: 50%; margin: 10px auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.score-circle span { font-size: 1.8rem; font-weight: bold; }
-
-.level-btns { display: flex; gap: 5px; background: #2c2c2e; padding: 5px; border-radius: 10px; margin-top: 10px; }
-.lvl-btn { flex: 1; background: transparent; color: white; border: none; padding: 10px; border-radius: 8px; }
-.lvl-btn.active { background: var(--gold); color: black; font-weight: bold; }
-
-.phase-box { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 10px; border-right: 4px solid var(--gold); }
-.phase-box h4 { margin: 0; color: var(--gold); font-size: 0.9rem; }
-.phase-box p { margin: 3px 0 0; font-size: 0.8rem; color: #ccc; }
-
-.actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-.wa-btn { background: #25d366; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; }
-.pdf-btn { background: #555; color: white; border: none; border-radius: 10px; }
-
 .hidden { display: none; }
-.loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99; }
-.spinner { width: 30px; height: 30px; border: 3px solid #333; border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
