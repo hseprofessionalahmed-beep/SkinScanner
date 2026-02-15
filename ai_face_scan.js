@@ -1,78 +1,74 @@
 let isModelLoaded = false;
 
-// استخدام روابط بديلة وأكثر استقراراً للموديلات
-async function loadModels() {
-    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/weights/';
-    try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        isModelLoaded = true;
-        console.log("AI Engine Ready");
-        if(document.getElementById('loading-overlay')) {
-            document.getElementById('loading-overlay').style.display = 'none';
+async function loadAI() {
+    const loader = document.getElementById('loading-overlay');
+    // محاولة التحميل من مصادر متعددة لضمان الاستمرارية
+    const modelSources = [
+        'https://justadudewhohacks.github.io/face-api.js/weights/',
+        'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/'
+    ];
+
+    for (let source of modelSources) {
+        try {
+            await faceapi.nets.tinyFaceDetector.loadFromUri(source);
+            isModelLoaded = true;
+            if (loader) loader.style.display = 'none';
+            console.log("AI Ready");
+            return;
+        } catch (e) {
+            console.error("Failed source:", source);
         }
-    } catch (e) {
-        console.error("Critical Load Error", e);
-        // محاولة التحميل من رابط ثالث في حال فشل الثاني
-        await faceapi.nets.tinyFaceDetector.loadFromUri('https://raw.githubusercontent.com/ml5js/ml5-data-and-models/main/models/faceapi/weights/');
-        isModelLoaded = true;
     }
+    if (loader) loader.innerText = "فشل تحميل المحرك، يرجى التحديث";
 }
-loadModels();
+loadAI();
 
 async function analyzeSkin(source) {
-    if (!isModelLoaded) {
-        alert("المحرك لا يزال يستعد.. يرجى المحاولة بعد 3 ثواني");
-        return null;
-    }
+    if (!isModelLoaded) return null;
 
-    // محاولة التعرف بإعدادات "فائقة الحساسية"
-    const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.1 });
-    let detection = await faceapi.detectSingleFace(source, options);
-    
-    // إذا لم يجد وجهاً (مثل صورة الطفل أو النمش)، سنحاول تكبير وتفتيح الصورة برمجياً
+    // إعدادات حساسة جداً للتعرف على الأطفال والنمش
+    const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.1 });
+    let detection = await faceapi.detectSingleFace(source, detectorOptions);
+
     if (!detection) {
-        console.log("محاولة ثانية بتباين أعلى...");
-        const boostCanvas = document.createElement('canvas');
-        const bCtx = boostCanvas.getContext('2d');
-        boostCanvas.width = source.width || source.videoWidth;
-        boostCanvas.height = source.height || source.videoHeight;
-        bCtx.filter = 'brightness(1.3) contrast(1.5)';
-        bCtx.drawImage(source, 0, 0);
-        detection = await faceapi.detectSingleFace(boostCanvas, options);
+        // محاولة ثانية بفلتر تباين إذا فشلت الأولى
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = source.width || source.videoWidth;
+        canvas.height = source.height || source.videoHeight;
+        ctx.filter = 'contrast(1.4) brightness(1.1)';
+        ctx.drawImage(source, 0, 0);
+        detection = await faceapi.detectSingleFace(canvas, detectorOptions);
     }
 
     if (!detection) return null;
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = 150; canvas.height = 150;
-    
-    // قص منطقة الوجه بدقة
-    const box = detection.box;
-    ctx.drawImage(source, box.x, box.y, box.width, box.height, 0, 0, 150, 150);
+    const crop = document.createElement('canvas');
+    const cCtx = crop.getContext('2d');
+    crop.width = 150; crop.height = 150;
+    const { x, y, width, height } = detection.box;
+    cCtx.drawImage(source, x, y, width, height, 0, 0, 150, 150);
 
-    const imgData = ctx.getImageData(0, 0, 150, 150).data;
-    let acne = 0, pigment = 0, rSum = 0, gSum = 0, bSum = 0;
+    const data = cCtx.getImageData(0, 0, 150, 150).data;
+    let acne = 0, freckles = 0, rSum = 0, gSum = 0, bSum = 0;
 
-    for (let i = 0; i < imgData.length; i += 4) {
-        let r = imgData[i], g = imgData[i+1], b = imgData[i+2];
+    for (let i = 0; i < data.length; i += 4) {
+        let r = data[i], g = data[i+1], b = data[i+2];
         rSum += r; gSum += g; bSum += b;
-        
-        // رصد الحبوب (أحمر)
-        if (r > g + 50 && r > b + 50) acne++;
-        // رصد النمش (بني/داكن متباين)
-        if ((r+g+b)/3 < 125 && r > b + 15) pigment++;
+        // خوارزمية رصد الحبوب والنمش
+        if (r > g + 55 && r > b + 55) acne++;
+        if ((r+g+b)/3 < 125 && r > b + 18) freckles++;
     }
 
-    const avg = (rSum + gSum + bSum) / (imgData.length * 0.75);
+    const avg = (rSum + gSum + bSum) / (data.length * 0.75);
     return {
         indicators: {
             type: avg > 180 ? "dry" : (avg < 130 ? "oily" : "normal"),
-            acne: (acne / (imgData.length/4)) * 100 > 0.5,
-            pigment: (pigment / (imgData.length/4)) * 100 > 1.5,
-            glow: Math.max(20, 100 - (acne + pigment)/500),
-            hydration: Math.min(99, avg / 2.2),
-            skinAge: Math.floor(20 + (pigment/2000))
+            acne: (acne / 5625) * 100 > 0.6,
+            pigment: (freckles / 5625) * 100 > 1.5,
+            glow: Math.max(20, 100 - (acne + freckles)/150),
+            hydration: Math.min(99, avg / 2.3),
+            age: Math.floor(18 + (freckles / 2000))
         }
     };
 }
