@@ -1,17 +1,14 @@
 function sendWA() {
-    const ind = sessionData.ai.indicators;
     const msg = `
-*VERONA SKIN ANALYSIS* ✨
+*VERONA SKIN REPORT* ✨
 --------------------------
-👤 نوع البشرة: ${skinTypeLogic[ind.type].name}
-⏳ العمر التقديري: ${ind.skinAge} سنة
-💧 الترطيب: ${Math.round(ind.hydration)}%
-🌟 النضارة: ${Math.round(ind.glow)}%
+📊 تم فحص البشرة بنجاح عبر منصة فيرونا.
+🛡️ المستوى: ${sessionData.level.toUpperCase()}
+📅 الحالة المكتشفة: ${sessionData.answers.depth || 'نضارة عامة'}
 
-📅 تم تحديد الخطة العلاجية بنجاح.
-يرجى تحميل تقرير الـ PDF من الموقع للحصول على تفاصيل الروتين.
+💡 التوصية: يرجى تحميل نسخة الـ PDF من الموقع للحصول على تفاصيل المواد الفعالة.
 --------------------------
-*فيرونا - حيث يلتقي العلم بالجمال*
+*VERONA - Glow Smarter*
     `;
     window.open(`https://wa.me/201063994139?text=${encodeURIComponent(msg)}`);
 }
