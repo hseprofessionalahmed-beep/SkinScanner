@@ -6,6 +6,10 @@ const video = document.getElementById("video");
 const overlay = document.getElementById("overlay");
 const ctx = overlay.getContext("2d");
 const instructionsDiv = document.getElementById("instructions");
+const captureBtn = document.getElementById("captureBtn");
+
+// تعطيل الزر حتى تشغيل الكاميرا
+captureBtn.disabled = true;
 
 // تشغيل الكاميرا
 async function initCamera() {
@@ -13,7 +17,18 @@ async function initCamera() {
     videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     video.srcObject = videoStream;
 
-    // تحقق من دعم FaceDetector
+    // تأكد أن الفيديو جاهز للعرض
+    await new Promise(resolve => {
+      video.onloadedmetadata = () => {
+        video.play();
+        resolve();
+      };
+    });
+
+    // تفعيل الزر الآن
+    captureBtn.disabled = false;
+
+    // دعم FaceDetector
     if ('FaceDetector' in window) {
       detector = new FaceDetector({ fastMode: true });
     } else {
@@ -28,11 +43,10 @@ async function initCamera() {
   }
 }
 
-// رسم المربع التفاعلي حول الوجه
+// رسم المربع التفاعلي
 async function drawFaceOverlay() {
   ctx.clearRect(0, 0, overlay.width, overlay.height);
 
-  let faceDetected = false;
   let color = 'red';
   let message = "";
 
@@ -50,7 +64,6 @@ async function drawFaceOverlay() {
         const centered = Math.abs(centerX - overlay.width/2) < overlay.width*0.2 &&
                          Math.abs(centerY - overlay.height/2) < overlay.height*0.2;
 
-        // تحديد لون المربع وتعليمات
         if (sizeGood && centered) {
           color = 'green';
           message = "👍 وجهك جيد ومستعد للفحص";
@@ -63,7 +76,6 @@ async function drawFaceOverlay() {
         ctx.strokeStyle = color;
         ctx.lineWidth = 3;
         ctx.strokeRect(face.x, face.y, face.width, face.height);
-        faceDetected = true;
 
       } else {
         message = "⚠️ لم يتم التعرف على الوجه، واجه الكاميرا مباشرة";
@@ -73,7 +85,7 @@ async function drawFaceOverlay() {
     }
   }
 
-  // Fallback: مستطيل أصفر لإرشاد الوجه إذا الجهاز لا يدعم FaceDetector
+  // Fallback: مستطيل أصفر
   if (!detector) {
     ctx.strokeStyle = 'yellow';
     ctx.lineWidth = 2;
@@ -89,6 +101,11 @@ async function drawFaceOverlay() {
 
 // التقاط الصورة والتحقق من الإضاءة
 async function captureImage() {
+  if (video.videoWidth === 0 || video.videoHeight === 0) {
+    alert("❗ الفيديو غير جاهز بعد، انتظر ثوانٍ ثم حاول مرة أخرى");
+    return;
+  }
+
   const canvasCapture = document.createElement("canvas");
   canvasCapture.width = video.videoWidth;
   canvasCapture.height = video.videoHeight;
@@ -140,5 +157,6 @@ function answerAcne(hasAcne){
   `;
 }
 
-document.getElementById("captureBtn").addEventListener("click", captureImage);
+// أحداث
+captureBtn.addEventListener("click", captureImage);
 window.addEventListener("load", initCamera);
