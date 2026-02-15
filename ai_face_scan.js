@@ -2,7 +2,6 @@ function analyzeFace(image) {
   console.log("🧠 AI analyzing image...");
 
   const indicators = [];
-
   const redness = Math.random();
   const pigmentation = Math.random();
 
