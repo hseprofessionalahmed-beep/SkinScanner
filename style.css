@@ -1,30 +1,23 @@
-.level-selector {
-    display: flex;
-    gap: 10px;
-    margin: 20px 0;
-}
-.level-selector button {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    background: #fff;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-}
-.level-selector button.active {
-    background: #000;
-    color: #fff;
-    border-color: #000;
-}
-.wa-btn {
-    width: 100%;
-    margin-top: 15px;
-    padding: 15px;
-    background: #25d366;
-    color: #fff;
-    border: none;
-    border-radius: 50px;
-    font-weight: bold;
-    cursor: pointer;
-}
+:root { --black: #1a1a1a; --peach: #fdf2e9; --accent: #f5d5b8; }
+body { font-family: 'Segoe UI', sans-serif; direction: rtl; padding: 10px; background: #fff; }
+.container { max-width: 450px; margin: auto; }
+.brand-header { text-align: center; padding: 10px; }
+.main-logo { max-width: 140px; }
+.scanner-box { position: relative; border-radius: 35px; overflow: hidden; background: #000; aspect-ratio: 1/1; border: 2px solid var(--peach); }
+video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+#loading-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 10; font-weight: bold; }
+.upload-controls { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.primary-btn, .secondary-btn { padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; text-align: center; border: none; }
+.primary-btn { background: var(--black); color: white; }
+.secondary-btn { background: #4a4a4a; color: white; }
+.professional-report { background: white; padding: 20px; border-radius: 20px; border: 1px solid var(--peach); margin-top: 20px; }
+.confirmed-issues-panel { background: var(--peach); padding: 15px; border-radius: 12px; margin-bottom: 20px; border-right: 4px solid var(--accent); }
+.level-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+.level-tabs button { flex: 1; padding: 10px; font-size: 0.8rem; border-radius: 8px; border: 1px solid #eee; background: white; font-weight: bold; }
+.level-tabs button.active { background: var(--accent); }
+.mapping-logic { background: #f7fafc; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 0.85rem; border-left: 3px solid var(--black); }
+.phase-card { background: #fafafa; padding: 15px; border-radius: 15px; margin-bottom: 10px; }
+.p-item { background: var(--peach); padding: 10px; border-radius: 8px; border: 1px dashed var(--accent); margin-top: 5px; }
+.wa-btn { width: 100%; padding: 18px; background: #25d366; color: white; border: none; border-radius: 15px; font-weight: bold; margin-top: 10px; }
+.q-block button { background: var(--black); color: white; border: none; padding: 10px 20px; border-radius: 10px; margin: 5px; cursor: pointer; }
+@media print { .wa-btn, .primary-btn, .level-tabs { display: none; } }
