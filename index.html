@@ -6,42 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+  <div class="app">
+    <h1>AI Skin Scanner</h1>
 
-<div class="app">
+    <!-- Username -->
+    <input type="text" id="username" placeholder="👤 اسم المستخدم">
 
-  <h1>AI Skin Scanner</h1>
+    <!-- Camera Capture -->
+    <div class="upload-box">
+      <video id="video" autoplay playsinline width="320" height="240" style="border-radius:12px; background:#000;"></video>
+      <button id="captureBtn">📸 التقط الصورة</button>
+    </div>
 
-  <!-- Username -->
-  <input type="text" id="username" placeholder="👤 اسم المستخدم">
+    <!-- Indicators -->
+    <div id="evidence-panel" class="hidden">
+      <h3>🔍 مؤشرات التحليل</h3>
+      <ul id="indicatorsList"></ul>
+    </div>
 
-  <!-- Image Upload -->
-  <div class="upload-box">
-    <input type="file" id="imageInput" accept="image/*">
-    <button onclick="startScan()">📸 ابدأ الفحص</button>
+    <!-- Questions -->
+    <div id="questions" class="hidden"></div>
+
+    <!-- Result -->
+    <div id="result" class="hidden"></div>
+
+    <!-- WhatsApp -->
+    <button id="whatsappBtn" class="hidden" onclick="sendWhatsApp()">📲 إرسال الروتين واتساب</button>
   </div>
 
-  <!-- Indicators -->
-  <div id="evidence-panel" class="hidden">
-    <h3>🔍 مؤشرات التحليل</h3>
-    <ul id="indicatorsList"></ul>
-  </div>
-
-  <!-- Questions -->
-  <div id="questions" class="hidden"></div>
-
-  <!-- Result -->
-  <div id="result" class="hidden"></div>
-
-  <!-- WhatsApp -->
-  <button id="whatsappBtn" class="hidden" onclick="sendWhatsApp()">📲 إرسال الروتين واتساب</button>
-
-</div>
-
-<script src="face-ai.js"></script>
-<script src="routine.js"></script>
-<script src="script.js"></script>
-
+  <script src="face-ai.js"></script>
+  <script src="routine.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
