@@ -1,28 +1,25 @@
 let isModelLoaded = false;
 
-// تحميل المكتبة مع روابط بديلة سريعة
 async function loadAI() {
-    const loader = document.getElementById('loading-overlay');
     try {
         await faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights/');
         isModelLoaded = true;
-        if (loader) loader.style.display = 'none';
-        console.log("محرك VERONA جاهز");
+        console.log("AI Ready");
     } catch (e) {
-        console.warn("المحرك الذكي يتأخر، سيتم تفعيل المحلل اللوني البديل");
-        isModelLoaded = true; // نعتبرها محملة لتفعيل المسار البديل
+        console.warn("Using Color Scan Mode");
+        isModelLoaded = true;
     }
 }
 loadAI();
 
 async function analyzeSkin(source) {
     let detection = null;
-    
-    // محاولة ذكية أولى (إذا فشلت لن يتوقف البرنامج)
-    try {
-        const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.1 });
-        detection = await faceapi.detectSingleFace(source, options);
-    } catch(e) { console.log("تحول للمسح اللوني المباشر"); }
+    if (isModelLoaded) {
+        try {
+            const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.1 });
+            detection = await faceapi.detectSingleFace(source, options);
+        } catch(e) {}
+    }
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -32,34 +29,29 @@ async function analyzeSkin(source) {
         const { x, y, width, height } = detection.box;
         ctx.drawImage(source, x, y, width, height, 0, 0, 150, 150);
     } else {
-        // الحل السحري: إذا لم يجد وجهاً (مثل صورة الطفل أو النمش)، يحلل مركز الصورة
+        // إذا لم يجد وجهاً، يحلل وسط الصورة تلقائياً
         ctx.drawImage(source, 0, 0, source.width || 300, source.height || 300, 0, 0, 150, 150);
     }
 
     const data = ctx.getImageData(0, 0, 150, 150).data;
-    let rSum = 0, gSum = 0, bSum = 0, redPoints = 0, darkPoints = 0;
+    let rSum = 0, gSum = 0, bSum = 0, acne = 0, pigment = 0;
 
     for (let i = 0; i < data.length; i += 4) {
         let r = data[i], g = data[i+1], b = data[i+2];
         rSum += r; gSum += g; bSum += b;
-        
-        // رصد الاحمرار (حبوب)
-        if (r > g + 45 && r > b + 45) redPoints++; 
-        // رصد النمش والتصبغات الداكنة
-        if ((r + g + b) / 3 < 115 && r > b + 15) darkPoints++; 
+        if (r > g + 40 && r > b + 40) acne++;
+        if ((r + g + b) / 3 < 120 && r > b + 15) pigment++;
     }
 
-    const totalPixels = 150 * 150;
-    const avgBright = (rSum + gSum + bSum) / (totalPixels * 3);
-
+    const avg = (rSum + gSum + bSum) / (150 * 150 * 3);
     return {
         indicators: {
-            type: avgBright > 175 ? "جافة" : (avgBright < 125 ? "دهنية" : "عادية"),
-            acne: (redPoints / totalPixels) * 100 > 0.5,
-            pigment: (darkPoints / totalPixels) * 100 > 1.2,
-            glow: Math.max(25, 100 - (redPoints + darkPoints) / 180),
-            hydration: Math.min(99, avgBright / 2.2),
-            age: Math.floor(18 + (darkPoints / 800))
+            type: avg > 170 ? "جافة" : (avg < 120 ? "دهنية" : "عادية"),
+            acne: (acne / 22500) * 100 > 0.5,
+            pigment: (pigment / 22500) * 100 > 1.0,
+            glow: Math.max(30, 100 - (acne + pigment)/150),
+            hydration: Math.min(99, avg / 2.2),
+            age: Math.floor(18 + (pigment / 900))
         }
     };
 }
