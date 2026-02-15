@@ -1,31 +1,36 @@
-function buildRoutine(problems) {
-  const routine = [];
+function buildRoutine(data) {
+  const r = document.getElementById("result");
+  r.classList.remove("hidden");
 
-  problems.forEach(p => {
-    if (p.key === "acne") {
-      routine.push({
-        ingredient: "Salicylic Acid 2%",
-        role: "تنظيف المسام وتقليل الحبوب",
-        usage: "صباحًا مرة يوميًا – 6 أسابيع"
-      });
-    }
+  let routine = `
+  🧴 المرحلة الأولى (ترطيب)
+  - Vitamin C
+  - Hyaluronic Acid
 
-    if (p.key === "pigmentation") {
-      routine.push({
-        ingredient: "Vitamin C 10%",
-        role: "تفتيح وتوحيد لون البشرة",
-        usage: "صباحًا – 8 إلى 12 أسبوع"
-      });
-    }
+  🌟 المرحلة الثانية (تفتيح)
+  - Alpha Arbutin
+  - Niacinamide
 
-    if (p.key === "darkCircles") {
-      routine.push({
-        ingredient: "Caffeine + Niacinamide",
-        role: "تقليل الهالات",
-        usage: "ليلاً حول العين – 4 أسابيع"
-      });
-    }
-  });
+  ☀️ المرحلة الثالثة (حماية)
+  - Sunscreen SPF50
+  `;
 
-  return routine;
+  if (data.acne) {
+    routine += `
+  🔥 دعم الحبوب:
+  - Salicylic Acid
+  - Azelaic Acid
+  `;
+  }
+
+  r.innerHTML = `<pre>${routine}</pre>`;
+  window.finalRoutine = routine;
+
+  document.getElementById("whatsappBtn").classList.remove("hidden");
+}
+
+function sendWhatsApp() {
+  const phone = "201063994139";
+  const msg = encodeURIComponent(window.finalRoutine);
+  window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
 }
