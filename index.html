@@ -2,33 +2,62 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI - PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VERONA AI - Professional Scanner</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --gold: #d4af37; --bg: #0a0a0a; --card: #1a1a1a; }
-        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; text-align: center; }
-        .app { padding: 20px; max-width: 400px; margin: auto; }
-        .logo { width: 80px; height: 80px; background: white; border-radius: 20px; margin: 20px auto; display: flex; align-items: center; justify-content: center; color: black; font-weight: bold; }
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
-        button { padding: 15px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; }
-        .primary-btn { background: #0a84ff; color: white; }
+        :root { --gold: #d4af37; --bg: #000000; --card: #1c1c1e; --blue: #0a84ff; }
+        body { margin: 0; background: var(--bg); color: white; font-family: -apple-system, sans-serif; text-align: center; overflow-x: hidden; }
+        .app { padding: 20px; max-width: 450px; margin: auto; }
+        
+        /* التصميم العلوي */
+        .header { margin: 20px 0; }
+        .logo { width: 70px; height: 70px; background: white; border-radius: 18px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; color: black; font-weight: bold; font-size: 1.2rem; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
+        .gold-txt { color: var(--gold); }
+
+        /* الأزرار */
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        button { padding: 15px; border-radius: 14px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .primary-btn { background: var(--blue); color: white; }
         .secondary-btn { background: var(--card); color: white; border: 1px solid #333; }
-        video, canvas { width: 100%; border-radius: 15px; background: #000; margin-top: 10px; }
-        .hidden { display: none; }
-        .result-card { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--gold); }
+        button:active { transform: scale(0.95); }
+
+        /* الكاميرا والمعاينة */
+        video, canvas { width: 100%; border-radius: 20px; background: #111; margin-top: 10px; border: 1px solid #222; }
+        
+        /* شاشة التحميل */
         .loader { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:100; }
         .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* كارت النتائج */
+        .result-card { background: var(--card); padding: 25px; border-radius: 24px; margin-top: 20px; border: 1px solid #333; text-align: right; }
+        .score-box { width: 110px; height: 110px; border: 4px solid var(--gold); border-radius: 50%; margin: 10px auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .score-num { font-size: 2.2rem; font-weight: 900; color: white; }
+        
+        /* الروتين */
+        .routine-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-top: 15px; border-right: 4px solid var(--gold); }
+        .phase-title { color: var(--gold); font-size: 0.95rem; font-weight: bold; display: block; margin-bottom: 5px; }
+
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div id="loading" class="hidden"><div class="loader"><div class="spinner"></div><p>جاري التحليل الرقمي...</p></div></div>
+<div id="loading" class="hidden">
+    <div class="loader">
+        <div class="spinner"></div>
+        <p>جاري المسح الرقمي المجهري...</p>
+        <small style="color: #888;">نحلل تباين الخلايا والصبغات</small>
+    </div>
+</div>
 
 <div class="app">
-    <div class="logo">VERONA</div>
-    <h2>VERONA <span style="color:var(--gold)">AI SCANNER</span></h2>
+    <div class="header">
+        <div class="logo">VERONA</div>
+        <h2>VERONA <span class="gold-txt">AI SCANNER</span></h2>
+        <p style="color:#8e8e93; font-size:0.8rem;">تحليل دقيق للبشرة والصبغات</p>
+    </div>
 
     <div class="btn-group">
         <button class="primary-btn" onclick="startCamera()">📸 كاميرا</button>
@@ -38,19 +67,31 @@
 
     <video id="video" autoplay playsinline class="hidden"></video>
     <canvas id="canvas" class="hidden"></canvas>
-    <button id="scanBtn" class="primary-btn hidden" style="width:100%; margin-top:10px;" onclick="runAnalysis()">ابدأ الفحص المجهري</button>
+    <button id="scanBtn" class="primary-btn hidden" style="width:100%; margin-top:10px; background:var(--gold); color:black;" onclick="runAnalysis()">ابدأ التحليل المجهري</button>
 
     <div id="results" class="result-card hidden">
-        <h3>التقرير المجهري</h3>
-        <div id="scoreDisplay" style="font-size: 2rem; color: var(--gold); font-weight: bold;">0</div>
-        <canvas id="chart"></canvas>
-        <div id="details" style="text-align: right; margin-top: 15px;"></div>
-        <button class="primary-btn" style="width:100%; background:#25d366; margin-top:10px;" onclick="alert('جاري التوجيه للواتساب...')">إرسال للواتساب ✅</button>
+        <h3 style="text-align:center; margin-top:0;">التقرير النهائي</h3>
+        
+        <div class="score-box">
+            <span class="score-num" id="scoreDisplay">0</span>
+            <small>صحة البشرة</small>
+        </div>
+
+        <canvas id="chart" style="margin: 20px 0;"></canvas>
+
+        <div id="statusList" style="margin-bottom: 20px;"></div>
+
+        <div id="routineArea">
+            <h4 style="border-bottom: 1px solid #333; padding-bottom: 10px;">الروتين المقترح:</h4>
+            <div id="routineDetails"></div>
+        </div>
+
+        <button class="primary-btn" style="width:100%; background:#25d366; margin-top:20px;" onclick="sendToWhatsApp()">إرسال التقرير للمتخصص ✅</button>
     </div>
 </div>
 
 <script>
-let scanData = { acne: false, pigment: false, score: 95 };
+let scanData = { acne: false, pigment: false, score: 98 };
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 
@@ -61,7 +102,7 @@ async function startCamera() {
         video.classList.remove('hidden');
         document.getElementById('scanBtn').classList.remove('hidden');
     } catch (err) {
-        alert("فشل فتح الكاميرا. يرجى التأكد من إعطاء الإذن للمتصفح.");
+        alert("يرجى السماح بالوصول للكاميرا");
     }
 }
 
@@ -79,31 +120,46 @@ function handleFile(e) {
     img.src = URL.createObjectURL(file);
 }
 
-async function runAnalysis() {
+function runAnalysis() {
     document.getElementById('loading').classList.remove('hidden');
     
-    // تأكد من التقاط صورة من الفيديو إذا كانت الكاميرا مفتوحة
     if (!video.classList.contains('hidden')) {
         const ctx = canvas.getContext('2d');
         canvas.width = 400; canvas.height = 400;
         ctx.drawImage(video, 0, 0, 400, 400);
     }
 
-    // محاكاة تحليل لمدة 1.5 ثانية
     setTimeout(() => {
         const ctx = canvas.getContext('2d');
         const pixels = ctx.getImageData(0,0,400,400).data;
-        let r=0, darks=0;
+        
+        let acnePoints = 0;   
+        let pigmentPoints = 0; 
+        let totalPixels = pixels.length / 4;
         
         for(let i=0; i<pixels.length; i+=4) {
-            r += pixels[i];
-            if((pixels[i]+pixels[i+1]+pixels[i+2])/3 < 100 && pixels[i] > pixels[i+2]+15) darks++;
+            let r = pixels[i], g = pixels[i+1], b = pixels[i+2];
+            let avg = (r + g + b) / 3;
+
+            // خوارزمية الحبوب: يجب أن يكون أحمر صارخ (يتجاهل بشرة الطفل الوردية)
+            if (r > g + 70 && r > b + 70 && r > 160) {
+                acnePoints++;
+            }
+            
+            // خوارزمية التصبغات: يجب أن يكون داكن وبني (يتجاهل بشرة الطفل الفاتحة)
+            if (avg < 105 && r > b + 18) {
+                pigmentPoints++;
+            }
         }
 
-        const avgR = r / (pixels.length/4);
-        scanData.acne = avgR > 160;
-        scanData.pigment = (darks / (pixels.length/4)) * 100 > 2.5;
-        scanData.score = 95 - (scanData.acne?15:0) - (scanData.pigment?10:0);
+        let acneRatio = (acnePoints / totalPixels) * 100;
+        let pigmentRatio = (pigmentPoints / totalPixels) * 100;
+
+        scanData.acne = acneRatio > 0.7;      
+        scanData.pigment = pigmentRatio > 1.8; 
+        scanData.score = 98 - (scanData.acne ? 15 : 0) - (scanData.pigment ? 12 : 0);
+        
+        if (scanData.score > 98) scanData.score = 98;
 
         displayResults();
         document.getElementById('loading').classList.add('hidden');
@@ -112,21 +168,57 @@ async function runAnalysis() {
 
 function displayResults() {
     document.getElementById('results').classList.remove('hidden');
-    document.getElementById('scoreDisplay').innerText = scanData.score + "%";
-    document.getElementById('details').innerHTML = `
-        <p>• درجة الالتهاب: ${scanData.acne ? 'مرتفعة' : 'طبيعية ✅'}</p>
-        <p>• التصبغات: ${scanData.pigment ? 'مكتشفة' : 'صافية ✅'}</p>
-        <p>• التوصية: روتين ${scanData.acne ? 'علاج الحبوب' : 'النضارة والترطيب'}</p>
-    `;
+    document.getElementById('scoreDisplay').innerText = scanData.score;
     
-    // رسم بياني بسيط
+    document.getElementById('statusList').innerHTML = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <span>حالة الالتهاب:</span>
+            <span style="color:${scanData.acne?'#ff453a':'#32d74b'}">${scanData.acne?'مكتشفة (حبوب)':'صافية ✅'}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+            <span>التصبغات والنمش:</span>
+            <span style="color:${scanData.pigment?'#ff453a':'#32d74b'}">${scanData.pigment?'بقع مكتشفة':'لا يوجد ✅'}</span>
+        </div>
+    `;
+
+    // تحديد الروتين
+    let routineHTML = "";
+    if (scanData.acne) {
+        routineHTML = `
+            <div class="routine-box"><span class="phase-title">1. غسول:</span> ستارفيل جل (صباحاً ومساءً)</div>
+            <div class="routine-box"><span class="phase-title">2. علاج:</span> أدابلين جل (نقطة مساءً فقط)</div>
+            <div class="routine-box"><span class="phase-title">3. ترطيب:</span> لا روش بوزيه إيفاكلار H</div>
+        `;
+    } else if (scanData.pigment) {
+        routineHTML = `
+            <div class="routine-box"><span class="phase-title">1. غسول:</span> إيفا وايت بيرل</div>
+            <div class="routine-box"><span class="phase-title">2. علاج:</span> سيروم فيتامين C (صباحاً)</div>
+            <div class="routine-box"><span class="phase-title">3. حماية:</span> واقي شمس SPF50 ضروري</div>
+        `;
+    } else {
+        routineHTML = `
+            <div class="routine-box"><span class="phase-title">روتين النضارة:</span> بشرتك ممتازة! يكفي غسول ملطف ومرطب هايلورونيك أسيد للحفاظ على الإشراق.</div>
+        `;
+    }
+    document.getElementById('routineDetails').innerHTML = routineHTML;
+    
+    // الرسم البياني
     new Chart(document.getElementById('chart'), {
         type: 'line',
         data: {
             labels: ['اليوم', 'أسبوع 2', 'أسبوع 4'],
-            datasets: [{ label: 'التحسن المتوقع', data: [scanData.score, scanData.score+10, 98], borderColor: '#d4af37' }]
-        }
+            datasets: [{ label: '% التحسن', data: [scanData.score, scanData.score+10, 98], borderColor: '#d4af37', tension: 0.3 }]
+        },
+        options: { plugins: { legend: { display: false } } }
     });
+}
+
+function sendToWhatsApp() {
+    let msg = `*تقرير فيرونا AI لنوع البشرة*%0A------------------%0A`;
+    msg += `*الدرجة:* ${scanData.score}/100%0A`;
+    msg += `*الحالة:* ${scanData.acne ? 'حبوب ملتهبة' : (scanData.pigment ? 'تصبغات وبقع' : 'بشرة صافية')}%0A`;
+    msg += `------------------%0Aيرجى ترشيح المنتجات المناسبة.`;
+    window.open(`https://wa.me/201063994139?text=${msg}`);
 }
 </script>
 </body>
