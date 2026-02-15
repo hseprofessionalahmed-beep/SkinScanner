@@ -1,90 +1,78 @@
 let scanData = {};
+let myChart = null;
 
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
 
-function chooseMode(mode){
-  if(mode==="camera"){
-    document.getElementById("fileUpload").classList.add("hidden");
-    video.classList.remove("hidden");
-    captureBtn.classList.remove("hidden");
-
-    navigator.mediaDevices.getUserMedia({video:true})
-    .then(stream => video.srcObject = stream);
-  }else{
-    video.classList.add("hidden");
-    captureBtn.classList.add("hidden");
-    document.getElementById("fileUpload").classList.remove("hidden");
-  }
+function chooseMode(mode) {
+    if (mode === "camera") {
+        video.classList.remove("hidden");
+        captureBtn.classList.remove("hidden");
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(s => video.srcObject = s);
+    }
 }
 
-captureBtn.onclick = function(){
-  canvas.classList.remove("hidden");
-  const ctx = canvas.getContext("2d");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  ctx.drawImage(video,0,0);
-  analyzeImage();
+document.getElementById("imageInput").onchange = (e) => {
+    const img = new Image();
+    img.src = URL.createObjectURL(e.target.files[0]);
+    img.onload = () => {
+        const ctx = canvas.getContext("2d");
+        canvas.width = 400; canvas.height = 400;
+        ctx.drawImage(img, 0, 0, 400, 400);
+        analyzeImage();
+    };
 };
 
-document.getElementById("imageInput").addEventListener("change", function(){
-  const file = this.files[0];
-  if(!file) return;
-  const img = new Image();
-  img.src = URL.createObjectURL(file);
-  img.onload = function(){
-    canvas.classList.remove("hidden");
+captureBtn.onclick = () => {
     const ctx = canvas.getContext("2d");
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img,0,0);
+    canvas.width = 400; canvas.height = 400;
+    ctx.drawImage(video, 0, 0, 400, 400);
     analyzeImage();
-  }
-});
+};
 
-function analyzeImage(){
-  const ctx = canvas.getContext("2d");
-  const imageData = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+async function analyzeImage() {
+    document.getElementById("loading").classList.remove("hidden");
+    await new Promise(r => setTimeout(r, 2000));
+    
+    const ctx = canvas.getContext("2d");
+    const data = ctx.getImageData(0,0,400,400).data;
+    let rSum=0, gSum=0, bSum=0, darks=0;
 
-  let brightness=0, redAvg=0;
+    for(let i=0; i<data.length; i+=4) {
+        rSum+=data[i]; gSum+=data[i+1]; bSum+=data[i+2];
+        if((data[i]+data[i+1]+data[i+2])/3 < 100 && data[i] > data[i+2]+15) darks++;
+    }
 
-  for(let i=0;i<imageData.length;i+=4){
-    brightness += (imageData[i]+imageData[i+1]+imageData[i+2])/3;
-    redAvg += imageData[i];
-  }
+    const total = data.length/4;
+    scanData.acne = (rSum/total) > 155;
+    scanData.pigment = (darks/total)*100 > 2.5;
+    scanData.score = 95 - (scanData.acne?15:0) - (scanData.pigment?10:0);
 
-  brightness /= (imageData.length/4);
-  redAvg /= (imageData.length/4);
-
-  scanData.acne = redAvg>150;
-  scanData.pigmentation = brightness<110;
-  scanData.dryness = brightness>180;
-
-  showAnalysis();
+    document.getElementById("loading").classList.add("hidden");
+    showResults();
 }
 
-function showAnalysis(){
-  const div = document.getElementById("analysisResult");
-  div.classList.remove("hidden");
-
-  div.innerText =
-  "نتيجة التحليل:\n\n"+
-  "حبوب/التهاب: "+(scanData.acne?"محتمل":"منخفض")+"\n"+
-  "تصبغات: "+(scanData.pigmentation?"محتملة":"خفيفة")+"\n"+
-  "جفاف: "+(scanData.dryness?"محتمل":"طبيعي")+"\n";
-
-  showLevelSelection();
+function showResults() {
+    document.getElementById("analysisResult").classList.remove("hidden");
+    document.getElementById("skinScore").innerText = scanData.score;
+    document.getElementById("analysisText").innerHTML = `
+        <p>• الالتهاب: ${scanData.acne?'محتمل':'هادئ ✅'}</p>
+        <p>• التصبغات: ${scanData.pigment?'مكتشفة':'صافي ✅'}</p>
+    `;
+    initChart();
+    document.getElementById("levelSelect").classList.remove("hidden");
 }
 
-function showLevelSelection(){
-  const levelDiv = document.getElementById("levelSelect");
-  levelDiv.classList.remove("hidden");
-
-  levelDiv.innerHTML = `
-  <h3>اختر مستوى الروتين</h3>
-  <button onclick="buildRoutine('eco')">اقتصادي</button>
-  <button onclick="buildRoutine('super')">سوبر</button>
-  <button onclick="buildRoutine('ultra')">ألترا</button>
-  `;
+function initChart() {
+    const ctx = document.getElementById('skinChart').getContext('2d');
+    if (myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['اليوم', 'أسبوع 2', 'أسبوع 4'],
+            datasets: [{ label: '% التحسن', data: [scanData.score, scanData.score+10, 98], borderColor: '#d4af37', tension: 0.4 }]
+        },
+        options: { plugins: { legend: { display: false } } }
+    });
 }
