@@ -1,14 +1,22 @@
-function sendWA() {
-    const msg = `
-*VERONA SKIN REPORT* ✨
---------------------------
-📊 تم فحص البشرة بنجاح عبر منصة فيرونا.
-🛡️ المستوى: ${sessionData.level.toUpperCase()}
-📅 الحالة المكتشفة: ${sessionData.answers.depth || 'نضارة عامة'}
+function sendWhatsAppReport(problems, routine) {
+  let text = "🔍 تقرير تحليل البشرة\n\n";
 
-💡 التوصية: يرجى تحميل نسخة الـ PDF من الموقع للحصول على تفاصيل المواد الفعالة.
---------------------------
-*VERONA - Glow Smarter*
-    `;
-    window.open(`https://wa.me/201063994139?text=${encodeURIComponent(msg)}`);
+  problems.forEach(p => {
+    text += `• ${p.title}\n`;
+  });
+
+  text += "\n🧴 الروتين المقترح:\n";
+
+  routine.forEach(r => {
+    text += `
+- ${r.ingredient}
+الدور: ${r.role}
+الاستخدام: ${r.usage}
+`;
+  });
+
+  window.open(
+    `https://wa.me/?text=${encodeURIComponent(text)}`,
+    "_blank"
+  );
 }
