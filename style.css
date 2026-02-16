@@ -1,142 +1,206 @@
-/* style.css - النسخة النهائية */
-:root {
-    --gold: #d4af37;
-    --bg: #0a0a0a;
-    --card: #161616;
-    --btn-green: #25d366;
+/* =========================
+   VERONA AI PRO STYLE
+========================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Cairo", sans-serif;
 }
 
 body {
-    background: var(--bg);
-    color: #fff;
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 10px;
+    background: linear-gradient(135deg, #0f0f0f, #1c1c1c);
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* =========================
+   الحاوية الرئيسية
+========================= */
+
+.container {
+    width: 100%;
+    max-width: 480px;
+    background: #141414;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.15);
     text-align: center;
 }
 
-.container {
-    max-width: 520px;
-    margin: auto;
-    padding: 10px;
-}
+/* =========================
+   العنوان
+========================= */
 
 h2 {
-    font-size: 1.8rem;
+    font-weight: 600;
     margin-bottom: 10px;
 }
 
-h2 span {
-    color: var(--gold);
-    font-weight: bold;
+.gold {
+    color: #d4af37;
 }
 
-/* شعار التطبيق */
-#logo {
-    width: 120px;
-    height: 120px;
-    background: #fff;
-    border-radius: 50%;
-    margin: 10px auto;
-    display: block;
-    object-fit: contain;
+/* =========================
+   رسالة الحالة
+========================= */
+
+.status-msg {
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #cccccc;
 }
 
-/* صندوق عرض الفيديو / الصورة */
+/* =========================
+   صندوق العرض
+========================= */
+
 .preview-box {
-    position: relative;
     width: 100%;
-    border-radius: 20px;
+    position: relative;
+    margin-bottom: 15px;
+    border-radius: 15px;
     overflow: hidden;
     background: #000;
-    border: 2px solid #333;
-    min-height: 300px;
-    margin-top: 10px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
-video, canvas {
+/* الفيديو */
+
+#input_video {
     width: 100%;
-    height: auto;
     display: block;
 }
 
-/* Overlay للـ FaceMesh */
+/* الكانفس مهم جداً */
+
 #overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 10;
+    width: 100%;
+    display: block;
 }
 
-/* أزرار الإجراءات */
+/* إخفاء العناصر */
+
+.hidden {
+    display: none;
+}
+
+/* =========================
+   الأزرار
+========================= */
+
 .btn-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     gap: 10px;
-    margin: 15px 0;
+    margin-bottom: 15px;
 }
 
 .action-btn {
-    background: var(--gold);
-    color: #000;
-    padding: 15px;
+    flex: 1;
+    padding: 12px;
     border-radius: 12px;
     border: none;
-    font-weight: bold;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+/* زر عادي */
+
+.action-btn {
+    background: #222;
+    color: #fff;
+    border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
 .action-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    background: #d4af37;
+    color: #000;
 }
 
 /* زر التحليل */
+
 .scan-btn {
-    background: #fff;
+    width: 100%;
+    margin-bottom: 15px;
+    background: linear-gradient(45deg, #d4af37, #b8962e);
     color: #000;
-    font-size: 1.1rem;
-    border: 3px solid var(--gold);
-    margin-top: 10px;
     font-weight: bold;
 }
 
-/* بطاقة النتائج */
+.scan-btn:disabled {
+    background: #333;
+    color: #777;
+    cursor: not-allowed;
+}
+
+/* زر واتساب */
+
+.wa-btn {
+    margin-top: 10px;
+    background: #25D366;
+    color: white;
+}
+
+.wa-btn:hover {
+    background: #1ebe5d;
+}
+
+/* =========================
+   كرت النتائج
+========================= */
+
 .result-card {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 20px;
-    margin-top: 20px;
-    border: 1px solid var(--gold);
-    text-align: right;
+    background: #1a1a1a;
+    border-radius: 15px;
+    padding: 15px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    margin-top: 10px;
+    animation: fadeIn 0.5s ease;
 }
 
 .result-card h3 {
-    margin: 0 0 10px 0;
+    margin-bottom: 8px;
 }
 
-.result-card pre {
-    white-space: pre-wrap;
-    text-align: right;
+.result-card p {
+    font-size: 14px;
+    color: #ccc;
+    margin-bottom: 10px;
 }
 
-/* زر إرسال واتساب */
-.result-card .action-btn {
-    background: var(--btn-green);
-    color: #fff;
-    width: 100%;
-    margin-top: 15px;
+#scoreBox {
+    font-size: 18px;
+    font-weight: bold;
+    color: #d4af37;
 }
 
-/* رسالة الحالة */
-.status-msg {
-    color: var(--gold);
-    font-size: 0.9rem;
-    margin: 10px 0;
+/* =========================
+   أنيميشن
+========================= */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* حالة مخفية */
-.hidden {
-    display: none;
+/* =========================
+   موبايل
+========================= */
+
+@media (max-width: 480px) {
+    .container {
+        padding: 18px;
+    }
+
+    .action-btn {
+        font-size: 13px;
+        padding: 10px;
+    }
 }
