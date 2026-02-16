@@ -3,7 +3,6 @@
     --bg: #0a0a0a;
     --card: #161616;
 }
-
 body {
     background: var(--bg);
     color: #fff;
@@ -12,12 +11,10 @@ body {
     padding: 10px;
     text-align: center;
 }
-
 .container {
     max-width: 500px;
     margin: auto;
 }
-
 .preview-box {
     position: relative;
     width: 100%;
@@ -27,26 +24,22 @@ body {
     border: 2px solid #333;
     min-height: 300px;
 }
-
 video, canvas {
     width: 100%;
     height: auto;
 }
-
 #overlay {
     position: absolute;
     top: 0;
     left: 0;
     z-index: 10;
 }
-
 .btn-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
     margin: 15px 0;
 }
-
 .action-btn {
     background: var(--gold);
     color: #000;
@@ -56,17 +49,13 @@ video, canvas {
     font-weight: bold;
     cursor: pointer;
 }
-
-.file-btn { background:#333; color:#fff; }
-
 .scan-btn {
     background: #fff;
     width: 100%;
     font-size: 1.1rem;
     border: 3px solid var(--gold);
-    margin-top:10px;
+    margin-top: 10px;
 }
-
 .result-card {
     background: var(--card);
     padding: 20px;
@@ -75,7 +64,6 @@ video, canvas {
     border: 1px solid var(--gold);
     text-align: right;
 }
-
-.gold-text { color: var(--gold); }
 .hidden { display: none; }
 .status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
+.gold { color: var(--gold); }
