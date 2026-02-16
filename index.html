@@ -3,266 +3,218 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI - Pro Facial Precision</title>
+<title>VERONA AI PRO - Facial Scan & Routine</title>
+
+<!-- Mediapipe Face Mesh -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+
 <style>
 :root { --gold:#d4af37; --bg:#0a0a0a; --card:#161616; }
-body{background:var(--bg); color:#fff; font-family:sans-serif; margin:0; padding:10px; text-align:center;}
-.container{max-width:600px;margin:auto;}
-.preview-box{position:relative;width:100%;border-radius:20px;overflow:hidden;background:#000;border:2px solid #333;min-height:300px;}
-video,canvas{width:100%;height:auto;}
-#overlay{position:absolute;top:0;left:0;z-index:10;}
-.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0;}
-.action-btn{background:var(--gold);color:#000;padding:15px;border-radius:12px;border:none;font-weight:bold;cursor:pointer;}
-.scan-btn{background:#fff;width:100%;font-size:1.1rem;border:3px solid var(--gold);margin-top:10px;}
-.result-card{background:var(--card);padding:20px;border-radius:20px;margin-top:20px;border:1px solid var(--gold);text-align:right;}
-.hidden{display:none;}
-.status-msg{color:var(--gold);font-size:0.9rem;margin:10px 0;}
-input[type=text], select{width:100%;padding:10px;margin:5px 0 10px;border-radius:8px;border:none;font-size:1rem;}
-.section-title{color:var(--gold);font-weight:bold;margin-top:15px;text-align:right;}
-.routine-box{background:#222;padding:15px;border-radius:15px;margin:10px 0;text-align:right;border:1px solid var(--gold);}
-.routine-box h4{margin:5px 0;color:var(--gold);}
-.send-wa-btn{background:#25d366;color:white;width:100%;margin-top:10px;padding:12px;border-radius:10px;border:none;font-weight:bold;cursor:pointer;}
+body { background:var(--bg); color:#fff; font-family:sans-serif; margin:0; padding:10px; text-align:center; }
+.container { max-width:600px; margin:auto; }
+.preview-box { position:relative; width:100%; border-radius:20px; overflow:hidden; background:#000; border:2px solid #333; min-height:320px; }
+video, canvas { width:100%; height:auto; }
+#overlay { position:absolute; top:0; left:0; z-index:10; }
+.btn-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0; }
+.action-btn { background:var(--gold); color:#000; padding:15px; border-radius:12px; border:none; font-weight:bold; cursor:pointer; }
+.scan-btn { background:#fff; width:100%; font-size:1.1rem; border:3px solid var(--gold); margin-top:10px; }
+.result-card { background:var(--card); padding:20px; border-radius:20px; margin-top:20px; border:1px solid var(--gold); text-align:right; }
+.hidden { display:none; }
+.status-msg { color:var(--gold); font-size:0.9rem; margin:10px 0; }
+.question-box { background:#222; border:1px solid var(--gold); border-radius:15px; padding:15px; margin-top:20px; text-align:right; }
+.question-box label { display:block; margin:8px 0; }
+.routine-box { background:#111; border:1px solid var(--gold); border-radius:15px; padding:15px; margin-top:15px; text-align:right; }
+.routine-box h4 { color:var(--gold); margin:5px 0; }
+.routine-box button { margin-top:10px; width:100%; background:#25d366; color:white; padding:10px; border:none; border-radius:12px; cursor:pointer; font-weight:bold; }
 </style>
 </head>
 <body>
 
 <div class="container">
-<h2>VERONA <span style="color:var(--gold)">AI PRO</span></h2>
-<div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
+    <h2>VERONA <span style="color:var(--gold)">AI PRO</span></h2>
+    <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
 
-<div class="preview-box">
-<video id="input_video" class="hidden" playsinline></video>
-<canvas id="overlay"></canvas>
-</div>
+    <div class="preview-box">
+        <video id="input_video" class="hidden" playsinline></video>
+        <canvas id="overlay"></canvas>
+    </div>
 
-<div class="btn-grid">
-<button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
-<button class="action-btn" style="background:#333;color:#fff;" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
-</div>
-<input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
+    <div class="btn-grid">
+        <button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
+        <button class="action-btn" style="background:#333;color:#fff;" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
+    </div>
+    <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
 
-<button id="scanBtn" class="action-btn scan-btn" onclick="startQuestions()">تحليل النتائج الآن 🔬</button>
+    <button id="scanBtn" class="action-btn scan-btn hidden" onclick="showQuestions()">تحليل النتائج الآن 🔬</button>
 
-<div id="questionsSection" class="result-card hidden">
-<h3 class="section-title">الأسئلة بعد تحليل الوجه</h3>
-<div id="pigmentQuestion" class="hidden">
-<label>هل توجد تصبغات؟</label>
-<select id="pigmentSelect">
-<option value="none">لا يوجد</option>
-<option value="mild">خفيفة</option>
-<option value="moderate">متوسطة</option>
-<option value="severe">شديدة</option>
-</select>
-</div>
+    <div id="questionBox" class="question-box hidden">
+        <h3 style="color:var(--gold); margin:0;">الرجاء الإجابة على الأسئلة التالية:</h3>
+        <div id="dynamicQuestions"></div>
+        <button class="action-btn" style="background:var(--gold); color:#000;" onclick="generateRoutine()">إستخراج الروتين</button>
+    </div>
 
-<div id="darkCirclesQuestion" class="hidden">
-<label>هل توجد هالات سوداء؟</label>
-<select id="darkCirclesSelect">
-<option value="none">لا يوجد</option>
-<option value="light">خفيفة</option>
-<option value="moderate">متوسطة</option>
-<option value="severe">شديدة</option>
-</select>
-</div>
+    <div id="routineContainer" class="hidden">
+        <!-- سيتم عرض الروتينات الثلاثة هنا -->
+    </div>
 
-<div id="spotsQuestion" class="hidden">
-<label>هل توجد حبوب؟</label>
-<select id="spotsSelect" onchange="toggleSpotColor()">
-<option value="none">لا يوجد</option>
-<option value="exists">يوجد</option>
-</select>
-<div id="spotColorDiv" class="hidden">
-<label>لون الحبوب</label>
-<input type="text" id="spotColorInput" placeholder="أدخل اللون">
-<label>مكان الحبوب</label>
-<input type="text" id="spotLocationInput" placeholder="أدخل المكان">
-<label>درجة الحبوب</label>
-<select id="spotSeverity">
-<option value="light">خفيفة</option>
-<option value="moderate">متوسطة</option>
-<option value="severe">شديدة</option>
-</select>
-</div>
-</div>
-
-<div id="wrinklesQuestion" class="hidden">
-<label>هل توجد تجاعيد؟</label>
-<select id="wrinklesSelect" onchange="toggleWrinkleOptions()">
-<option value="none">لا يوجد</option>
-<option value="exists">يوجد</option>
-</select>
-<div id="wrinkleDetails" class="hidden">
-<label>مكان التجاعيد</label>
-<input type="text" id="wrinkleLocation" placeholder="جبهة/حول العين/حول الفم">
-<label>شدة التجاعيد</label>
-<select id="wrinkleSeverity">
-<option value="light">خفيفة</option>
-<option value="moderate">متوسطة</option>
-<option value="severe">شديدة</option>
-</select>
-</div>
-</div>
-
-<button class="action-btn scan-btn" onclick="generateRoutine()">استخراج الروتين النهائي 🧴</button>
-</div>
-
-<div id="routineSection" class="result-card hidden">
-<h3 class="section-title">روتين البشرة المقترح</h3>
-<div id="routinesContainer"></div>
-<div id="recommendationBox" class="routine-box">
-<h4>توصيات عامة:</h4>
-<ul style="text-align:right;">
-<li>الترطيب لمدة أسبوع أو أسبوعين قبل البدء في أي روتين</li>
-<li>النوم المبكر وشرب الماء بانتظام</li>
-<li>استخدام واقي الشمس يوميًا</li>
-<li>علاج السبب وليس العرض</li>
-</ul>
-</div>
+    <div id="recommendations" class="result-card hidden">
+        <h3 style="color:var(--gold); margin:0;">التوصيات المهمة 💡</h3>
+        <p>ترطيب البشرة قبل استخدام الروتين لمدة أسبوع إلى أسبوعين، النوم الكافي، شرب الماء، وضع واقي شمس يومياً. هذه الخطوات ضرورية لنجاح الروتين.</p>
+    </div>
 </div>
 
 <script>
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d', {willReadFrequently:true});
-let faceMesh;
-let lastResults = null;
-let currentImg = null;
+let faceMesh, lastResults=null, currentImg=null, detectedIssues=[];
 
-// تهيئة Face Mesh
-async function setupFaceMesh(){
-faceMesh = new FaceMesh({locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
-faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5});
-faceMesh.onResults(onResults);
-document.getElementById('status').innerText="المحرك جاهز للفحص ✅";
+async function setupFaceMesh() {
+    faceMesh = new FaceMesh({locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+    faceMesh.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5 });
+    faceMesh.onResults(onResults);
+    document.getElementById('status').innerText="المحرك جاهز للفحص ✅";
 }
 setupFaceMesh();
 
 function onResults(results){
-lastResults = results;
-canvasElement.width = canvasElement.clientWidth;
-canvasElement.height = (currentImg)?(currentImg.height*(canvasElement.width/currentImg.width)):videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
-canvasCtx.save();
-canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
-canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
-if(results.multiFaceLandmarks){
-for(const landmarks of results.multiFaceLandmarks){
-drawConnectors(canvasCtx,landmarks,FACEMESH_TESSELATION,{color:'#d4af3744',lineWidth:0.5});
+    lastResults=results;
+    canvasElement.width = canvasElement.clientWidth;
+    canvasElement.height = (currentImg)? (currentImg.height*(canvasElement.width/currentImg.width)) : videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
+    
+    canvasCtx.save();
+    canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
+    canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
+    
+    if(results.multiFaceLandmarks){
+        for(const landmarks of results.multiFaceLandmarks){
+            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color:'#d4af3744', lineWidth:0.5});
+        }
+    }
+    canvasCtx.restore();
+
+    // الكشف عن المشاكل (تصبغات / هالات / حبوب)
+    detectedIssues=[];
+    if(results.multiFaceLandmarks){
+        const landmarks=results.multiFaceLandmarks[0];
+        const rGForehead=checkArea(landmarks[10]);
+        const rGCheeks=checkArea(landmarks[205]);
+        const rGEyes=(checkArea(landmarks[130])+checkArea(landmarks[350]))/2;
+        const pigmentDiff= rGCheeks/rGForehead;
+        const eyeDiff= rGEyes/rGForehead;
+
+        if(pigmentDiff<0.95) detectedIssues.push('تصبغات');
+        if(eyeDiff<0.9) detectedIssues.push('هالات');
+        // التجاعيد وحب الشباب نتركها للسؤال
+    }
+
+    // إظهار زر التحليل إذا تم اكتشاف أي مشكلة
+    document.getElementById('scanBtn').classList.toggle('hidden', detectedIssues.length===0);
 }
-}
-canvasCtx.restore();
+
+function checkArea(lm){
+    const x=Math.floor(lm.x*canvasElement.width);
+    const y=Math.floor(lm.y*canvasElement.height);
+    const pixel=canvasCtx.getImageData(x,y,1,1).data;
+    return (pixel[0]+pixel[1]+pixel[2])/3;
 }
 
 async function initCamera(){
-currentImg=null;
-videoElement.classList.remove('hidden');
-const camera = new Camera(videoElement,{onFrame:async()=>{await faceMesh.send({image:videoElement});}});
-camera.start();
+    currentImg=null;
+    videoElement.classList.remove('hidden');
+    const camera = new Camera(videoElement,{onFrame:async()=>{await faceMesh.send({image:videoElement});}});
+    camera.start();
 }
 
 function processFile(event){
-const file=event.target.files[0];
-if(!file) return;
-const img=new Image();
-img.onload=async()=>{
-currentImg=img;
-videoElement.classList.add('hidden');
-document.getElementById('status').innerText="يتم الآن رسم خريطة الوجه...";
-await faceMesh.send({image:img});
-};
-img.src=URL.createObjectURL(file);
+    const file=event.target.files[0];
+    if(!file) return;
+    const img=new Image();
+    img.onload=async()=>{
+        currentImg=img;
+        videoElement.classList.add('hidden');
+        document.getElementById('status').innerText="يتم الآن رسم خريطة الوجه...";
+        await faceMesh.send({image:img});
+    };
+    img.src=URL.createObjectURL(file);
 }
 
-// إظهار الأسئلة بعد التحليل
-function startQuestions(){
-if(!lastResults || !lastResults.multiFaceLandmarks){alert("يرجى التقاط وجه واضح أولاً"); return;}
-document.getElementById('questionsSection').classList.remove('hidden');
-
-// مثال: إظهار الأسئلة بشكل افتراضي لكل المشاكل المكتشفة
-document.getElementById('pigmentQuestion').classList.remove('hidden');
-document.getElementById('darkCirclesQuestion').classList.remove('hidden');
-document.getElementById('spotsQuestion').classList.remove('hidden');
-document.getElementById('wrinklesQuestion').classList.remove('hidden');
+function showQuestions(){
+    if(detectedIssues.length===0){
+        alert("البشرة نقية ومتوازنة، لا توجد مشاكل لتحليلها");
+        return;
+    }
+    const container=document.getElementById('dynamicQuestions');
+    container.innerHTML="";
+    detectedIssues.forEach(issue=>{
+        if(issue==='تصبغات'){
+            container.innerHTML+=`
+            <label>هل تريد تفتيح شامل وتوحيد لون؟</label>
+            <select id="lightenSkin">
+                <option value="نعم">نعم</option>
+                <option value="لا">لا</option>
+            </select>`;
+        }
+        if(issue==='هالات'){
+            container.innerHTML+=`
+            <label>لون الهالات:</label>
+            <select id="eyeColor">
+                <option value="بني">بني</option>
+                <option value="أسود">أسود</option>
+                <option value="أزرق">أزرق</option>
+            </select>`;
+        }
+        container.innerHTML+=`
+        <label>هل توجد حبوب؟</label>
+        <select id="hasPimples">
+            <option value="لا يوجد">لا يوجد</option>
+            <option value="يوجد">يوجد</option>
+        </select>
+        <label>هل توجد تجاعيد؟</label>
+        <select id="hasWrinkles">
+            <option value="لا يوجد">لا يوجد</option>
+            <option value="يوجد">يوجد</option>
+        </select>`;
+    });
+    document.getElementById('questionBox').classList.remove('hidden');
 }
 
-// تبديل خيارات الحبوب
-function toggleSpotColor(){
-const val=document.getElementById('spotsSelect').value;
-document.getElementById('spotColorDiv').classList.toggle('hidden', val!=='exists');
-}
-
-// تبديل خيارات التجاعيد
-function toggleWrinkleOptions(){
-const val=document.getElementById('wrinklesSelect').value;
-document.getElementById('wrinkleDetails').classList.toggle('hidden', val!=='exists');
-}
-
-// إنشاء الروتين النهائي
 function generateRoutine(){
-const pigment=document.getElementById('pigmentSelect').value;
-const darkCircles=document.getElementById('darkCirclesSelect').value;
-const spots=document.getElementById('spotsSelect').value;
-const wrinkles=document.getElementById('wrinklesSelect').value;
+    // جمع إجابات الأسئلة
+    const lightenSkin=document.getElementById('lightenSkin')?document.getElementById('lightenSkin').value:'لا';
+    const eyeColor=document.getElementById('eyeColor')?document.getElementById('eyeColor').value:'بني';
+    const hasPimples=document.getElementById('hasPimples').value;
+    const hasWrinkles=document.getElementById('hasWrinkles').value;
 
-// بيانات افتراضية للروتينات
-const routines=[
-{
-name:"اقتصادي",
-products:[
-{name:"غسول تفتيح",active:"فيتامين C",benefit:"تفتيح خفيف",price:"100",duration:"4 أسابيع"},
-{name:"سيروم Alpha Arbutin",active:"Alpha Arbutin",benefit:"تفتيح + توحيد اللون",price:"200",duration:"4 أسابيع"},
-{name:"واقي شمس SPF50",active:"مواد حماية",benefit:"حماية + تفتيح",price:"150",duration:"4 أسابيع"}
-],
-improve:wrinkles==="exists"?"أضف سيروم تجاعيد":""
-},
-{
-name:"سوبر",
-products:[
-{name:"غسول تفتيح + Niacinamide",active:"Niacinamide",benefit:"توحيد اللون + تفتيح",price:"180",duration:"6 أسابيع"},
-{name:"سيروم فيتامين C + E",active:"فيتامين C + E",benefit:"تفتيح + مضادات أكسدة",price:"250",duration:"6 أسابيع"},
-{name:"واقي شمس SPF50",active:"مواد حماية",benefit:"حماية + تفتيح",price:"150",duration:"6 أسابيع"},
-{name:"سيروم تجاعيد",active:"Peptides",benefit:"مقاومة التجاعيد",price:"300",duration:"6 أسابيع"}
-],
-improve:""
-},
-{
-name:"الترا",
-products:[
-{name:"غسول تفتيح + حمض الهيالورونيك",active:"HA",benefit:"ترطيب + تفتيح",price:"220",duration:"8 أسابيع"},
-{name:"سيروم الذهب 24K",active:"ذهب + C + E",benefit:"إشراقة + تفتيح + مضادات أكسدة",price:"500",duration:"8 أسابيع"},
-{name:"واقي شمس SPF50+",active:"مواد حماية",benefit:"حماية + تفتيح",price:"180",duration:"8 أسابيع"},
-{name:"سيروم تجاعيد",active:"Peptides",benefit:"مقاومة التجاعيد",price:"350",duration:"8 أسابيع"}
-],
-improve:""
-}];
+    const routines=[
+        {type:'اقتصادي',materials:'فيتامين C + Alpha Arbutin',products:'غسول + سيروم + واقي شمس',price:'500ج',duration:'6 أسابيع',improve:'60%'},
+        {type:'سوبر',materials:'فيتامين C + Alpha Arbutin + Niacinamide',products:'غسول + سيروم + واقي شمس + كريم تجاعيد',price:'900ج',duration:'8 أسابيع',improve:'75%'},
+        {type:'الترا',materials:'فيتامين C + Alpha Arbutin + Niacinamide + Tranexamic',products:'غسول + سيروم + واقي شمس + كريم تجاعيد + ماسك خاص',price:'1500ج',duration:'12 أسبوع',improve:'90%'}
+    ];
 
-document.getElementById('routineSection').classList.remove('hidden');
-const container=document.getElementById('routinesContainer');
-container.innerHTML="";
-routines.forEach(r=>{
-let totalPrice=0;
-r.products.forEach(p=>totalPrice+=parseInt(p.price));
-const box=document.createElement('div');
-box.className="routine-box";
-box.innerHTML=`<h4>روتين ${r.name}</h4>
-<div><b>المنتجات:</b></div>
-<ul style="text-align:right;">
-${r.products.map(p=>`<li>${p.name} - المواد الفعالة: ${p.active} - الفائدة: ${p.benefit} - السعر: ${p.price} ج - مدة الاستخدام: ${p.duration}</li>`).join('')}
-</ul>
-<div><b>مجموع السعر التقريبي: </b>${totalPrice} ج</div>
-<div><b>نسبة التحسن المتوقعة: </b>${r.name==="اقتصادي"?"50%":r.name==="سوبر"?"70%":"90%"}</div>
-${r.improve?`<div><b>تحسين إضافي:</b> ${r.improve}</div>`:""}
-<button class="send-wa-btn" onclick="sendRoutine('${r.name}')">اختيار هذا الروتين ✅</button>`;
-container.appendChild(box);
-});
+    const container=document.getElementById('routineContainer');
+    container.innerHTML='';
+    routines.forEach(r=>{
+        container.innerHTML+=`
+        <div class="routine-box">
+            <h4>روتين ${r.type}</h4>
+            <p><b>المواد الفعالة:</b> ${r.materials}</p>
+            <p><b>المنتجات:</b> ${r.products}</p>
+            <p><b>السعر التقريبي:</b> ${r.price}</p>
+            <p><b>مدة الاستخدام:</b> ${r.duration}</p>
+            <p><b>نسبة التحسن:</b> ${r.improve}</p>
+            <button onclick="sendWA('${r.type}')">اختيار هذا الروتين وإرساله</button>
+        </div>`;
+    });
+    document.getElementById('routineContainer').classList.remove('hidden');
+    document.getElementById('recommendations').classList.remove('hidden');
 }
 
-// إرسال الروتين عبر واتساب
-function sendRoutine(routineName){
-let msg=`العميل اختار روتين: ${routineName}`;
-window.open(`https://wa.me/201063994139?text=${encodeURIComponent(msg)}`);
+function sendWA(type){
+    const text=`تم اختيار روتين ${type} من VERONA AI PRO`;
+    window.open(`https://wa.me/201063994139?text=${encodeURIComponent(text)}`);
 }
 </script>
 </body>
