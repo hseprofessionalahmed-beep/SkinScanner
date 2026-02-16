@@ -1,206 +1,81 @@
-/* =========================
-   VERONA AI PRO STYLE
-========================= */
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: "Cairo", sans-serif;
+:root {
+    --gold: #d4af37;
+    --bg: #0a0a0a;
+    --card: #161616;
 }
-
 body {
-    background: linear-gradient(135deg, #0f0f0f, #1c1c1c);
-    color: #ffffff;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-/* =========================
-   الحاوية الرئيسية
-========================= */
-
-.container {
-    width: 100%;
-    max-width: 480px;
-    background: #141414;
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 0 40px rgba(212, 175, 55, 0.15);
+    background: var(--bg);
+    color: #fff;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 10px;
     text-align: center;
 }
-
-/* =========================
-   العنوان
-========================= */
-
-h2 {
-    font-weight: 600;
-    margin-bottom: 10px;
+.container {
+    max-width: 500px;
+    margin: auto;
 }
-
-.gold {
-    color: #d4af37;
-}
-
-/* =========================
-   رسالة الحالة
-========================= */
-
-.status-msg {
-    margin-bottom: 15px;
-    font-size: 14px;
-    color: #cccccc;
-}
-
-/* =========================
-   صندوق العرض
-========================= */
-
 .preview-box {
-    width: 100%;
     position: relative;
-    margin-bottom: 15px;
-    border-radius: 15px;
+    width: 100%;
+    border-radius: 20px;
     overflow: hidden;
     background: #000;
-    border: 1px solid rgba(212, 175, 55, 0.3);
+    border: 2px solid #333;
+    min-height: 300px;
 }
-
-/* الفيديو */
-
-#input_video {
+video, canvas {
     width: 100%;
-    display: block;
+    height: auto;
 }
-
-/* الكانفس مهم جداً */
-
 #overlay {
-    width: 100%;
-    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
 }
-
-/* إخفاء العناصر */
-
-.hidden {
-    display: none;
-}
-
-/* =========================
-   الأزرار
-========================= */
-
 .btn-grid {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
-    margin-bottom: 15px;
+    margin: 15px 0;
 }
-
 .action-btn {
-    flex: 1;
-    padding: 12px;
+    background: var(--gold);
+    color: #000;
+    padding: 15px;
     border-radius: 12px;
     border: none;
+    font-weight: bold;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: 0.3s ease;
 }
-
-/* زر عادي */
-
-.action-btn {
-    background: #222;
-    color: #fff;
-    border: 1px solid rgba(212, 175, 55, 0.3);
-}
-
-.action-btn:hover {
-    background: #d4af37;
-    color: #000;
-}
-
-/* زر التحليل */
-
-.scan-btn {
-    width: 100%;
-    margin-bottom: 15px;
-    background: linear-gradient(45deg, #d4af37, #b8962e);
-    color: #000;
-    font-weight: bold;
-}
-
-.scan-btn:disabled {
+.upload-btn {
     background: #333;
-    color: #777;
-    cursor: not-allowed;
+    color: #fff;
 }
-
-/* زر واتساب */
-
-.wa-btn {
-    margin-top: 10px;
-    background: #25D366;
-    color: white;
+.scan-btn {
+    background: #fff;
+    width: 100%;
+    font-size: 1.1rem;
+    border: 3px solid var(--gold);
+    margin-top:10px;
 }
-
-.wa-btn:hover {
-    background: #1ebe5d;
-}
-
-/* =========================
-   كرت النتائج
-========================= */
-
 .result-card {
-    background: #1a1a1a;
-    border-radius: 15px;
-    padding: 15px;
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    margin-top: 10px;
-    animation: fadeIn 0.5s ease;
+    background: var(--card);
+    padding: 20px;
+    border-radius: 20px;
+    margin-top: 20px;
+    border: 1px solid var(--gold);
+    text-align: right;
+    white-space: pre-line;
+}
+.hidden { display: none; }
+.status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
+.gold-text { color: var(--gold); }
+.whatsapp-btn {
+    background:#25d366;
+    color:white;
+    width:100%;
+    margin-top:15px;
 }
 
-.result-card h3 {
-    margin-bottom: 8px;
-}
-
-.result-card p {
-    font-size: 14px;
-    color: #ccc;
-    margin-bottom: 10px;
-}
-
-#scoreBox {
-    font-size: 18px;
-    font-weight: bold;
-    color: #d4af37;
-}
-
-/* =========================
-   أنيميشن
-========================= */
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* =========================
-   موبايل
-========================= */
-
-@media (max-width: 480px) {
-    .container {
-        padding: 18px;
-    }
-
-    .action-btn {
-        font-size: 13px;
-        padding: 10px;
-    }
-}
