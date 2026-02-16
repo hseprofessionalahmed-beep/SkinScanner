@@ -8,25 +8,23 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 <style>
-:root { --gold:#d4af37; --bg:#0a0a0a; --card:#161616; --btn:#25d366; }
-body { background:var(--bg); color:#fff; font-family:sans-serif; margin:0; padding:10px; text-align:center; }
-.container { max-width:600px; margin:auto; }
-.preview-box { position:relative; width:100%; border-radius:20px; overflow:hidden; background:#000; border:2px solid #333; min-height:300px; }
+:root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; }
+body { background: var(--bg); color: #fff; font-family: sans-serif; margin:0; padding:10px; text-align:center; }
+.container { max-width: 600px; margin:auto; }
+.preview-box { position: relative; width: 100%; border-radius:20px; overflow:hidden; background:#000; border:2px solid #333; min-height:300px; }
 video, canvas { width:100%; height:auto; }
 #overlay { position:absolute; top:0; left:0; z-index:10; }
 .btn-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0; }
-.action-btn { background:var(--gold); color:#000; padding:15px; border-radius:12px; border:none; font-weight:bold; cursor:pointer; }
+.action-btn { background: var(--gold); color:#000; padding:15px; border-radius:12px; border:none; font-weight:bold; cursor:pointer; }
 .scan-btn { background:#fff; width:100%; font-size:1.1rem; border:3px solid var(--gold); margin-top:10px; }
-.result-card { background:var(--card); padding:20px; border-radius:20px; margin-top:20px; border:1px solid var(--gold); text-align:right; }
+.result-card { background:var(--card); padding:15px; border-radius:20px; margin-top:20px; border:1px solid var(--gold); text-align:right; }
 .hidden { display:none; }
 .status-msg { color:var(--gold); font-size:0.9rem; margin:10px 0; }
-.question-box, .recommendations { background: #222; border:1px solid var(--gold); border-radius:15px; padding:15px; margin-top:20px; text-align:right; }
-.question-box label { display:block; margin:5px 0; }
-.routine-grid { display:grid; grid-template-columns:1fr; gap:15px; margin-top:20px; }
-.routine-card { background: #111; border:1px solid var(--gold); border-radius:15px; padding:15px; text-align:right; }
-.routine-card h4 { margin:5px 0; color:var(--gold); }
-.routine-card p { margin:3px 0; font-size:0.9rem; }
-.routine-card button { background:var(--btn); color:#fff; width:100%; margin-top:10px; padding:10px; border:none; border-radius:10px; cursor:pointer; font-weight:bold; }
+.question-card { background:#222; padding:15px; border-radius:12px; margin-top:15px; border:1px solid var(--gold); text-align:right; }
+.question-card label { display:block; margin:5px 0; }
+.routine-box { background:#111; padding:15px; border-radius:12px; margin:10px 0; border:1px solid var(--gold); text-align:right; }
+.routine-box h4 { color:var(--gold); margin:5px 0; }
+.recommendation-box { background:#111; padding:15px; border-radius:12px; margin-top:15px; border:1px solid var(--gold); text-align:right; }
 </style>
 </head>
 <body>
@@ -46,55 +44,23 @@ video, canvas { width:100%; height:auto; }
 </div>
 <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
 
-<button id="scanBtn" class="action-btn scan-btn hidden" onclick="showQuestions()">تحليل النتائج الآن 🔬</button>
+<button id="scanBtn" class="action-btn scan-btn" onclick="performDiagnosis()">تحليل النتائج الآن 🔬</button>
 
-<div id="questionBox" class="question-box hidden">
-<h3 style="color:var(--gold)">الأسئلة التتابعية</h3>
-<label>نوع البشرة:
-<select id="skinType">
-<option value="عادية">عادية</option>
-<option value="دهنية">دهنية</option>
-<option value="جافة">جافة</option>
-<option value="مختلطة">مختلطة</option>
-</select></label>
-
-<label>مكان التصبغ/النمش المكتشف:
-<select id="pigmentArea">
-<option value="الجبهة">الجبهة</option>
-<option value="الخدود">الخدود</option>
-<option value="تحت العين">تحت العين</option>
-<option value="الأنف">الأنف</option>
-<option value="الذقن">الذقن</option>
-</select></label>
-
-<label>عمق التصبغ:
-<select id="pigmentDepth">
-<option value="خفيف">خفيف</option>
-<option value="متوسط">متوسط</option>
-<option value="شديد">شديد</option>
-</select></label>
-
-<label>هل تريد نضارة شاملة للبشرة؟
-<select id="glow">
-<option value="نعم">نعم</option>
-<option value="لا">لا</option>
-</select></label>
-
-<label>الحبوب (إن وجدت): نوعها ولونها ومكانها
-<input type="text" id="acneInfo" placeholder="مثال: حبوب حمراء على الجبهة"></label>
-
-<button class="action-btn" onclick="generateRoutines()">استخراج الروتين الكامل</button>
+<div id="questionCard" class="question-card hidden">
+<h3 style="color:var(--gold); margin:0;">الأسئلة بعد المسح</h3>
+<div id="questionsContent"></div>
+<button class="action-btn scan-btn" onclick="extractRoutine()">استخراج الروتين النهائي</button>
 </div>
 
-<div id="routines" class="routine-grid hidden"></div>
+<div id="routineContainer" class="hidden"></div>
 
-<div class="recommendations hidden">
-<h3 style="color:var(--gold)">التوصيات الهامة قبل بدء الروتين:</h3>
+<div class="recommendation-box hidden" id="recommendations">
+<h4>توصيات هامة قبل الروتين</h4>
 <ul>
-<li>الترطيب اليومي لمدة أسبوع أو أسبوعين قبل الروتين</li>
+<li>تهيئة البشرة بالترطيب لمدة أسبوع إلى أسبوعين</li>
+<li>النوم الكافي والمبكر</li>
 <li>شرب كمية كافية من المياه</li>
-<li>النوم المبكر والمنتظم</li>
-<li>استخدام واقي شمس يومياً</li>
+<li>استخدام واقي الشمس يوميًا</li>
 </ul>
 </div>
 
@@ -102,37 +68,34 @@ video, canvas { width:100%; height:auto; }
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d', {willReadFrequently:true});
-let faceMesh, lastResults = null, currentImg = null;
+let faceMesh;
+let lastResults = null;
+let currentImg = null;
 
 async function setupFaceMesh() {
-    faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+    faceMesh = new FaceMesh({locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
     faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5});
     faceMesh.onResults(onResults);
     document.getElementById('status').innerText = "المحرك جاهز للفحص ✅";
 }
 setupFaceMesh();
 
-function onResults(results) {
+function onResults(results){
     lastResults = results;
     canvasElement.width = canvasElement.clientWidth;
-    canvasElement.height = (currentImg) ? (currentImg.height*(canvasElement.width/currentImg.width)) : videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
+    canvasElement.height = (currentImg)?(currentImg.height*(canvasElement.width/currentImg.width)):videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
     canvasCtx.save();
     canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
     canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
     if(results.multiFaceLandmarks){
         for(const landmarks of results.multiFaceLandmarks){
-            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color:'#d4af3744', lineWidth:0.5});
+            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION,{color:'#d4af3744', lineWidth:0.5});
         }
     }
     canvasCtx.restore();
-    if(results.multiFaceLandmarks && !document.getElementById('scanBtn').classList.contains('hidden')){
-        document.getElementById('scanBtn').classList.remove('hidden');
-    } else {
-        document.getElementById('scanBtn').classList.remove('hidden');
-    }
 }
 
-async function initCamera() {
+async function initCamera(){
     currentImg = null;
     videoElement.classList.remove('hidden');
     const camera = new Camera(videoElement,{onFrame: async()=>{await faceMesh.send({image:videoElement});}});
@@ -143,85 +106,105 @@ function processFile(event){
     const file = event.target.files[0];
     if(!file) return;
     const img = new Image();
-    img.onload = async ()=>{
+    img.onload = async()=>{
         currentImg = img;
         videoElement.classList.add('hidden');
         document.getElementById('status').innerText = "يتم الآن رسم خريطة الوجه...";
         await faceMesh.send({image:img});
-        document.getElementById('scanBtn').classList.remove('hidden');
     };
     img.src = URL.createObjectURL(file);
 }
 
-// بعد اسكان الوجه نعرض الأسئلة
-function showQuestions(){
+function performDiagnosis(){
     if(!lastResults || !lastResults.multiFaceLandmarks) return alert("يرجى التقاط وجه واضح أولاً");
-    document.getElementById('questionBox').classList.remove('hidden');
-    window.scrollTo({top:document.getElementById('questionBox').offsetTop, behavior:"smooth"});
+    // مثال: كشف مشاكل أساسيه باستخدام القنوات
+    const landmarks = lastResults.multiFaceLandmarks[0];
+    const detectedIssues = [];
+    function checkArea(lm){
+        const x=Math.floor(lm.x*canvasElement.width);
+        const y=Math.floor(lm.y*canvasElement.height);
+        const pixel = canvasCtx.getImageData(x,y,1,1).data;
+        return (pixel[0]+pixel[1]+pixel[2])/3;
+    }
+    const forehead = checkArea(landmarks[10]);
+    const cheek = checkArea(landmarks[205]);
+    const eye = (checkArea(landmarks[130])+checkArea(landmarks[350]))/2;
+    const pigmentDiff = cheek/forehead;
+    const eyeDiff = eye/forehead;
+    if(pigmentDiff<0.95) detectedIssues.push('تصبغات / نمش');
+    if(eyeDiff<0.85) detectedIssues.push('هالات سوداء');
+    showQuestions(detectedIssues);
 }
 
-// إنشاء الروتين تلقائياً
-function generateRoutines(){
-    const skinType = document.getElementById('skinType').value;
-    const pigmentArea = document.getElementById('pigmentArea').value;
-    const pigmentDepth = document.getElementById('pigmentDepth').value;
-    const glow = document.getElementById('glow').value;
-    const acneInfo = document.getElementById('acneInfo').value;
-
-    const routines = [
-        {
-            type:"اقتصادي",
-            ingredients:"فيتامين C (تفتيح)، نياسيناميد (توحيد اللون)، حمض الهيالورونيك (ترطيب)",
-            products:"غارنييه فاست برايت، واقي شمس SPF50، غسول معتدل",
-            price:"200-300 جنيه",
-            duration:"4-6 أسابيع",
-            improvement:"60-70%"
-        },
-        {
-            type:"سوبر",
-            ingredients:"Alpha Arbutin (تفتيح البقع)، فيتامين E (حماية)، Niacinamide (توحيد اللون)، HA (ترطيب)",
-            products:"Natavis Serum، غسول مخصص للبشرة، واقي شمس SPF50",
-            price:"450-600 جنيه",
-            duration:"6-8 أسابيع",
-            improvement:"75-85%"
-        },
-        {
-            type:"الترا",
-            ingredients:"Tranexamic Acid + Gold 24k + Vitamin C + Niacinamide، سيروم متعدد الفوائد، ترطيب متقدم",
-            products:"Nano Treat 24K Gold Serum، سيروم الكافيار، غسول مخصص، واقي شمس SPF50",
-            price:"1000-1500 جنيه",
-            duration:"8-12 أسبوع",
-            improvement:"90-95%"
+function showQuestions(issues){
+    const qCard = document.getElementById('questionCard');
+    const qContent = document.getElementById('questionsContent');
+    qContent.innerHTML = '';
+    if(issues.length===0){
+        qContent.innerHTML='<p>لا توجد مشاكل ملحوظة، سيتم استخدام الروتين الافتراضي.</p>';
+    } else {
+        if(issues.includes('تصبغات / نمش')){
+            qContent.innerHTML+=`<label>أين توجد التصبغات؟ 
+            <select id="pigmentLocation"><option>جبهة</option><option>الخد</option><option>الذقن</option><option>متفرقة</option></select></label>`;
+            qContent.innerHTML+=`<label>شدة التصبغ؟ 
+            <select id="pigmentLevel"><option>خفيفة</option><option>متوسطة</option><option>شديدة</option></select></label>`;
         }
-    ];
-
-    const container = document.getElementById('routines');
-    container.innerHTML = "";
-    routines.forEach(r=>{
-        const card = document.createElement('div');
-        card.classList.add('routine-card');
-        card.innerHTML = `
-        <h4>الروتين: ${r.type}</h4>
-        <p><strong>المواد الفعالة:</strong> ${r.ingredients}</p>
-        <p><strong>المنتجات وفائدتها:</strong> ${r.products}</p>
-        <p><strong>السعر التقريبي:</strong> ${r.price}</p>
-        <p><strong>مدة الاستخدام:</strong> ${r.duration}</p>
-        <p><strong>نسبة التحسن المتوقعة:</strong> ${r.improvement}</p>
-        <button onclick="sendRoutineWA('${r.type}')">اختر هذا الروتين</button>
-        `;
-        container.appendChild(card);
-    });
-    document.getElementById('routines').classList.remove('hidden');
-    document.querySelector('.recommendations').classList.remove('hidden');
-    window.scrollTo({top:container.offsetTop, behavior:"smooth"});
+        if(issues.includes('هالات سوداء')){
+            qContent.innerHTML+=`<label>لون الهالات؟ 
+            <select id="eyeColor"><option>أسود</option><option>بني</option><option>أزرق / أرجواني</option></select></label>`;
+        }
+        // حبوب
+        qContent.innerHTML+=`<label>هل توجد حبوب؟ 
+        <input type="radio" name="acne" value="لا" checked> لا 
+        <input type="radio" name="acne" value="نعم"> نعم</label>
+        <div id="acneDetails" style="display:none; margin-left:10px;">
+        <label>لون الحبوب: 
+        <select id="acneColor"><option>أحمر</option><option>أبيض</option><option>آخر</option></select></label>
+        <label>مكان الحبوب: 
+        <select id="acneLocation"><option>جبهة</option><option>الخد</option><option>الذقن</option><option>متفرقة</option></select></label>
+        </div>`;
+        // رصد تغييرات حسب اختيار الحبوب
+        const radios = qContent.querySelectorAll('input[name="acne"]');
+        radios.forEach(radio=>{
+            radio.addEventListener('change',()=>{document.getElementById('acneDetails').style.display=(radio.value==='نعم')?'block':'none';});
+        });
+        // أسلوب حياة
+        qContent.innerHTML+=`<label>نوع البشرة: 
+        <select id="skinType"><option>جافة</option><option>عادية</option><option>دهنية</option><option>مختلطة</option></select></label>`;
+        qContent.innerHTML+=`<label>هل تريد نضارة شاملة؟ 
+        <select id="needGlow"><option>نعم</option><option>لا</option></select></label>`;
+    }
+    qCard.classList.remove('hidden');
 }
 
-// إرسال الروتين إلى واتساب
-function sendRoutineWA(type){
-    const text = `اختيار العميل للروتين: ${type}`;
-    window.open(`https://wa.me/201063994139?text=${text}`);
+function extractRoutine(){
+    const routineContainer = document.getElementById('routineContainer');
+    routineContainer.innerHTML = '';
+    routineContainer.classList.remove('hidden');
+    const routines = [
+        {name:'اقتصادي',materials:'فيتامين C + نياسيناميد','products':'غارنييه سكين اكتيف فاست برايت','price':'150 جنيه','duration':'1 شهر','improvement':'30%'},
+        {name:'سوبر',materials:'فيتامين C + E + Alpha Arbutin','products':'كولاجرا سيروم + ديرويس','price':'400 جنيه','duration':'1.5 شهر','improvement':'50%'},
+        {name:'الترا',materials:'ذهب 24 قيراط + فيتامين C + E + حمض الهيالورونيك + كولاجين','products':'Nano Treat 24K Gold + سيروم الكافيار','price':'900 جنيه','duration':'2 شهر','improvement':'70%'}
+    ];
+    routines.forEach(r=>{
+        const box = document.createElement('div');
+        box.className='routine-box';
+        box.innerHTML=`<h4>روتين ${r.name}</h4>
+        <p><b>المواد الفعالة:</b> ${r.materials}</p>
+        <p><b>المنتجات وفائدتها:</b> ${r.products}</p>
+        <p><b>السعر التقريبي:</b> ${r.price}</p>
+        <p><b>مدة الاستخدام:</b> ${r.duration}</p>
+        <p><b>نسبة التحسن المتوقعة:</b> ${r.improvement}</p>
+        <button class="action-btn scan-btn" onclick="sendRoutineWA('${r.name}')">اختر هذا الروتين ✅</button>`;
+        routineContainer.appendChild(box);
+    });
+    document.getElementById('recommendations').classList.remove('hidden');
+}
+
+function sendRoutineWA(routineName){
+    let msg=`تقرير فيرونا AI - تم اختيار روتين: ${routineName}`;
+    window.open(`https://wa.me/201063994139?text=${encodeURIComponent(msg)}`);
 }
 </script>
-
 </body>
 </html>
