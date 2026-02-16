@@ -92,3 +92,30 @@ const ROUTINES = {
 function getRoutineByType(type) {
   return ROUTINES[type] || [];
 }
+// بيانات الروتين حسب النتائج
+const routines = {
+    "بشرة مثالية ✅": {
+        type: "اقتصادي",
+        steps: [
+            { phase: "ترطيب", products: ["Vitamin C + Hyaluronic Acid"] },
+            { phase: "تفتيح", products: ["Alpha Arbutin + Niacinamide"] },
+            { phase: "حماية", products: ["Sunscreen SPF50"] }
+        ]
+    },
+    "هالات سوداء مكتشفة 👁️": {
+        type: "سوبر",
+        steps: [
+            { phase: "ترطيب", products: ["Caffeine Eye Cream", "Hyaluronic Acid"] },
+            { phase: "علاج الهالات", products: ["Niacinamide + Vitamin C"] },
+            { phase: "حماية", products: ["Sunscreen SPF50"] }
+        ]
+    },
+    "تصبغات / نمش نشط 🔍": {
+        type: "ألترا",
+        steps: [
+            { phase: "ترطيب", products: ["Hyaluronic Acid"] },
+            { phase: "علاج التصبغات", products: ["Alpha Arbutin + Tranexamic Acid"] },
+            { phase: "حماية", products: ["Sunscreen SPF50 + Antioxidants"] }
+        ]
+    }
+};
