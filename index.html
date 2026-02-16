@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI - Pro Facial Precision</title>
-<link rel="stylesheet" href="style.css">
-
-<!-- Mediapipe Face Mesh -->
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERONA AI - Pro Facial Precision</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <div class="container">
-    <h2>VERONA <span class="gold">AI PRO</span></h2>
+    <h2>VERONA <span class="gold-text">AI PRO</span></h2>
     <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
 
     <div class="preview-box">
@@ -28,21 +26,17 @@
     </div>
     <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
 
-    <button id="scanBtn" class="action-btn scan-btn" onclick="performDiagnosis()">تحليل النتائج الآن 🔬</button>
+    <button id="scanBtn" class="action-btn scan-btn" onclick="performDiagnosis()" disabled>تحليل النتائج الآن 🔬</button>
 
     <div id="resultCard" class="result-card hidden">
-        <h3 id="resTitle" class="gold">--</h3>
+        <h3 id="resTitle">--</h3>
         <p id="resDetails">--</p>
         <div id="scoreBox"></div>
-        <div id="routineBox"></div>
-        <button class="action-btn whatsapp-btn" onclick="sendToWA()">إرسال واتساب ✅</button>
+        <button class="action-btn wa-btn" onclick="sendToWA()">إرسال واتساب ✅</button>
     </div>
 </div>
 
-<script src="face-ai.js"></script>
-<script src="routine.js"></script>
-<script src="whatsapp_send.js"></script>
 <script src="script.js"></script>
-
+<script src="face-ai.js"></script>
 </body>
 </html>
