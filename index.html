@@ -4,41 +4,215 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VERONA AI - Pro Facial Precision</title>
-<link rel="stylesheet" href="style.css">
+
+<!-- Mediapipe Face Mesh -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+
+<style>
+:root { --gold:#d4af37; --bg:#0a0a0a; --card:#161616; --accent:#f5f5f5; }
+body { margin:0; padding:10px; background:var(--bg); color:#fff; font-family:sans-serif; text-align:center; }
+.container { max-width:600px; margin:auto; }
+.preview-box { position:relative; width:100%; border-radius:20px; overflow:hidden; background:#000; border:2px solid #333; min-height:300px; }
+video, canvas { width:100%; height:auto; }
+#overlay { position:absolute; top:0; left:0; z-index:10; }
+.btn-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0; }
+.action-btn { background:var(--gold); color:#000; padding:12px; border-radius:12px; border:none; font-weight:bold; cursor:pointer; }
+.scan-btn { background:#fff; width:100%; font-size:1.1rem; border:3px solid var(--gold); margin-top:10px; }
+.status-msg { color:var(--gold); font-size:0.9rem; margin:10px 0; }
+.questionnaire, .routine-section { margin-top:20px; }
+.questionnaire select, .questionnaire input[type=number] { padding:8px; margin:5px 0; width:100%; border-radius:10px; border:none; }
+.routine-container { display:grid; gap:15px; }
+.routine-card { background:var(--card); border:1px solid var(--gold); border-radius:15px; padding:15px; text-align:right; }
+.routine-card h4 { margin:5px 0; color:var(--gold); }
+.routine-card p { margin:3px 0; font-size:0.9rem; }
+.routine-card button { background:#25d366; color:#fff; padding:10px; border:none; border-radius:10px; cursor:pointer; width:100%; margin-top:10px; font-weight:bold; }
+</style>
 </head>
 <body>
+
 <div class="container">
-    <h2>VERONA <span class="gold">AI PRO</span></h2>
-    <div id="status" class="status-msg">جارٍ تحميل المحرك الذكي...</div>
+<h2>VERONA <span style="color:var(--gold)">AI PRO</span></h2>
+<div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
 
-    <div class="preview-box">
-        <video id="input_video" class="hidden" playsinline></video>
-        <canvas id="overlay"></canvas>
-    </div>
-
-    <div class="btn-grid">
-        <button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
-        <button class="action-btn" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
-        <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
-    </div>
-
-    <div id="questions" class="hidden"></div>
-
-    <button id="scanBtn" class="action-btn scan-btn hidden" onclick="performDiagnosis()">تحليل النتائج الآن 🔬</button>
-
-    <div id="resultCard" class="result-card hidden">
-        <h3 id="resTitle" class="gold">--</h3>
-        <p id="resDetails">--</p>
-        <pre id="routineOutput"></pre>
-        <button class="action-btn whatsapp-btn" onclick="sendToWA()">إرسال واتساب ✅</button>
-    </div>
+<div class="preview-box">
+    <video id="input_video" class="hidden" playsinline></video>
+    <canvas id="overlay"></canvas>
 </div>
 
-<script src="ai_face_scan.js"></script>
-<script src="routine_data.js"></script>
-<script src="script.js"></script>
+<div class="btn-grid">
+    <button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
+    <button class="action-btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
+</div>
+<input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
+
+<button id="scanBtn" class="action-btn scan-btn" onclick="startQuestionnaire()">تحليل النتائج الآن 🔬</button>
+
+<div id="questionnaire" class="questionnaire hidden">
+<h3 style="color:var(--gold)">يرجى الإجابة على الأسئلة لتحديد الروتين المناسب:</h3>
+<label>نوع البشرة:</label>
+<select id="skinType">
+    <option value="عادية">عادية</option>
+    <option value="جافة">جافة</option>
+    <option value="دهنية">دهنية</option>
+    <option value="مختلطة">مختلطة</option>
+</select>
+
+<label>سبب التصبغ / مشاكل البشرة:</label>
+<select id="skinIssue">
+    <option value="هالات">هالات سوداء</option>
+    <option value="تصبغات شمسية">تصبغات شمسية</option>
+    <option value="آثار حبوب">آثار حبوب</option>
+    <option value="وراثي/هرموني">وراثي / هرموني</option>
+</select>
+
+<label>أسلوب الحياة:</label>
+<select id="lifestyle">
+    <option value="ينام باكر ويشرب ماء">ينام باكر ويشرب ماء</option>
+    <option value="ينام متأخر وقليل ماء">ينام متأخر وقليل ماء</option>
+</select>
+
+<label>هل يوجد حبوب؟</label>
+<select id="hasSpots">
+    <option value="لا">لا</option>
+    <option value="نعم">نعم</option>
+</select>
+
+<label>نضارة البشرة المطلوبة:</label>
+<select id="desiredGlow">
+    <option value="عادية">عادية</option>
+    <option value="نضارة كاملة">نضارة كاملة</option>
+</select>
+
+<button class="action-btn" onclick="generateRoutine()">استخراج الروتين المناسب 📝</button>
+</div>
+
+<div id="routineSection" class="routine-section hidden">
+<h3 style="color:var(--gold)">الروتينات المقترحة:</h3>
+<div class="routine-container" id="routineContainer"></div>
+</div>
+
+<script>
+const videoElement = document.getElementById('input_video');
+const canvasElement = document.getElementById('overlay');
+const canvasCtx = canvasElement.getContext('2d', {willReadFrequently:true});
+let faceMesh;
+let lastResults = null;
+let currentImg = null;
+
+async function setupFaceMesh(){
+    faceMesh = new FaceMesh({locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+    faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5});
+    faceMesh.onResults(onResults);
+    document.getElementById('status').innerText="المحرك جاهز للفحص ✅";
+}
+setupFaceMesh();
+
+function onResults(results){
+    lastResults=results;
+    canvasElement.width=canvasElement.clientWidth;
+    canvasElement.height=(currentImg)?(currentImg.height*(canvasElement.width/currentImg.width)):videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
+    canvasCtx.save();
+    canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
+    canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
+    if(results.multiFaceLandmarks){
+        for(const landmarks of results.multiFaceLandmarks){
+            drawConnectors(canvasCtx,landmarks,FACEMESH_TESSELATION,{color:'#d4af3744', lineWidth:0.5});
+        }
+    }
+    canvasCtx.restore();
+}
+
+async function initCamera(){
+    currentImg=null;
+    videoElement.classList.remove('hidden');
+    const camera=new Camera(videoElement,{onFrame:async()=>{await faceMesh.send({image:videoElement});}});
+    camera.start();
+}
+
+function processFile(event){
+    const file=event.target.files[0];
+    if(!file) return;
+    const img=new Image();
+    img.onload=async()=>{
+        currentImg=img;
+        videoElement.classList.add('hidden');
+        document.getElementById('status').innerText="يتم الآن رسم خريطة الوجه...";
+        await faceMesh.send({image:img});
+    };
+    img.src=URL.createObjectURL(file);
+}
+
+// عرض الأسئلة
+function startQuestionnaire(){
+    if(!lastResults || !lastResults.multiFaceLandmarks){
+        return alert("يرجى التقاط وجه واضح أولاً");
+    }
+    document.getElementById('questionnaire').classList.remove('hidden');
+}
+
+// توليد الروتين
+function generateRoutine(){
+    const skinType=document.getElementById('skinType').value;
+    const skinIssue=document.getElementById('skinIssue').value;
+    const lifestyle=document.getElementById('lifestyle').value;
+    const hasSpots=document.getElementById('hasSpots').value;
+    const desiredGlow=document.getElementById('desiredGlow').value;
+
+    // بيانات افتراضية للروتينات
+    const routines=[
+        {
+            type:'اقتصادي',
+            ingredients:'فيتامين C + نياسيناميد\nتفتيح + توحيد لون + إشراقة',
+            products:'غارنييه فاست برايت - تفتيح البقع وتوحيد اللون',
+            price:'200 جنيه',
+            duration:'4 أسابيع',
+            improvement:'50%'
+        },
+        {
+            type:'سوبر',
+            ingredients:'فيتامين C + E + Alpha Arbutin\nتفتيح + حماية + ترطيب',
+            products:'كولاجرا سيروم + ديرويس كريم\nتحسين النضارة وحماية من الشيخوخة',
+            price:'450 جنيه',
+            duration:'6 أسابيع',
+            improvement:'70%'
+        },
+        {
+            type:'الترا',
+            ingredients:'ذهب 24قيراط + كافيار + HA + Niacinamide\nتفتيح + إشراقة + ترطيب + مرونة',
+            products:'Nano Treat 24K Gold + سيروم الكافيار\nنتيجة فاخرة للبشرة وعلاج شامل',
+            price:'950 جنيه',
+            duration:'8 أسابيع',
+            improvement:'90%'
+        }
+    ];
+
+    const container=document.getElementById('routineContainer');
+    container.innerHTML='';
+    routines.forEach(r=>{
+        const card=document.createElement('div');
+        card.classList.add('routine-card');
+        card.innerHTML=`
+            <h4>${r.type}</h4>
+            <p><strong>المواد الفعالة:</strong><br>${r.ingredients.replace(/\n/g,'<br>')}</p>
+            <p><strong>المنتجات:</strong><br>${r.products.replace(/\n/g,'<br>')}</p>
+            <p><strong>السعر التقريبي:</strong> ${r.price}</p>
+            <p><strong>مدة الاستخدام:</strong> ${r.duration}</p>
+            <p><strong>نسبة التحسن:</strong> ${r.improvement}</p>
+            <button onclick="sendWA('${r.type}')">اختر هذا الروتين ✅</button>
+        `;
+        container.appendChild(card);
+    });
+
+    document.getElementById('routineSection').classList.remove('hidden');
+}
+
+// إرسال واتساب
+function sendWA(routineType){
+    const text=`تقرير فيرونا AI: تم اختيار الروتين ${routineType}`;
+    window.open(`https://wa.me/201063994139?text=${encodeURIComponent(text)}`);
+}
+</script>
 </body>
 </html>
