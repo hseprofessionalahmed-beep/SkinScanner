@@ -3,45 +3,84 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI - Pro Facial Precision</title>
 
-<!-- Mediapipe Face Mesh -->
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<title>VERONA AI Face Scan</title>
 
 <link rel="stylesheet" href="style.css">
+
+<!-- خط عربي -->
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
 <div class="container">
-    <h2>VERONA <span class="gold">AI PRO</span></h2>
-    <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
 
+    <h2><span class="gold">VERONA AI</span> فحص البشرة الذكي</h2>
+
+    <div id="status" class="status-msg">
+        جاري تحميل المحرك...
+    </div>
+
+    <!-- صندوق العرض -->
     <div class="preview-box">
+
+        <!-- فيديو الكاميرا -->
         <video id="input_video" class="hidden" playsinline></video>
+
+        <!-- كانفس الرسم -->
         <canvas id="overlay"></canvas>
+
     </div>
 
+    <!-- أزرار -->
     <div class="btn-grid">
-        <button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
-        <button class="action-btn file-btn" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
+        <button class="action-btn" onclick="initCamera()">
+            تشغيل الكاميرا 📷
+        </button>
+
+        <label class="action-btn">
+            رفع صورة 📁
+            <input type="file"
+                   accept="image/*"
+                   onchange="processFile(event)"
+                   hidden>
+        </label>
     </div>
-    <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
 
-    <button id="scanBtn" class="action-btn scan-btn" onclick="performDiagnosis()" disabled>تحليل النتائج الآن 🔬</button>
+    <!-- زر التحليل -->
+    <button id="scanBtn"
+            class="action-btn scan-btn"
+            onclick="performDiagnosis()"
+            disabled>
+        تحليل النتائج 🔬
+    </button>
 
+    <!-- نتيجة -->
     <div id="resultCard" class="result-card hidden">
-        <h3 id="resTitle" class="gold">--</h3>
-        <p id="resDetails">--</p>
+        <h3 id="resTitle"></h3>
+        <p id="resDetails"></p>
         <div id="scoreBox"></div>
-        <button class="action-btn wa-btn" onclick="sendToWA()">إرسال واتساب ✅</button>
+
+        <button class="action-btn wa-btn"
+                onclick="sendToWA()">
+            إرسال عبر واتساب
+        </button>
     </div>
+
 </div>
 
+<!-- ========================= -->
+<!-- MediaPipe Libraries       -->
+<!-- ========================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+
+<!-- محركك -->
 <script src="ai_face_scan.js"></script>
-<script src="routine_data.js"></script>
-<script src="script.js"></script>
 
 </body>
 </html>
