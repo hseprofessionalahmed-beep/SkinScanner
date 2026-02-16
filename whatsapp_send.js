@@ -1,4 +1,6 @@
-function sendToWA() {
-    const text = `تقرير فيرونا AI:\n${document.getElementById('resTitle').innerText}\n${document.getElementById('resDetails').innerText}\n${document.getElementById('routineBox').innerText}`;
+function sendToWA(){
+    const title = document.getElementById('resTitle').innerText;
+    const routine = document.getElementById('routineBox').innerText;
+    const text = `تقرير فيرونا AI: ${title}\n${routine}`;
     window.open(`https://wa.me/201063994139?text=${encodeURIComponent(text)}`);
 }
