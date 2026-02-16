@@ -12,7 +12,7 @@
 <body>
 <div class="container">
     <h2>VERONA <span class="gold">AI PRO</span></h2>
-    <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
+    <div id="status" class="status-msg">جارٍ تحميل المحرك الذكي...</div>
 
     <div class="preview-box">
         <video id="input_video" class="hidden" playsinline></video>
@@ -21,22 +21,24 @@
 
     <div class="btn-grid">
         <button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
-        <button class="action-btn file-btn" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
+        <button class="action-btn" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
+        <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
     </div>
-    <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
 
-    <button id="scanBtn" class="action-btn scan-btn hidden" onclick="startQuestionnaire()">تحليل النتائج الآن 🔬</button>
+    <div id="questions" class="hidden"></div>
 
-    <div id="questions" class="result-card hidden"></div>
+    <button id="scanBtn" class="action-btn scan-btn hidden" onclick="performDiagnosis()">تحليل النتائج الآن 🔬</button>
+
     <div id="resultCard" class="result-card hidden">
-        <h3 id="resTitle" class="gold"></h3>
-        <p id="resDetails"></p>
-        <div id="scoreBox"></div>
-        <button class="action-btn wa-btn" onclick="sendToWA()">إرسال واتساب ✅</button>
+        <h3 id="resTitle" class="gold">--</h3>
+        <p id="resDetails">--</p>
+        <pre id="routineOutput"></pre>
+        <button class="action-btn whatsapp-btn" onclick="sendToWA()">إرسال واتساب ✅</button>
     </div>
 </div>
 
 <script src="ai_face_scan.js"></script>
+<script src="routine_data.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
