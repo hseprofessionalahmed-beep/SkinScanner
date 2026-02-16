@@ -10,26 +10,30 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 </head>
 <body>
-
 <div class="container">
-  <h2>VERONA <span class="gold">AI PRO</span></h2>
-  <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
+    <h2>VERONA <span class="gold">AI PRO</span></h2>
+    <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
 
-  <div class="preview-box">
-    <video id="input_video" class="hidden" playsinline></video>
-    <canvas id="overlay"></canvas>
-  </div>
+    <div class="preview-box">
+        <video id="input_video" class="hidden" playsinline></video>
+        <canvas id="overlay"></canvas>
+    </div>
 
-  <div class="btn-grid">
-    <button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
-    <button class="action-btn file-btn" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
-  </div>
-  <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
+    <div class="btn-grid">
+        <button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
+        <button class="action-btn file-btn" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
+    </div>
+    <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
 
-  <button id="scanBtn" class="action-btn scan-btn hidden" onclick="startQuestionnaire()">تحليل النتائج الآن 🔬</button>
+    <button id="scanBtn" class="action-btn scan-btn hidden" onclick="startQuestionnaire()">تحليل النتائج الآن 🔬</button>
 
-  <div id="questions" class="result-card hidden"></div>
-  <div id="resultCard" class="result-card hidden"></div>
+    <div id="questions" class="result-card hidden"></div>
+    <div id="resultCard" class="result-card hidden">
+        <h3 id="resTitle" class="gold"></h3>
+        <p id="resDetails"></p>
+        <div id="scoreBox"></div>
+        <button class="action-btn wa-btn" onclick="sendToWA()">إرسال واتساب ✅</button>
+    </div>
 </div>
 
 <script src="ai_face_scan.js"></script>
