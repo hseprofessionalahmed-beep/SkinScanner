@@ -104,7 +104,6 @@ function processFile(event){
 }
 
 function analyzeFace(landmarks){
-    // مناطق محددة للتحليل
     function getPixelMean(lm){
         const x=Math.floor(lm.x*canvasElement.width);
         const y=Math.floor(lm.y*canvasElement.height);
@@ -119,7 +118,9 @@ function analyzeFace(landmarks){
     const eyeDiff = eye/forehead;
 
     detectedIssues.halations=(eyeDiff<0.85)? true:false;
-    detectedIssues.pigment=(pigmentDiff<0.90)? true:false;
+    detectedIssues.pigment=(pigmentDiff<0.95)? true:false;
+    detectedIssues.wrinkles=(forehead/cheek<0.92)? true:false;
+    // لاحقًا يمكن إضافة الحبوب
 }
 
 function triggerQuestions(){
@@ -127,12 +128,14 @@ function triggerQuestions(){
     const qCard=document.getElementById('questionCard');
     const qArea=document.getElementById('questionsArea');
     qArea.innerHTML='';
-    // الأسئلة تظهر فقط عند اكتشاف مشكلة
     if(detectedIssues.halations){
         qArea.innerHTML+='<label>الهالات تحت العين: <select id="halations"><option value="true">نعم</option><option value="false">لا يوجد</option></select></label><br>';
     }
     if(detectedIssues.pigment){
         qArea.innerHTML+='<label>التصبغات: <select id="pigment"><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option><option value="لا">لا يوجد</option></select></label><br>';
+    }
+    if(detectedIssues.wrinkles){
+        qArea.innerHTML+='<label>التجاعيد: <select id="wrinkles"><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="شديدة">شديدة</option><option value="لا">لا يوجد</option></select></label><br>';
     }
     qCard.classList.remove('hidden');
 }
@@ -142,9 +145,9 @@ function computeRoutine(){
     routineArea.innerHTML='';
     routineArea.classList.remove('hidden');
     const rData=[
-        {type:'اقتصادي', active:'مادة فعالة A + B', products:'منتج 1 + 2', price:'200 جنيه', duration:'4 أسابيع', improvement:'50%'},
-        {type:'سوبر', active:'مادة فعالة A+B+C', products:'منتج 1+2+3', price:'500 جنيه', duration:'6 أسابيع', improvement:'70%'},
-        {type:'ألترا', active:'مادة فعالة A+B+C+D', products:'منتج 1+2+3+4', price:'900 جنيه', duration:'8 أسابيع', improvement:'90%'}
+        {type:'اقتصادي', active:'فيتامين C + Alpha Arbutin', products:'غارنييه فاست برايت + ديرويس كريم + غسول ستارفيل + واقي شمس ستارفيل', price:'300 جنيه', duration:'4 أسابيع', improvement:'50%'} ,
+        {type:'سوبر', active:'فيتامين C + Alpha Arbutin + Tranexamic', products:'كولاجرا سيروم + اب دايت كريم + غسول دير + واقي شمس ستارفيل', price:'600 جنيه', duration:'6 أسابيع', improvement:'70%'},
+        {type:'ألترا', active:'فيتامين C + Alpha Arbutin + Tranexamic + ريتينول', products:'Nano Treat Gold + Cleo Radiance + غسول نانوتريت + واقي شمس كولاجرا + سيروم ريتينول', price:'1200 جنيه', duration:'8 أسابيع', improvement:'90%'}
     ];
     rData.forEach(r=>{
         const card=document.createElement('div');
