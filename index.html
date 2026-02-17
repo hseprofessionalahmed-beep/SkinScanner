@@ -9,9 +9,9 @@
 <style>
 :root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; }
 body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
-.container { max-width: 650px; margin: auto; }
+.container { max-width: 600px; margin: auto; }
 .preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #000; border: 2px solid #333; min-height: 300px; }
-video, canvas { width: 100%; height: auto; }
+video, canvas { width: 100%; height: auto; display:block; }
 #overlay { position: absolute; top: 0; left: 0; z-index: 10; }
 .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
 .action-btn { background: var(--gold); color: #000; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
@@ -19,10 +19,10 @@ video, canvas { width: 100%; height: auto; }
 .result-card, .question-card, .routine-card, .recommend-card { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--gold); text-align: right; }
 .hidden { display: none; }
 .status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
-.routine-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.routine-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .routine-card button { margin-top:10px; background:#25d366; color:white; width:100%; padding:10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
-.progress-bar { background:#333; border-radius: 12px; overflow:hidden; margin-top:5px; height: 15px; }
-.progress-fill { height:100%; background:var(--gold); text-align:center; color:#000; font-weight:bold; line-height:15px; }
+.progress-bar { width: 100%; background: #333; border-radius: 8px; margin-top: 5px; }
+.progress-fill { height: 12px; background: var(--gold); border-radius: 8px; }
 </style>
 </head>
 <body>
@@ -39,7 +39,7 @@ video, canvas { width: 100%; height: auto; }
 </div>
 <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
 <button id="scanBtn" class="action-btn scan-btn" onclick="triggerQuestions()">تحليل النتائج الآن 🔬</button><div id="questionCard" class="question-card hidden">
-<h3 style="color:var(--gold); margin:0;">الرجاء الإجابة عن الأسئلة التالية لتحديد دقة التحليل:</h3>
+<h3 style="color:var(--gold); margin:0;">الرجاء الإجابة عن الأسئلة التالية:</h3>
 <div id="questionsArea"></div>
 <button class="action-btn scan-btn" onclick="computeRoutine()">استخراج الروتين ✅</button>
 </div><div id="routineArea" class="routine-grid hidden"></div>
@@ -71,8 +71,10 @@ setupFaceMesh();
 
 function onResults(results){
     lastResults = results;
-    canvasElement.width = canvasElement.clientWidth;
-    canvasElement.height = (currentImg)? (currentImg.height*(canvasElement.width/currentImg.width)) : videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
+    let imgWidth = results.image.width;
+    let imgHeight = results.image.height;
+    canvasElement.width = imgWidth;
+    canvasElement.height = imgHeight;
     canvasCtx.save();
     canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
     canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
@@ -121,7 +123,7 @@ function analyzeFace(landmarks){
 
     detectedIssues.halations=(eyeDiff<0.85)? true:false;
     detectedIssues.pigment=(pigmentDiff<0.90)? true:false;
-    detectedIssues.spots=(pigmentDiff<0.95)? true:false; // بقع عامة
+    detectedIssues.spots=true; // لنفترض وجود حبوب يمكن تطويرها لاحقًا لاكتشافها بدقة
 }
 
 function triggerQuestions(){
@@ -131,16 +133,22 @@ function triggerQuestions(){
     qArea.innerHTML='';
 
     if(detectedIssues.halations){
-        qArea.innerHTML+='<label>الهالات تحت العين: <select id="halations"><option value="true">نعم</option><option value="false">لا يوجد</option></select></label><br>';
-        qArea.innerHTML+='<label>هل تريد تفتيح أم نضارة؟ <select id="halGoal"><option value="تفتيح">تفتيح</option><option value="نضارة">نضارة</option></select></label><br>';
+        qArea.innerHTML+='<label>هل الهالات تحت العين حقيقية؟ <select id="halations"><option value="true">نعم</option><option value="false">لا يوجد</option></select></label><br>';
+        qArea.innerHTML+='<label>لون الهالات: <input type="text" id="haloColor" placeholder="بنفسجي / بني ..."></label><br>';
+        qArea.innerHTML+='<label>هل ترغب في تفتيح الهالات؟ <select id="haloBright"><option value="true">نعم</option><option value="false">لا</option></select></label><br>';
     }
     if(detectedIssues.pigment){
-        qArea.innerHTML+='<label>التصبغات: <select id="pigment"><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option><option value="لا">لا يوجد</option></select></label><br>';
+        qArea.innerHTML+='<label>هل لديك تصبغات أو بقع؟ <select id="pigment"><option value="true">نعم</option><option value="false">لا</option></select></label><br>';
+        qArea.innerHTML+='<label>درجة التصبغ: <select id="pigmentLevel"><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option></select></label><br>';
+        qArea.innerHTML+='<label>لون التصبغات: <input type="text" id="pigmentColor" placeholder="بني / أسود ..."></label><br>';
+        qArea.innerHTML+='<label>سبب التصبغ المحتمل: <input type="text" id="pigmentCause" placeholder="شمس / هرمونات ..."></label><br>';
     }
     if(detectedIssues.spots){
-        qArea.innerHTML+='<label>البقع أو الحبوب: <select id="spots"><option value="نعم">نعم</option><option value="لا">لا يوجد</option></select></label><br>';
+        qArea.innerHTML+='<label>هل لديك حبوب؟ <select id="spots"><option value="true">نعم</option><option value="false">لا</option></select></label><br>';
+        qArea.innerHTML+='<label>لون الحبوب: <input type="text" id="spotColor" placeholder="أحمر / أبيض ..."></label><br>';
+        qArea.innerHTML+='<label>مكان الحبوب: <input type="text" id="spotPlace" placeholder="جبين / خد ..."></label><br>';
+        qArea.innerHTML+='<label>سبب الحبوب: <input type="text" id="spotCause" placeholder="دهون / هرمونات ..."></label><br>';
     }
-
     qCard.classList.remove('hidden');
 }
 
@@ -149,21 +157,23 @@ function computeRoutine(){
     routineArea.innerHTML='';
     routineArea.classList.remove('hidden');
 
-    // روتين شامل لجميع المشاكل المكتشفة
+    // روتين شامل لكل المشاكل المكتشفة
     const rData=[
-        {type:'اقتصادي', products:'غسول ستارفيل + سيروم فيتامين C + سيروم ريتينول + كريم عين + واقي الشمس ستارفيل', price:'400 جنيه', improvement:'50% - 60%'},
-        {type:'سوبر', products:'غسول دير + سيروم ديرويس Whitening + سيروم ريتينول كولاجرا + كريم عين يوليسيوس + واقي الشمس كولاجرا', price:'800 جنيه', improvement:'70% - 80%'},
-        {type:'ألترا', products:'غسول دير + سيروم Natavis + سيروم ريتينول انفينيتي + كريم عين ديرماسي + واقي الشمس إيفا SPF50', price:'1500 جنيه', improvement:'90% - 95%'}
+        {type:'اقتصادي', active:'فيتامين C + نياسيناميد + Alpha Arbutin + حمض الساليسيليك', products:'غارنييه فاست برايت + نانوتريت + ديرويس كريم', price:'400 جنيه', duration:'4 أسابيع', improvement:60},
+        {type:'سوبر', active:'فيتامين C + نياسيناميد + Alpha Arbutin + Tranexamic + ريتينول', products:'غارنييه فاست برايت + Natavis Serum + سيروم ريتينول', price:'750 جنيه', duration:'6 أسابيع', improvement:75},
+        {type:'ألترا', active:'فيتامين C + نياسيناميد + Alpha Arbutin + Tranexamic + ريتينول + كولاجين + الذهب', products:'Nano Treat 24K + ديرويس + سيروم ريتينول + غسول فاست برايت', price:'1200 جنيه', duration:'8 أسابيع', improvement:90}
     ];
 
     rData.forEach(r=>{
         const card=document.createElement('div');
         card.className='routine-card';
         card.innerHTML=`<h4 style='color:var(--gold)'>${r.type}</h4>
+        <p><b>المواد الفعالة:</b> ${r.active}</p>
         <p><b>المنتجات:</b> ${r.products}</p>
-        <p><b>السعر التقريبي:</b> ${r.price}</p>
-        <p><b>نسبة التحسن المتوقعة:</b></p>
-        <div class='progress-bar'><div class='progress-fill' style='width:${r.improvement.split('-')[1].trim()}'>${r.improvement}</div></div>
+        <p><b>السعر:</b> ${r.price}</p>
+        <p><b>مدة الاستخدام:</b> ${r.duration}</p>
+        <div class='progress-bar'><div class='progress-fill' style='width:${r.improvement}%'></div></div>
+        <p><b>نسبة التحسن المتوقعة:</b> ${r.improvement}%</p>
         <button onclick="sendWA('${r.type}')">اختيار هذا الروتين ✅</button>`;
         routineArea.appendChild(card);
     });
