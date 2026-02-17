@@ -1,218 +1,178 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VERONA AI - Pro Facial Precision</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-
 <style>
-:root { --gold:#d4af37; --bg:#0a0a0a; --card:#161616; }
-body{background:var(--bg);color:#fff;font-family:sans-serif;margin:0;padding:15px;text-align:center;}
-.container{max-width:750px;margin:auto;}
-.preview-box{position:relative;width:100%;border-radius:20px;overflow:hidden;background:#000;border:2px solid #333;}
-video,canvas{width:100%;height:auto;}
-#overlay{position:absolute;top:0;left:0;z-index:10;}
-button{padding:14px;border:none;border-radius:12px;font-weight:bold;cursor:pointer;margin-top:10px;}
-.primary{background:var(--gold);color:#000;}
-.dark{background:#333;color:#fff;}
-.card{background:var(--card);padding:20px;border-radius:20px;margin-top:20px;border:1px solid var(--gold);text-align:right;}
-.hidden{display:none;}
-.routine-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:20px;}
-.routine-card{background:#111;padding:15px;border-radius:15px;border:1px solid var(--gold);text-align:right;}
-.routine-card button{background:#25d366;color:white;width:100%;}
-ul{padding-right:20px;}
+:root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; }
+body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
+.container { max-width: 650px; margin: auto; }
+.preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #000; border: 2px solid #333; min-height: 300px; }
+video, canvas { width: 100%; height: auto; }
+#overlay { position: absolute; top: 0; left: 0; z-index: 10; }
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+.action-btn { background: var(--gold); color: #000; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+.scan-btn { background: #fff; width: 100%; font-size: 1.1rem; border: 3px solid var(--gold); margin-top:10px; }
+.result-card, .question-card, .routine-card, .recommend-card { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--gold); text-align: right; }
+.hidden { display: none; }
+.status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
+.routine-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.routine-card button { margin-top:10px; background:#25d366; color:white; width:100%; padding:10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+.progress-bar { background:#333; border-radius: 12px; overflow:hidden; margin-top:5px; height: 15px; }
+.progress-fill { height:100%; background:var(--gold); text-align:center; color:#000; font-weight:bold; line-height:15px; }
 </style>
 </head>
 <body>
-
 <div class="container">
-
 <h2>VERONA <span style="color:var(--gold)">AI PRO</span></h2>
-
+<div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
 <div class="preview-box">
-<video id="video" class="hidden" playsinline></video>
-<canvas id="canvas"></canvas>
+<video id="input_video" class="hidden" playsinline></video>
+<canvas id="overlay"></canvas>
 </div>
-
-<button class="primary" onclick="startCamera()">📸 تشغيل الكاميرا</button>
-<button class="dark" onclick="upload.click()">📁 رفع صورة</button>
-<input type="file" id="upload" hidden accept="image/*">
-
-<button class="primary" onclick="generateRoutine()">تحليل النتائج 🔬</button>
-
-<div id="routineSection" class="routine-grid hidden"></div>
-
+<div class="btn-grid">
+<button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
+<button class="action-btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
 </div>
-
-<script>
-
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const upload = document.getElementById("upload");
-const routineSection = document.getElementById("routineSection");
-
+<input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
+<button id="scanBtn" class="action-btn scan-btn" onclick="triggerQuestions()">تحليل النتائج الآن 🔬</button><div id="questionCard" class="question-card hidden">
+<h3 style="color:var(--gold); margin:0;">الرجاء الإجابة عن الأسئلة التالية لتحديد دقة التحليل:</h3>
+<div id="questionsArea"></div>
+<button class="action-btn scan-btn" onclick="computeRoutine()">استخراج الروتين ✅</button>
+</div><div id="routineArea" class="routine-grid hidden"></div>
+<div id="recommendCard" class="recommend-card hidden">
+<h3 style="color:var(--gold);">التوصيات العامة</h3>
+<ul>
+<li>الترطيب لمدة أسبوع على الأقل قبل الروتين.</li>
+<li>شرب كمية كافية من الماء يوميًا.</li>
+<li>النوم باكرًا لتحفيز تجديد البشرة.</li>
+<li>استخدام واقي الشمس يوميًا.</li>
+</ul>
+</div>
+</div><script>
+const videoElement = document.getElementById('input_video');
+const canvasElement = document.getElementById('overlay');
+const canvasCtx = canvasElement.getContext('2d', {willReadFrequently:true});
 let faceMesh;
-let detectedIssues = {halations:false,pigment:false};
-let currentImg=null;
+let lastResults = null;
+let currentImg = null;
+let detectedIssues = {};
 
-async function init(){
-faceMesh = new FaceMesh({
-locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-});
-faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.6});
-faceMesh.onResults(onResults);
+async function setupFaceMesh(){
+    faceMesh = new FaceMesh({locateFile: (file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+    faceMesh.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5 });
+    faceMesh.onResults(onResults);
+    document.getElementById('status').innerText="المحرك جاهز للفحص ✅";
 }
-init();
+setupFaceMesh();
 
 function onResults(results){
-
-if(currentImg){
-canvas.width = currentImg.width;
-canvas.height = currentImg.height;
-}else{
-canvas.width = video.videoWidth;
-canvas.height = video.videoHeight;
+    lastResults = results;
+    canvasElement.width = canvasElement.clientWidth;
+    canvasElement.height = (currentImg)? (currentImg.height*(canvasElement.width/currentImg.width)) : videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
+    canvasCtx.save();
+    canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
+    canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
+    detectedIssues = {};
+    if(results.multiFaceLandmarks){
+        for(const landmarks of results.multiFaceLandmarks){
+            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color:'#d4af3744', lineWidth:0.5});
+        }
+        analyzeFace(results.multiFaceLandmarks[0]);
+    }
+    canvasCtx.restore();
 }
 
-ctx.clearRect(0,0,canvas.width,canvas.height);
-ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
-
-if(results.multiFaceLandmarks){
-
-const landmarks = results.multiFaceLandmarks[0];
-
-function getMean(lm){
-const x=Math.floor(lm.x*canvas.width);
-const y=Math.floor(lm.y*canvas.height);
-const p=ctx.getImageData(x,y,1,1).data;
-return (p[0]+p[1]+p[2])/3;
+async function initCamera(){
+    currentImg=null;
+    videoElement.classList.remove('hidden');
+    const camera = new Camera(videoElement, {onFrame: async()=>{await faceMesh.send({image:videoElement});}});
+    camera.start();
 }
 
-const forehead=getMean(landmarks[10]);
-const cheek=getMean(landmarks[205]);
-const eye=(getMean(landmarks[130])+getMean(landmarks[350]))/2;
-
-const pigmentDiff=cheek/forehead;
-const eyeDiff=eye/forehead;
-
-// حساسية متوسطة
-detectedIssues.halations = (eyeDiff < 0.88);
-detectedIssues.pigment   = (pigmentDiff < 0.93);
-
+function processFile(event){
+    const file = event.target.files[0];
+    if(!file)return;
+    const img = new Image();
+    img.onload = async ()=>{
+        currentImg=img;
+        videoElement.classList.add('hidden');
+        await faceMesh.send({image:img});
+    };
+    img.src = URL.createObjectURL(file);
 }
 
+function analyzeFace(landmarks){
+    function getPixelMean(lm){
+        const x=Math.floor(lm.x*canvasElement.width);
+        const y=Math.floor(lm.y*canvasElement.height);
+        const p = canvasCtx.getImageData(x,y,1,1).data;
+        return (p[0]+p[1]+p[2])/3;
+    }
+    const forehead = getPixelMean(landmarks[10]);
+    const cheek = getPixelMean(landmarks[205]);
+    const eye = (getPixelMean(landmarks[130])+getPixelMean(landmarks[350]))/2;
+
+    const pigmentDiff = cheek/forehead;
+    const eyeDiff = eye/forehead;
+
+    detectedIssues.halations=(eyeDiff<0.85)? true:false;
+    detectedIssues.pigment=(pigmentDiff<0.90)? true:false;
+    detectedIssues.spots=(pigmentDiff<0.95)? true:false; // بقع عامة
 }
 
-async function startCamera(){
-currentImg=null;
-video.classList.remove("hidden");
-const cam = new Camera(video,{
-onFrame: async()=>{ await faceMesh.send({image:video}); }
-});
-cam.start();
+function triggerQuestions(){
+    if(!lastResults || !lastResults.multiFaceLandmarks) return alert('يرجى التقاط وجه واضح أولاً');
+    const qCard=document.getElementById('questionCard');
+    const qArea=document.getElementById('questionsArea');
+    qArea.innerHTML='';
+
+    if(detectedIssues.halations){
+        qArea.innerHTML+='<label>الهالات تحت العين: <select id="halations"><option value="true">نعم</option><option value="false">لا يوجد</option></select></label><br>';
+        qArea.innerHTML+='<label>هل تريد تفتيح أم نضارة؟ <select id="halGoal"><option value="تفتيح">تفتيح</option><option value="نضارة">نضارة</option></select></label><br>';
+    }
+    if(detectedIssues.pigment){
+        qArea.innerHTML+='<label>التصبغات: <select id="pigment"><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option><option value="لا">لا يوجد</option></select></label><br>';
+    }
+    if(detectedIssues.spots){
+        qArea.innerHTML+='<label>البقع أو الحبوب: <select id="spots"><option value="نعم">نعم</option><option value="لا">لا يوجد</option></select></label><br>';
+    }
+
+    qCard.classList.remove('hidden');
 }
 
-upload.onchange = async(e)=>{
-const file=e.target.files[0];
-if(!file)return;
-const img=new Image();
-img.onload=async()=>{
-currentImg=img;
-video.classList.add("hidden");
-await faceMesh.send({image:img});
-};
-img.src=URL.createObjectURL(file);
-};
+function computeRoutine(){
+    const routineArea=document.getElementById('routineArea');
+    routineArea.innerHTML='';
+    routineArea.classList.remove('hidden');
 
-function generateRoutine(){
+    // روتين شامل لجميع المشاكل المكتشفة
+    const rData=[
+        {type:'اقتصادي', products:'غسول ستارفيل + سيروم فيتامين C + سيروم ريتينول + كريم عين + واقي الشمس ستارفيل', price:'400 جنيه', improvement:'50% - 60%'},
+        {type:'سوبر', products:'غسول دير + سيروم ديرويس Whitening + سيروم ريتينول كولاجرا + كريم عين يوليسيوس + واقي الشمس كولاجرا', price:'800 جنيه', improvement:'70% - 80%'},
+        {type:'ألترا', products:'غسول دير + سيروم Natavis + سيروم ريتينول انفينيتي + كريم عين ديرماسي + واقي الشمس إيفا SPF50', price:'1500 جنيه', improvement:'90% - 95%'}
+    ];
 
-if(!detectedIssues.halations && !detectedIssues.pigment){
-alert("لم يتم اكتشاف مشاكل واضحة.");
-return;
+    rData.forEach(r=>{
+        const card=document.createElement('div');
+        card.className='routine-card';
+        card.innerHTML=`<h4 style='color:var(--gold)'>${r.type}</h4>
+        <p><b>المنتجات:</b> ${r.products}</p>
+        <p><b>السعر التقريبي:</b> ${r.price}</p>
+        <p><b>نسبة التحسن المتوقعة:</b></p>
+        <div class='progress-bar'><div class='progress-fill' style='width:${r.improvement.split('-')[1].trim()}'>${r.improvement}</div></div>
+        <button onclick="sendWA('${r.type}')">اختيار هذا الروتين ✅</button>`;
+        routineArea.appendChild(card);
+    });
+    document.getElementById('recommendCard').classList.remove('hidden');
 }
 
-routineSection.innerHTML="";
-routineSection.classList.remove("hidden");
-
-let activeList=[];
-let goalText="";
-
-if(detectedIssues.halations){
-activeList.push("Caffeine → تحسين مظهر الهالات");
-activeList.push("Vitamin C → تفتيح منطقة العين");
-goalText+="علاج الهالات ";
+function sendWA(type){
+    const text=`اختار الروتين: ${type}`;
+    window.open(`https://wa.me/201063994139?text=${text}`);
 }
-
-if(detectedIssues.pigment){
-activeList.push("Niacinamide → تقليل التصبغات");
-activeList.push("Alpha Arbutin → توحيد لون البشرة");
-goalText+="وتوحيد لون البشرة ";
-}
-
-// إنشاء الباقات الثلاث
-createPackage("🟢 الباقة الاقتصادية",
-activeList.concat([
-"SPF Filters → منع عودة التصبغات"
-]),
-"غسول لطيف + سيروم فيتامين C + كريم عيون (عند الحاجة) + واقي شمس SPF50",
-"600 – 900 جنيه",
-"4 أسابيع",
-"50 – 60%"
-);
-
-createPackage("🟡 باقة السوبر",
-activeList.concat([
-"Retinol → تجديد الخلايا",
-"SPF Filters"
-]),
-"غسول علاجي + سيروم تفتيح متقدم + كريم عيون احترافي + ريتينول ليلي + واقي شمس SPF50+",
-"1200 – 1700 جنيه",
-"6 أسابيع",
-"70 – 80%"
-);
-
-createPackage("🔴 باقة الألترا",
-activeList.concat([
-"Tranexamic Acid → علاج التصبغات العميقة",
-"Peptides → دعم مرونة البشرة",
-"Retinol 0.3%"
-]),
-"غسول احترافي + سيروم مكثف + كريم عيون طبي + ريتينول علاجي + واقي شمس طبي مخصص",
-"2000 – 2800 جنيه",
-"8 أسابيع",
-"85 – 92%"
-);
-
-}
-
-function createPackage(title,actives,products,price,duration,improve){
-
-const div=document.createElement("div");
-div.className="routine-card";
-
-div.innerHTML=`
-<h3 style="color:#d4af37">${title}</h3>
-<p><b>المواد الفعالة:</b></p>
-<ul>${actives.map(a=>`<li>${a}</li>`).join("")}</ul>
-<p><b>يشمل:</b> ${products}</p>
-<p><b>السعر التقريبي:</b> ${price}</p>
-<p><b>مدة الاستخدام:</b> ${duration}</p>
-<p><b>نسبة التحسن المتوقعة:</b> ${improve}</p>
-<button onclick="choosePackage('${title}')">اختيار هذه الباقة</button>
-`;
-
-routineSection.appendChild(div);
-}
-
-function choosePackage(title){
-window.open(`https://wa.me/201063994139?text=أرغب في ${title}`);
-}
-
-</script>
-</body>
+</script></body>
 </html>
