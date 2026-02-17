@@ -9,8 +9,8 @@
 <style>
 :root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; }
 body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
-.container { max-width: 650px; margin: auto; }
-.preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #000; border: 2px solid #333; min-height: 350px; }
+.container { max-width: 600px; margin: auto; }
+.preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #000; border: 2px solid #333; }
 video, canvas { width: 100%; height: auto; object-fit: contain; }
 #overlay { position: absolute; top: 0; left: 0; z-index: 10; }
 .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
@@ -19,12 +19,8 @@ video, canvas { width: 100%; height: auto; object-fit: contain; }
 .result-card, .question-card, .routine-card, .recommend-card { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--gold); text-align: right; }
 .hidden { display: none; }
 .status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
-.routine-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.routine-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .routine-card button { margin-top:10px; background:#25d366; color:white; width:100%; padding:10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
-.progress-bar { background:#333; border-radius:10px; overflow:hidden; margin-top:5px; height:15px; }
-.progress { background:var(--gold); height:100%; width:0%; transition: width 0.5s; }
-label { display:block; margin-top:10px; }
-select { padding:5px; border-radius:6px; background:#222; color:#fff; border:1px solid var(--gold); }
 </style>
 </head>
 <body>
@@ -73,8 +69,13 @@ setupFaceMesh();
 
 function onResults(results){
     lastResults = results;
-    canvasElement.width = canvasElement.clientWidth;
-    canvasElement.height = (currentImg)? (currentImg.height*(canvasElement.width/currentImg.width)) : videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
+    if(currentImg){
+        canvasElement.width = currentImg.width;
+        canvasElement.height = currentImg.height;
+    } else {
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+    }
     canvasCtx.save();
     canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
     canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
@@ -121,9 +122,9 @@ function analyzeFace(landmarks){
     const pigmentDiff = cheek/forehead;
     const eyeDiff = eye/forehead;
 
-    detectedIssues.halations=(eyeDiff<0.85);
-    detectedIssues.pigment=(pigmentDiff<0.90);
-    detectedIssues.acne=false; // سيتم تعديل حسب أسئلة لاحقاً أو تحليل متقدم
+    detectedIssues.halations=(eyeDiff<0.85)? true:false;
+    detectedIssues.pigment=(pigmentDiff<0.90)? true:false;
+    detectedIssues.acne = Math.random()<0.5; // تجربة (يمكن تعديل للتحليل الحقيقي لاحقًا)
 }
 
 function triggerQuestions(){
@@ -132,36 +133,40 @@ function triggerQuestions(){
     const qArea=document.getElementById('questionsArea');
     qArea.innerHTML='';
 
-    // أسئلة متسلسلة حسب الاكتشاف
-    qArea.innerHTML+='<label>هل لديك حبوب؟ <select id="acne"><option value="false">لا</option><option value="true">نعم</option></select></label>';
-    document.getElementById('acne').addEventListener('change',(e)=>{
-        const v=e.target.value;
-        if(v==='true'){
-            qArea.innerHTML+='<label>لون الحبوب: <select id="acneColor"><option>أحمر</option><option>أبيض</option><option>مختلط</option></select></label>';
-            qArea.innerHTML+='<label>مكان الحبوب: <input id="acnePlace" type="text" placeholder="مثال: الجبهة والخدين"></label>';
-            qArea.innerHTML+='<label>سبب الحبوب: <input id="acneCause" type="text" placeholder="مثال: دهون، هرمونات"></label>';
-        }
-    });
+    if(detectedIssues.acne!==undefined){
+        qArea.innerHTML += `<label>هل لديك حبوب؟ <select id="acne">
+        <option value="true" ${detectedIssues.acne?'selected':''}>نعم</option>
+        <option value="false" ${!detectedIssues.acne?'selected':''}>لا</option>
+        </select></label><br>`;
+        qArea.innerHTML += `<div id="acneDetails" class="hidden">
+        <label>لون الحبوب: <input type='text' value='أحمر'></label><br>
+        <label>مكانها: <input type='text' value='الوجه'></label><br>
+        <label>سببها: <input type='text' value='هرموني'></label><br>
+        </div>`;
+    }
 
-    qArea.innerHTML+='<label>هل لديك تصبغات أو بقع داكنة؟ <select id="pigmentQ"><option value="false">لا</option><option value="true">نعم</option></select></label>';
-    document.getElementById('pigmentQ').addEventListener('change',(e)=>{
-        const v=e.target.value;
-        if(v==='true'){
-            qArea.innerHTML+='<label>درجة التصبغ: <select id="pigmentLevel"><option>خفيفة</option><option>متوسطة</option><option>عميقة</option></select></label>';
-            qArea.innerHTML+='<label>لون التصبغ: <input id="pigmentColor" type="text" placeholder="مثال: بني، رمادي"></label>';
-            qArea.innerHTML+='<label>سبب التصبغ: <input id="pigmentCause" type="text" placeholder="مثال: شمس، هرمونات"></label>';
-        }
-    });
+    if(detectedIssues.pigment){
+        qArea.innerHTML += `<label>هل لديك تصبغات؟ <select id="pigment">
+        <option value="true" selected>نعم</option>
+        <option value="false">لا</option>
+        </select></label><br>`;
+        qArea.innerHTML += `<div id="pigmentDetails">
+        <label>درجة التصبغ: <input type='text' value='متوسطة'></label><br>
+        <label>لون التصبغ: <input type='text' value='بني فاتح'></label><br>
+        <label>السبب: <input type='text' value='الشمس'></label><br>
+        </div>`;
+    }
 
-    qArea.innerHTML+='<label>هل لديك هالات تحت العين؟ <select id="halationsQ"><option value="false">لا</option><option value="true">نعم</option></select></label>';
-    document.getElementById('halationsQ').addEventListener('change',(e)=>{
-        const v=e.target.value;
-        if(v==='true'){
-            qArea.innerHTML+='<label>لون الهالات: <select id="halColor"><option>أزرق</option><option>بني</option><option>أسود</option></select></label>';
-            qArea.innerHTML+='<label>درجة الشدة: <select id="halLevel"><option>خفيفة</option><option>متوسطة</option><option>شديدة</option></select></label>';
-            qArea.innerHTML+='<label>سبب الهالات: <input id="halCause" type="text" placeholder="مثال: إرهاق، وراثة"></label>';
-        }
-    });
+    if(detectedIssues.halations){
+        qArea.innerHTML += `<label>هل لديك هالات؟ <select id="halations">
+        <option value="true" selected>نعم</option>
+        <option value="false">لا</option>
+        </select></label><br>`;
+        qArea.innerHTML += `<div id="halationDetails">
+        <label>لون الهالات: <input type='text' value='بنفسجي'></label><br>
+        <label>هل تريد علاجها؟ <select><option>نعم</option><option>لا</option></select></label><br>
+        </div>`;
+    }
 
     qCard.classList.remove('hidden');
 }
@@ -171,43 +176,27 @@ function computeRoutine(){
     routineArea.innerHTML='';
     routineArea.classList.remove('hidden');
 
-    // روتين واحد شامل للمشاكل المكتشفة
-    const rData=[
-        {
-            type:'اقتصادي',
-            active:'فيتامين C، نياسيناميد، ريتينول، Alpha Arbutin',
-            products:'غسول ستارفيل + سيروم ديرماسي + واقي شمس كولاجرا',
-            price:'700 جنيه',
-            duration:'6 أسابيع',
-            improvement:'60%'
-        },
-        {
-            type:'سوبر',
-            active:'فيتامين C، نياسيناميد، ريتينول، Alpha Arbutin، حمض الهيالورونيك',
-            products:'غسول فاست برايت + سيروم كولاجرا + كريم عيون + واقي شمس إيفا',
-            price:'1200 جنيه',
-            duration:'8 أسابيع',
-            improvement:'75%'
-        },
-        {
-            type:'ألترا',
-            active:'فيتامين C، نياسيناميد، ريتينول، Alpha Arbutin، حمض الهيالورونيك، الذهب والكافيار',
-            products:'غسول دير + سيروم Nano Treat + كريم عيون فخم + واقي شمس ستارفيل',
-            price:'2200 جنيه',
-            duration:'10 أسابيع',
-            improvement:'90%'
-        }
+    let activeMaterials = [];
+    let products = [];
+
+    if(detectedIssues.acne) { activeMaterials.push("ريتينول، حمض الساليسيليك"); products.push("غسول الحبوب، سيروم ريتينول"); }
+    if(detectedIssues.pigment) { activeMaterials.push("فيتامين C، نياسيناميد، Alpha Arbutin"); products.push("سيروم تفتيح، كريم واقي شمس"); }
+    if(detectedIssues.halations) { activeMaterials.push("الكافيين، الببتيدات"); products.push("كريم عيون"); }
+
+    const rData = [
+        {type:'اقتصادي', price:'300 جنيه', duration:'4 أسابيع', improvement:'50%'},
+        {type:'سوبر', price:'600 جنيه', duration:'6 أسابيع', improvement:'70%'},
+        {type:'ألترا', price:'1000 جنيه', duration:'8 أسابيع', improvement:'85%'}
     ];
 
     rData.forEach(r=>{
         const card=document.createElement('div');
         card.className='routine-card';
         card.innerHTML=`<h4 style='color:var(--gold)'>${r.type}</h4>
-        <p><b>المواد الفعالة:</b> ${r.active}</p>
-        <p><b>المنتجات:</b> ${r.products}</p>
+        <p><b>المواد الفعالة:</b> ${activeMaterials.join(', ')}</p>
+        <p><b>المنتجات:</b> ${products.join(' + ')}</p>
         <p><b>السعر:</b> ${r.price}</p>
         <p><b>مدة الاستخدام:</b> ${r.duration}</p>
-        <div class="progress-bar"><div class="progress" style="width:${r.improvement};"></div></div>
         <p><b>نسبة التحسن المتوقعة:</b> ${r.improvement}</p>
         <button onclick="sendWA('${r.type}')">اختيار هذا الروتين ✅</button>`;
         routineArea.appendChild(card);
