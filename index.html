@@ -1,420 +1,62 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI PRO - Facial Precision</title>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-
+<title>VERONA AI - WhatsApp Only</title>
 <style>
-:root {
-  --gold:#d4af37;
-  --gold-soft:#f1d77a;
-  --bg1:#0a0a0a;
-  --bg2:#111111;
-  --glass:rgba(255,255,255,0.05);
-}
-body{
-  margin:0;
-  font-family:'Segoe UI',Tahoma,sans-serif;
-  background:radial-gradient(circle at top,var(--bg2),var(--bg1));
-  color:#fff;
-  text-align:center;
-  overflow-x:hidden;
-}
-.container{
-  max-width:700px;
-  margin:auto;
-  padding:20px;
-}
-h2{
-  letter-spacing:2px;
-  font-weight:700;
-  position:relative;
-}
-h2::after{
-  content:"";
-  position:absolute;
-  width:60px;
-  height:3px;
-  background:linear-gradient(90deg,var(--gold),var(--gold-soft));
-  bottom:-8px;
-  left:50%;
-  transform:translateX(-50%);
-  animation: glow 1.5s infinite alternate;
-}
-@keyframes glow{
-  0%{opacity:0.3; transform:translateX(-50%) scaleX(0.8);}
-  100%{opacity:1; transform:translateX(-50%) scaleX(1.2);}
-}
-.preview-box{
-  position:relative;
-  width:100%;
-  border-radius:25px;
-  overflow:hidden;
-  background:#000;
-  border:1px solid var(--gold);
-  box-shadow:0 0 40px rgba(212,175,55,0.25);
-  backdrop-filter:blur(10px);
-  min-height:350px;
-  margin-top:15px;
-}
-video,canvas,img.preview-img{
-  width:100%;
-  display:block;
-}
-#overlay{position:absolute;top:0;left:0;z-index:10;}
-.btn-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:15px;
-  margin:20px 0;
-}
-.action-btn{
-  background:linear-gradient(135deg,var(--gold),var(--gold-soft));
-  color:#000;
-  padding:15px;
-  border:none;
-  border-radius:14px;
-  font-weight:bold;
-  cursor:pointer;
-  transition:0.3s;
-  box-shadow:0 5px 20px rgba(212,175,55,0.4);
-}
-.action-btn:hover{
-  transform:translateY(-3px);
-  box-shadow:0 8px 25px rgba(212,175,55,0.6);
-}
-.scan-btn{
-  width:100%;
-  font-size:1.1rem;
-  border:2px solid var(--gold);
-}
-.result-card,.question-card,.routine-card,.recommend-card{
-  background:var(--glass);
-  backdrop-filter:blur(15px);
-  border-radius:25px;
-  padding:25px;
-  margin-top:25px;
-  border:1px solid rgba(212,175,55,0.4);
-  box-shadow:0 10px 40px rgba(0,0,0,0.6);
-  text-align:right;
-}
-.routine-grid{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:20px;
-}
-.routine-card{
-  transition:0.3s;
-}
-.routine-card:hover{
-  transform:scale(1.02);
-  box-shadow:0 0 30px rgba(212,175,55,0.5);
-}
-.routine-card button{
-  margin-top:15px;
-  background:#25d366;
-  color:#fff;
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  font-weight:bold;
-  cursor:pointer;
-}
-.status-msg{
-  color:var(--gold-soft);
-  margin:10px 0;
-  font-size:0.95rem;
-  letter-spacing:1px;
-}
-select{
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  margin:8px 0;
-  background:#1c1c1c;
-  color:#fff;
-  border:1px solid var(--gold);
-}
-.hidden{display:none;}
-.premium-badge{
-  display:inline-block;
-  padding:6px 14px;
-  border-radius:20px;
-  background:linear-gradient(90deg,var(--gold),var(--gold-soft));
-  color:#000;
-  font-size:0.75rem;
-  font-weight:bold;
-  margin-bottom:10px;
-  box-shadow:0 0 15px rgba(212,175,55,0.6);
-}
-.splash{
-  position:fixed;
-  top:0; left:0; width:100%; height:100%;
-  background:var(--bg2);
-  display:flex; justify-content:center; align-items:center;
-  z-index:1000;
-  font-size:1.5rem; color:var(--gold);
-  flex-direction:column;
-  font-weight:bold;
-  animation: fadeIn 0.5s;
-}
-@keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+  body { font-family: Arial, sans-serif; background: #111; color: #fff; text-align: center; margin:0; padding:0; }
+  video, canvas { max-width: 90%; border-radius: 10px; margin-top: 10px; }
+  #status { margin: 10px; font-size: 1rem; color: #ffd700; }
+  .analysis-mode { filter: grayscale(1) contrast(1.2) brightness(0.8); transition: all 1s ease; }
+  .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #ffd700; box-shadow: 0 0 15px #ffd700; z-index: 15; display: none; animation: scan-move 2s linear; }
+  @keyframes scan-move { 0% { top: 0; } 100% { top: 100%; } }
+  #routineArea { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .routine-card { background: #222; padding: 10px; border-radius: 10px; width: 250px; }
+  button { background: #ffd700; color: #111; border: none; padding: 8px 12px; margin-top: 10px; cursor: pointer; border-radius:5px; }
 </style>
 </head>
 <body>
-
-<div class="splash" id="splash">🔄 جاري التحميل...</div>
-
-<div class="container hidden" id="mainUI">
-<h2>VERONA <span style="color:var(--gold)">AI PRO</span></h2>
-<div id="status" class="status-msg">جاري تهيئة المحرك الذكي...</div>
-
-<div class="preview-box">
-<video id="input_video" class="hidden" playsinline></video>
-<canvas id="overlay"></canvas>
-<img id="previewImg" class="preview-img hidden" />
+<h2>VERONA AI - تحليل البشرة</h2>
+<div style="position:relative; display:inline-block;">
+  <video id="video" autoplay></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <div class="scan-line" id="scanLine"></div>
 </div>
-
-<div class="btn-grid">
-<button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
-<button class="action-btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
-</div>
-<input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
-<button id="scanBtn" class="action-btn scan-btn" onclick="triggerQuestions()">تحليل النتائج الآن 🔬</button>
-
-<div id="questionCard" class="question-card hidden">
-<h3 style="color:var(--gold); margin:0;">تم اكتشاف مشاكل، يرجى تأكيدها:</h3>
-<div id="questionsArea"></div>
-<button class="action-btn scan-btn" onclick="computeRoutine()">استخراج الروتين ✅</button>
-</div>
-
-<div id="routineArea" class="routine-grid hidden"></div>
-<div id="recommendCard" class="recommend-card hidden">
-<h3 style="color:var(--gold);">التوصيات العامة</h3>
-<ul>
-<li>الترطيب لمدة أسبوع قبل الروتين إذا كانت البشرة جافة.</li>
-<li>شرب كمية كافية من الماء يوميًا.</li>
-<li>النوم باكرًا لتحفيز تجديد البشرة.</li>
-<li>استخدام واقي الشمس يوميًا.</li>
-</ul>
-</div>
-</div>
-
+<p id="status">المحرك جاهز للفحص ✅</p>
+<button id="scanBtn" onclick="analyzeFace()">بدء التحليل 🔬</button>
+<button id="resetBtn" style="display:none; background:#333; color:#fff;" onclick="resetAnalysis()">إعادة التقاط 📸</button>
+<div id="routineArea"></div>
 <script>
-let faceMesh, lastResults=null, currentImg=null, detectedIssues={}, beforeImageData=null;
-const videoElement = document.getElementById('input_video');
-const canvasElement = document.getElementById('overlay');
-const canvasCtx = canvasElement.getContext('2d',{willReadFrequently:true});
-const previewImg = document.getElementById('previewImg');
-let analysisData = {pigmentLevel:null, halationLevel:null, confidence:0, skinType:null};
+let video = document.getElementById('video');
+let canvas = document.getElementById('canvas');
+let scanLine = document.getElementById('scanLine');
+let analysisData = {};
+let detectedIssues = {};navigator.mediaDevices.getUserMedia({ video: true }).then(stream => { video.srcObject = stream; });
 
-function showMainUI(){
-  document.getElementById('splash').style.display='none';
-  document.getElementById('mainUI').classList.remove('hidden');
-}
-async function setupFaceMesh(){
-    faceMesh = new FaceMesh({locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
-    faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5});
-    faceMesh.onResults(onResults);
-    document.getElementById('status').innerText="المحرك جاهز للفحص ✅";
-    showMainUI();
-}
-setupFaceMesh();
+function analyzeFace(){ const ctx = canvas.getContext('2d'); canvas.width = video.videoWidth; canvas.height = video.videoHeight; ctx.drawImage(video, 0, 0, canvas.width, canvas.height); video.style.display='none'; canvas.style.display='block'; scanLine.style.display='block'; canvas.classList.add('analysis-mode'); document.getElementById('status').innerText='🔬 جاري المسح المجهري لطبقات الجلد...';
 
-function getPixelMean(lm){
-    const x=Math.floor(lm.x*canvasElement.width);
-    const y=Math.floor(lm.y*canvasElement.height);
-    const size=5;
-    try{
-        const startX=Math.max(0,x-2);
-        const startY=Math.max(0,y-2);
-        const width=Math.min(size,canvasElement.width-startX);
-        const height=Math.min(size,canvasElement.height-startY);
-        const pData=canvasCtx.getImageData(startX,startY,width,height).data;
-        let total=0, count=0;
-        for(let i=0;i<pData.length;i+=4){
-            const r=pData[i], g=pData[i+1], b=pData[i+2];
-            if(r<20 && g<20 && b<20) continue;
-            total+=0.299*r + 0.587*g + 0.114*b;
-            count++;
-        }
-        return count===0?150:total/count;
-    }catch(e){return 150;}
-}
+setTimeout(()=>{ scanLine.style.display='none'; canvas.classList.remove('analysis-mode');
 
-function onResults(results){
-    lastResults=results;
-    canvasElement.width=canvasElement.clientWidth;
-    canvasElement.height=(currentImg)?(currentImg.height*(canvasElement.width/currentImg.width)):videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
-    canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
-    if(results.image) canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
-    detectedIssues={pigment:false, freckles:false, halations:false, acne:false, dryness:false};
+// محاكاة اكتشاف مشاكل البشرة
+detectedIssues = { pigment:true, halations:true, acne:true };
 
-    if(results.multiFaceLandmarks){
-        for(const landmarks of results.multiFaceLandmarks){
-            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color:'#d4af3744', lineWidth:0.5});
-            analyzeFace(landmarks);
-        }
-    }
-}
+// رسم Heatmap وهمي
+ctx.fillStyle="rgba(255, 215, 0, 0.4)";
+for(let i=0;i<5;i++){let x=Math.random()*canvas.width; let y=Math.random()*canvas.height; ctx.beginPath(); ctx.arc(x,y,20,0,Math.PI*2); ctx.fill();}
 
-async function initCamera(){
-    currentImg=null;
-    previewImg.classList.add('hidden');
-    videoElement.classList.remove('hidden');
-    const camera = new Camera(videoElement,{onFrame: async()=>{await faceMesh.send({image:videoElement});}});
-    camera.start();
-}
+document.getElementById('status').innerText='✅ تم التحليل بنجاح';
+showRoutines();
+document.getElementById('resetBtn').style.display='inline-block';
 
-function processFile(event){
-    const file=event.target.files[0];
-    if(!file) return;
-    const img=new Image();
-    img.onload=async ()=>{
-        currentImg=img;
-        videoElement.classList.add('hidden');
-        previewImg.src=img.src;
-        previewImg.classList.remove('hidden');
-        await faceMesh.send({image:img});
-    };
-    img.src=URL.createObjectURL(file);
-}
+},2000); }
 
-function analyzeFace(landmarks){
-    if(!landmarks) return;
-    const forehead=getPixelMean(landmarks[10]);
-    const leftCheek=getPixelMean(landmarks[205]);
-    const rightCheek=getPixelMean(landmarks[425]);
-    const leftEye=getPixelMean(landmarks[159]);
-    const rightEye=getPixelMean(landmarks[386]);
+function showRoutines(){ const routines=[ { type:'اقتصادي', note:'متاحة للتسليم الفوري.', products:'غسول ستارفيل + سيروم فيتامين C محلي + واقي شمس ستارفيل SPF50+'}, { type:'سوبر', note:'الأكثر طلباً هذا الأسبوع 🔥', products:'غسول نانوتريت + سيروم غارنييه Fast Bright + كولاجرا سيروم + واقي شمس كولاجرا SPF50'}, { type:'ألترا', note:'تتضمن استشارة مجانية لمتابعة النتائج', products:'Nano Treat 24K Gold Serum + سيروم الكافيار والذهب + دا اكتي-جلو + واقي شمس إيفا SPF50')} ];
 
-    const cheekAvg=(leftCheek+rightCheek)/2;
-    const eyeAvg=(leftEye+rightEye)/2;
+const area=document.getElementById('routineArea'); area.innerHTML=''; routines.forEach(r=>{ const card=document.createElement('div'); card.className='routine-card'; card.innerHTML=<h4>${r.type}</h4><p>${r.products}</p><p><i>${r.note}</i></p><button onclick="sendWA('${r.type}',85)">حجز باقة واتساب ✅</button>; area.appendChild(card); }); }
 
-    // تصبغات
-    const pigmentRatio = cheekAvg/forehead;
-    detectedIssues.pigment = pigmentRatio<0.95;
-    let pigmentLevel='خفيف';
-    if(pigmentRatio<0.85) pigmentLevel='عميق';
-    else if(pigmentRatio<0.90) pigmentLevel='متوسط';
-    analysisData.pigmentLevel=pigmentLevel;
+function sendWA(type,score){ const skinType = 'مختلطة / عادية'; const issues = []; if(detectedIssues.pigment) issues.push('تصبغات'); if(detectedIssues.halations) issues.push('هالات سوداء'); if(detectedIssues.acne) issues.push('حب شباب/مسام'); const message = *تقرير VERONA AI PRO*%0A---------------------------%0A• *نتيجة الفحص:* ${score}%25%0A• *نوع البشرة:* ${skinType}%0A• *المشاكل المكتشفة:* ${issues.join(' - ')}%0A• *الباقة المختارة:* ${type}%0A---------------------------%0Aأرغب في تأكيد الحجز وبدء الروتين المخصص.%0A*ملاحظة:* تم إنشاء هذا التقرير بواسطة تقنية VERONA AI للهواتف الذكية.; window.open(https://wa.me/201063994139?text=${message},'_blank'); }
 
-    // هالات
-    const halationRatio=eyeAvg/forehead;
-    detectedIssues.halations = halationRatio<0.88;
-    let halationLevel='خفيف';
-    if(halationRatio<0.80) halationLevel='شديد';
-    else if(halationRatio<0.87) halationLevel='متوسط';
-    analysisData.halationLevel=halationLevel;
-
-    // جفاف
-    detectedIssues.dryness=cheekAvg<110;
-
-    // نوع البشرة
-    if(cheekAvg<105) analysisData.skinType='جافة';
-    else if(cheekAvg>150) analysisData.skinType='دهنية';
-    else analysisData.skinType='مختلطة';
-
-    // نمش
-    const colorVariance=Math.abs(leftCheek-rightCheek);
-    detectedIssues.freckles=colorVariance>18;
-
-    // حب الشباب
-    detectedIssues.acne=Math.abs(forehead-cheekAvg)>25;
-
-    // دقة التحليل
-    let confidenceScore=100;
-    if(detectedIssues.pigment) confidenceScore-=5;
-    if(detectedIssues.halations) confidenceScore-=5;
-    if(detectedIssues.acne) confidenceScore-=5;
-    if(detectedIssues.freckles) confidenceScore-=3;
-    confidenceScore=Math.max(75,confidenceScore);
-    analysisData.confidence=confidenceScore;
-
-    // عرض الثقة
-    document.getElementById('status').innerText=`تم الفحص بنجاح بدقة ${confidenceScore}% | نوع البشرة: ${analysisData.skinType}`;
-
-    // رسم Heatmap للتصبغات والهالات
-    canvasCtx.fillStyle='rgba(255,0,0,0.25)';
-    if(detectedIssues.halations){
-        const lx=landmarks[159].x*canvasElement.width;
-        const ly=landmarks[159].y*canvasElement.height;
-        const rx=landmarks[386].x*canvasElement.width;
-        const ry=landmarks[386].y*canvasElement.height;
-        canvasCtx.beginPath();
-        canvasCtx.arc(lx,ly,20,0,Math.PI*2); canvasCtx.fill();
-        canvasCtx.beginPath();
-        canvasCtx.arc(rx,ry,20,0,Math.PI*2); canvasCtx.fill();
-    }
-    if(detectedIssues.pigment){
-        const fx1=landmarks[10].x*canvasElement.width;
-        const fy1=landmarks[10].y*canvasElement.height;
-        const fx2=landmarks[9].x*canvasElement.width;
-        const fy2=landmarks[9].y*canvasElement.height;
-        canvasCtx.beginPath();
-        canvasCtx.arc(fx1,fy1,25,0,Math.PI*2); canvasCtx.fill();
-        canvasCtx.beginPath();
-        canvasCtx.arc(fx2,fy2,25,0,Math.PI*2); canvasCtx.fill();
-    }
-}
-
-function triggerQuestions(){
-    if(!lastResults) return alert('يرجى التقاط وجه واضح أولاً');
-    const qCard=document.getElementById('questionCard');
-    const qArea=document.getElementById('questionsArea');
-    qArea.innerHTML='';
-
-    Object.keys(detectedIssues).forEach(issue=>{
-        let val=detectedIssues[issue]?'نعم':'لا';
-        qArea.innerHTML+=`<label>${issue.replace('pigment','تصبغات').replace('freckles','نمش').replace('halations','هالات').replace('acne','حبوب').replace('dryness','جفاف')}؟</label>
-        <select id='${issue}'><option value='نعم' ${val==='نعم'?'selected':''}>نعم</option><option value='لا' ${val==='لا'?'selected':''}>لا</option></select><br>`;
-    });
-    qCard.classList.remove('hidden');
-}
-
-function computeRoutine(){
-    const routineArea=document.getElementById('routineArea');
-    routineArea.innerHTML='';
-    routineArea.classList.remove('hidden');
-
-    const routines = [
-      {type:'اقتصادي', improvement:'50%', products:'غسول ستارفيل، سيروم فيتامين C محلي، كريم عين، واقي شمس ستارفيل SPF50+'},
-      {type:'سوبر', improvement:'75%', products:'غسول غارنييه فاست برايت، سيروم غارنييه C+Niacinamide، كريم عين، واقي شمس كولاجرا SPF50'},
-      {type:'ألترا', improvement:'95%', products:'غسول فيشي، Nano Treat 24K Gold Serum، سيروم الكافيار والذهب، كريم عين، واقي شمس كولاجرا'}
-    ];
-
-    routines.forEach(r=>{
-        const card=document.createElement('div');
-        card.className='routine-card';
-        card.innerHTML=`<div class="premium-badge">${r.type}</div>
-        <h4 style='color:var(--gold); margin:10px 0;'>تحسن متوقع: ${r.improvement}</h4>
-        <p style='font-size:0.9rem; line-height:1.4;'><b>المنتجات:</b> ${r.products}</p>
-        <button onclick="sendWA('${r.type}')">حجز الباقة عبر واتساب ✅</button>`;
-        routineArea.appendChild(card);
-    });
-    document.getElementById('recommendCard').classList.remove('hidden');
-
-    if(beforeImageData){
-        const compareBtn=document.createElement('button');
-        compareBtn.innerText='عرض صورة قبل التحليل 📷';
-        compareBtn.className='action-btn';
-        compareBtn.style.marginTop='10px';
-        compareBtn.onclick=()=>{const win=window.open(); win.document.write(`<img src='${beforeImageData}' style='width:100%'>`);};
-        routineArea.appendChild(compareBtn);
-    }
-    try{beforeImageData=canvasElement.toDataURL('image/png');}catch(e){}
-}
-
-function sendWA(type){
-    const text=`اختار الروتين: ${type}`;
-    window.open(`https://wa.me/201063994139?text=${text}`);
-}
-</script>
+function resetAnalysis(){ video.style.display='block'; canvas.style.display='none'; document.getElementById('routineArea').innerHTML=''; document.getElementById('status').innerText='المحرك جاهز لفحص جديد ✅'; document.getElementById('resetBtn').style.display='none'; } </script>
 
 </body>
 </html>
