@@ -9,9 +9,9 @@
 <style>
 :root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; }
 body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
-.container { max-width: 600px; margin: auto; }
+.container { max-width: 700px; margin: auto; }
 .preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #000; border: 2px solid #333; }
-video, canvas { width: 100%; height: auto; object-fit: contain; }
+.preview-box img, .preview-box video, .preview-box canvas { width: 100%; height: auto; display: block; }
 #overlay { position: absolute; top: 0; left: 0; z-index: 10; }
 .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
 .action-btn { background: var(--gold); color: #000; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
@@ -19,8 +19,9 @@ video, canvas { width: 100%; height: auto; object-fit: contain; }
 .result-card, .question-card, .routine-card, .recommend-card { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--gold); text-align: right; }
 .hidden { display: none; }
 .status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
-.routine-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.routine-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .routine-card button { margin-top:10px; background:#25d366; color:white; width:100%; padding:10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+select { padding:6px; border-radius:6px; background:#222; color:#fff; border:1px solid #555; width:100%; margin:5px 0; }
 </style>
 </head>
 <body>
@@ -29,6 +30,7 @@ video, canvas { width: 100%; height: auto; object-fit: contain; }
 <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
 <div class="preview-box">
 <video id="input_video" class="hidden" playsinline></video>
+<img id="input_image" class="hidden">
 <canvas id="overlay"></canvas>
 </div>
 <div class="btn-grid">
@@ -37,7 +39,7 @@ video, canvas { width: 100%; height: auto; object-fit: contain; }
 </div>
 <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
 <button id="scanBtn" class="action-btn scan-btn" onclick="triggerQuestions()">تحليل النتائج الآن 🔬</button><div id="questionCard" class="question-card hidden">
-<h3 style="color:var(--gold); margin:0;">الرجاء الإجابة عن الأسئلة التالية:</h3>
+<h3 style="color:var(--gold); margin:0;">لقد اكتشف المحلل الذكي بعض المشاكل، قم بتأكيدها</h3>
 <div id="questionsArea"></div>
 <button class="action-btn scan-btn" onclick="computeRoutine()">استخراج الروتين ✅</button>
 </div><div id="routineArea" class="routine-grid hidden"></div>
@@ -52,6 +54,7 @@ video, canvas { width: 100%; height: auto; object-fit: contain; }
 </div>
 </div><script>
 const videoElement = document.getElementById('input_video');
+const imgElement = document.getElementById('input_image');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d', {willReadFrequently:true});
 let faceMesh;
@@ -72,13 +75,14 @@ function onResults(results){
     if(currentImg){
         canvasElement.width = currentImg.width;
         canvasElement.height = currentImg.height;
+        canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
+        canvasCtx.drawImage(currentImg,0,0,canvasElement.width,canvasElement.height);
     } else {
-        canvasElement.width = videoElement.videoWidth;
-        canvasElement.height = videoElement.videoHeight;
+        canvasElement.width = canvasElement.clientWidth;
+        canvasElement.height = videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
+        canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
+        canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
     }
-    canvasCtx.save();
-    canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
-    canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
     detectedIssues = {};
     if(results.multiFaceLandmarks){
         for(const landmarks of results.multiFaceLandmarks){
@@ -86,22 +90,24 @@ function onResults(results){
         }
         analyzeFace(results.multiFaceLandmarks[0]);
     }
-    canvasCtx.restore();
 }
 
 async function initCamera(){
     currentImg=null;
     videoElement.classList.remove('hidden');
+    imgElement.classList.add('hidden');
     const camera = new Camera(videoElement, {onFrame: async()=>{await faceMesh.send({image:videoElement});}});
     camera.start();
 }
 
 function processFile(event){
     const file = event.target.files[0];
-    if(!file)return;
+    if(!file) return;
     const img = new Image();
     img.onload = async ()=>{
         currentImg=img;
+        imgElement.src = img.src;
+        imgElement.classList.remove('hidden');
         videoElement.classList.add('hidden');
         await faceMesh.send({image:img});
     };
@@ -122,52 +128,36 @@ function analyzeFace(landmarks){
     const pigmentDiff = cheek/forehead;
     const eyeDiff = eye/forehead;
 
-    detectedIssues.halations=(eyeDiff<0.85)? true:false;
-    detectedIssues.pigment=(pigmentDiff<0.90)? true:false;
-    detectedIssues.acne = Math.random()<0.5; // تجربة (يمكن تعديل للتحليل الحقيقي لاحقًا)
+    detectedIssues.halations = (eyeDiff<0.85)? true:false;
+    detectedIssues.pigment = (pigmentDiff<0.90)? true:false;
+    detectedIssues.acne = false; // سيظهر افتراضياً على الأسئلة
 }
 
 function triggerQuestions(){
-    if(!lastResults || !lastResults.multiFaceLandmarks) return alert('يرجى التقاط وجه واضح أولاً');
+    if(!lastResults) return alert('يرجى التقاط وجه واضح أولاً');
     const qCard=document.getElementById('questionCard');
     const qArea=document.getElementById('questionsArea');
     qArea.innerHTML='';
-
-    if(detectedIssues.acne!==undefined){
-        qArea.innerHTML += `<label>هل لديك حبوب؟ <select id="acne">
-        <option value="true" ${detectedIssues.acne?'selected':''}>نعم</option>
-        <option value="false" ${!detectedIssues.acne?'selected':''}>لا</option>
-        </select></label><br>`;
-        qArea.innerHTML += `<div id="acneDetails" class="hidden">
-        <label>لون الحبوب: <input type='text' value='أحمر'></label><br>
-        <label>مكانها: <input type='text' value='الوجه'></label><br>
-        <label>سببها: <input type='text' value='هرموني'></label><br>
-        </div>`;
-    }
-
-    if(detectedIssues.pigment){
-        qArea.innerHTML += `<label>هل لديك تصبغات؟ <select id="pigment">
-        <option value="true" selected>نعم</option>
-        <option value="false">لا</option>
-        </select></label><br>`;
-        qArea.innerHTML += `<div id="pigmentDetails">
-        <label>درجة التصبغ: <input type='text' value='متوسطة'></label><br>
-        <label>لون التصبغ: <input type='text' value='بني فاتح'></label><br>
-        <label>السبب: <input type='text' value='الشمس'></label><br>
-        </div>`;
-    }
-
+    // الأسئلة المكتشفة
     if(detectedIssues.halations){
-        qArea.innerHTML += `<label>هل لديك هالات؟ <select id="halations">
-        <option value="true" selected>نعم</option>
-        <option value="false">لا</option>
+        qArea.innerHTML+=`<label>الهالات تحت العين: <select id="halations">
+        <option value="نعم" selected>نعم</option>
+        <option value="لا">لا يوجد</option>
         </select></label><br>`;
-        qArea.innerHTML += `<div id="halationDetails">
-        <label>لون الهالات: <input type='text' value='بنفسجي'></label><br>
-        <label>هل تريد علاجها؟ <select><option>نعم</option><option>لا</option></select></label><br>
-        </div>`;
     }
-
+    if(detectedIssues.pigment){
+        qArea.innerHTML+=`<label>التصبغات: <select id="pigment">
+        <option value="خفيفة" selected>خفيفة</option>
+        <option value="متوسطة">متوسطة</option>
+        <option value="عميقة">عميقة</option>
+        <option value="لا">لا يوجد</option>
+        </select></label><br>`;
+    }
+    // أسئلة عن الحبوب (افتراضية لا)
+    qArea.innerHTML+=`<label>هل لديك حبوب؟ <select id="acne">
+        <option value="لا" selected>لا</option>
+        <option value="نعم">نعم</option>
+        </select></label><br>`;
     qCard.classList.remove('hidden');
 }
 
@@ -176,32 +166,25 @@ function computeRoutine(){
     routineArea.innerHTML='';
     routineArea.classList.remove('hidden');
 
-    let activeMaterials = [];
-    let products = [];
-
-    if(detectedIssues.acne) { activeMaterials.push("ريتينول، حمض الساليسيليك"); products.push("غسول الحبوب، سيروم ريتينول"); }
-    if(detectedIssues.pigment) { activeMaterials.push("فيتامين C، نياسيناميد، Alpha Arbutin"); products.push("سيروم تفتيح، كريم واقي شمس"); }
-    if(detectedIssues.halations) { activeMaterials.push("الكافيين، الببتيدات"); products.push("كريم عيون"); }
-
-    const rData = [
-        {type:'اقتصادي', price:'300 جنيه', duration:'4 أسابيع', improvement:'50%'},
-        {type:'سوبر', price:'600 جنيه', duration:'6 أسابيع', improvement:'70%'},
-        {type:'ألترا', price:'1000 جنيه', duration:'8 أسابيع', improvement:'85%'}
+    // روتين شامل لكل المشاكل المكتشفة
+    const routineData=[
+        {type:'اقتصادي', active:'فيتامين C + نياسيناميد + حمض الهيالورونيك + فيتامين E', products:'غارنييه فاست برايت + سيروم كولاجرا + واقي شمس ستارفيل', price:'350 جنيه', duration:'4 أسابيع', improvement:'50%'},
+        {type:'سوبر', active:'فيتامين C + نياسيناميد + ريتينول + Alpha Arbutin + حمض الهيالورونيك', products:'سيروم ديرماسي + سيروم ريتينول + غسول نانوتريت + واقي شمس كولاجرا', price:'700 جنيه', duration:'6 أسابيع', improvement:'70%'},
+        {type:'ألترا', active:'فيتامين C + نياسيناميد + ريتينول + Tranexamic + Alpha Arbutin + حمض الهيالورونيك + فيتامين E', products:'سيروم Natavis + سيروم ريتينول + غسول دير + واقي شمس كولاجرا', price:'1200 جنيه', duration:'8 أسابيع', improvement:'90%'}
     ];
 
-    rData.forEach(r=>{
+    routineData.forEach(r=>{
         const card=document.createElement('div');
         card.className='routine-card';
         card.innerHTML=`<h4 style='color:var(--gold)'>${r.type}</h4>
-        <p><b>المواد الفعالة:</b> ${activeMaterials.join(', ')}</p>
-        <p><b>المنتجات:</b> ${products.join(' + ')}</p>
+        <p><b>المواد الفعالة:</b> ${r.active}</p>
+        <p><b>المنتجات:</b> ${r.products}</p>
         <p><b>السعر:</b> ${r.price}</p>
         <p><b>مدة الاستخدام:</b> ${r.duration}</p>
         <p><b>نسبة التحسن المتوقعة:</b> ${r.improvement}</p>
         <button onclick="sendWA('${r.type}')">اختيار هذا الروتين ✅</button>`;
         routineArea.appendChild(card);
     });
-
     document.getElementById('recommendCard').classList.remove('hidden');
 }
 
