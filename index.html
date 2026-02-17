@@ -9,7 +9,7 @@
 <style>
 :root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; }
 body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
-.container { max-width: 600px; margin: auto; }
+.container { max-width: 700px; margin: auto; }
 .preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #000; border: 2px solid #333; min-height: 300px; }
 video, canvas { width: 100%; height: auto; }
 #overlay { position: absolute; top: 0; left: 0; z-index: 10; }
@@ -21,6 +21,8 @@ video, canvas { width: 100%; height: auto; }
 .status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
 .routine-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .routine-card button { margin-top:10px; background:#25d366; color:white; width:100%; padding:10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+select, input { padding: 5px; margin:5px 0; border-radius:5px; border:none; width:100%; }
+label { display:block; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -113,14 +115,11 @@ function analyzeFace(landmarks){
     const forehead = getPixelMean(landmarks[10]);
     const cheek = getPixelMean(landmarks[205]);
     const eye = (getPixelMean(landmarks[130])+getPixelMean(landmarks[350]))/2;
-
     const pigmentDiff = cheek/forehead;
     const eyeDiff = eye/forehead;
-
     detectedIssues.halations=(eyeDiff<0.85)? true:false;
-    detectedIssues.pigment=(pigmentDiff<0.95)? true:false;
-    detectedIssues.wrinkles=(forehead/cheek<0.92)? true:false;
-    // لاحقًا يمكن إضافة الحبوب
+    detectedIssues.pigment=(pigmentDiff<0.92)? true:false;
+    detectedIssues.acne = false; // افتراضي، يمكن إضافة مستشعر مستقبلي
 }
 
 function triggerQuestions(){
@@ -129,13 +128,13 @@ function triggerQuestions(){
     const qArea=document.getElementById('questionsArea');
     qArea.innerHTML='';
     if(detectedIssues.halations){
-        qArea.innerHTML+='<label>الهالات تحت العين: <select id="halations"><option value="true">نعم</option><option value="false">لا يوجد</option></select></label><br>';
+        qArea.innerHTML+='<label>الهالات تحت العين: <select id="halations"><option value="غامق">غامق</option><option value="فاتح">فاتح</option><option value="أزرق">أزرق</option><option value="بني">بني</option><option value="لا يوجد">لا يوجد</option></select></label>';
+        qArea.innerHTML+='<label>الهدف: <select id="halGoal"><option value="تفتيح">تفتيح</option><option value="نضارة">نضارة</option></select></label>';
     }
     if(detectedIssues.pigment){
-        qArea.innerHTML+='<label>التصبغات: <select id="pigment"><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option><option value="لا">لا يوجد</option></select></label><br>';
-    }
-    if(detectedIssues.wrinkles){
-        qArea.innerHTML+='<label>التجاعيد: <select id="wrinkles"><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="شديدة">شديدة</option><option value="لا">لا يوجد</option></select></label><br>';
+        qArea.innerHTML+='<label>التصبغات: <select id="pigmentLevel"><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option><option value="لا يوجد">لا يوجد</option></select></label>';
+        qArea.innerHTML+='<label>سبب التصبغات: <select id="pigmentCause"><option value="شمس">شمس</option><option value="حبوب">حبوب</option><option value="هرموني">هرموني</option><option value="وراثي">وراثي</option><option value="غير معروف">غير معروف</option></select></label>';
+        qArea.innerHTML+='<label>الهدف: <select id="pigmentGoal"><option value="تفتيح">تفتيح</option><option value="نضارة">نضارة</option></select></label>';
     }
     qCard.classList.remove('hidden');
 }
@@ -144,21 +143,38 @@ function computeRoutine(){
     const routineArea=document.getElementById('routineArea');
     routineArea.innerHTML='';
     routineArea.classList.remove('hidden');
-    const rData=[
-        {type:'اقتصادي', active:'فيتامين C + Alpha Arbutin', products:'غارنييه فاست برايت + ديرويس كريم + غسول ستارفيل + واقي شمس ستارفيل', price:'300 جنيه', duration:'4 أسابيع', improvement:'50%'} ,
-        {type:'سوبر', active:'فيتامين C + Alpha Arbutin + Tranexamic', products:'كولاجرا سيروم + اب دايت كريم + غسول دير + واقي شمس ستارفيل', price:'600 جنيه', duration:'6 أسابيع', improvement:'70%'},
-        {type:'ألترا', active:'فيتامين C + Alpha Arbutin + Tranexamic + ريتينول', products:'Nano Treat Gold + Cleo Radiance + غسول نانوتريت + واقي شمس كولاجرا + سيروم ريتينول', price:'1200 جنيه', duration:'8 أسابيع', improvement:'90%'}
-    ];
-    rData.forEach(r=>{
+    const routines=[];
+    // هالات
+    if(detectedIssues.halations){
+        const halColor=document.getElementById('halations').value;
+        const halGoal=document.getElementById('halGoal').value;
+        routines.push({type:'هالات', goal:halGoal, products:(halGoal==='تفتيح')?'سيروم كافيين + كريم برايت أند جلو + واقي شمس SPF50':'سيروم ريتينول نيوتروجينا + كريم عيون ديرماسي', price:'400-800 جنيه', duration:'4 أسابيع', improvement:'50%-70%'});
+    }
+    // تصبغات
+    if(detectedIssues.pigment){
+        const pLevel=document.getElementById('pigmentLevel').value;
+        const pCause=document.getElementById('pigmentCause').value;
+        const pGoal=document.getElementById('pigmentGoal').value;
+        let prod='';
+        if(pGoal==='تفتيح'){
+            if(pLevel==='خفيفة') prod='سيروم فيتامين C + واقي شمس SPF50';
+            else if(pLevel==='متوسطة') prod='سيروم Alpha Arbutin + كريم ديرويس + واقي شمس SPF50';
+            else prod='سيروم Tranexamic + كريم ديرويس + واقي شمس SPF50';
+        } else {
+            prod='سيروم Niacinamide + كريم ماري أند ماي + واقي شمس SPF50';
+        }
+        routines.push({type:'تصبغات', goal:pGoal, products:prod, price:'500-1200 جنيه', duration:'4-8 أسابيع', improvement:'50%-90%'});
+    }
+    // عرض الروتينات
+    routines.forEach(r=>{
         const card=document.createElement('div');
         card.className='routine-card';
-        card.innerHTML=`<h4 style='color:var(--gold)'>${r.type}</h4>
-        <p><b>المواد الفعالة:</b> ${r.active}</p>
+        card.innerHTML=`<h4 style='color:var(--gold)'>${r.type} - ${r.goal}</h4>
         <p><b>المنتجات:</b> ${r.products}</p>
         <p><b>السعر:</b> ${r.price}</p>
         <p><b>مدة الاستخدام:</b> ${r.duration}</p>
         <p><b>نسبة التحسن المتوقعة:</b> ${r.improvement}</p>
-        <button onclick="sendWA('${r.type}')">اختيار هذا الروتين ✅</button>`;
+        <button onclick="sendWA('${r.type} - ${r.goal}')">اختيار هذا الروتين ✅</button>`;
         routineArea.appendChild(card);
     });
     document.getElementById('recommendCard').classList.remove('hidden');
