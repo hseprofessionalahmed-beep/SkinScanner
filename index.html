@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,9 +10,9 @@
 <style>
 :root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; }
 body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
-.container { max-width: 600px; margin: auto; }
-.preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #000; border: 2px solid #333; min-height: 300px; }
-video, canvas { width: 100%; height: auto; display:block; }
+.container { max-width: 700px; margin: auto; }
+.preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #000; border: 2px solid #333; min-height: 350px; }
+video, canvas, img.preview-img { width: 100%; height: auto; display:block; }
 #overlay { position: absolute; top: 0; left: 0; z-index: 10; }
 .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
 .action-btn { background: var(--gold); color: #000; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
@@ -21,7 +22,8 @@ video, canvas { width: 100%; height: auto; display:block; }
 .status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
 .routine-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .routine-card button { margin-top:10px; background:#25d366; color:white; width:100%; padding:10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
-select { padding:5px; margin-top:5px; width:100%; border-radius:5px; background:#fff; color:#000; }
+label { display:block; margin:8px 0; }
+select { width: 100%; padding:6px; border-radius:6px; border:none; }
 </style>
 </head>
 <body>
@@ -30,6 +32,7 @@ select { padding:5px; margin-top:5px; width:100%; border-radius:5px; background:
 <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
 <div class="preview-box">
 <video id="input_video" class="hidden" playsinline></video>
+<img id="previewImg" class="preview-img hidden">
 <canvas id="overlay"></canvas>
 </div>
 <div class="btn-grid">
@@ -37,24 +40,32 @@ select { padding:5px; margin-top:5px; width:100%; border-radius:5px; background:
 <button class="action-btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
 </div>
 <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
-<button id="scanBtn" class="action-btn scan-btn" onclick="triggerQuestions()">تحليل النتائج الآن 🔬</button><div id="questionCard" class="question-card hidden">
-<h3 style="color:var(--gold); margin:0;">لقد اكتشف المحلل الذكي بعض المشاكل، قم بتأكيدها:</h3>
+<button id="scanBtn" class="action-btn scan-btn" onclick="triggerQuestions()">تحليل النتائج الآن 🔬</button>
+
+<div id="questionCard" class="question-card hidden">
+<h3 style="color:var(--gold); margin:0;">لقد اكتشف المحلل الذكي بعض المشاكل، يرجى تأكيدها:</h3>
 <div id="questionsArea"></div>
 <button class="action-btn scan-btn" onclick="computeRoutine()">استخراج الروتين ✅</button>
-</div><div id="routineArea" class="routine-grid hidden"></div>
+</div>
+
+<div id="routineArea" class="routine-grid hidden"></div>
 <div id="recommendCard" class="recommend-card hidden">
 <h3 style="color:var(--gold);">التوصيات العامة</h3>
 <ul>
-<li>الترطيب لمدة أسبوع على الأقل قبل الروتين.</li>
+<li>ابدأ بترطيب البشرة إذا كانت جافة قبل الروتين العلاجي.</li>
 <li>شرب كمية كافية من الماء يوميًا.</li>
-<li>النوم باكرًا لتحفيز تجديد البشرة.</li>
-<li>استخدام واقي الشمس يوميًا.</li>
+<li>النوم المبكر يساعد على تجديد البشرة.</li>
+<li>استخدام واقي الشمس يوميًا مهما كانت الأنشطة.</li>
 </ul>
 </div>
-</div><script>
+</div>
+
+<script>
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d', {willReadFrequently:true});
+const previewImg = document.getElementById('previewImg');
+
 let faceMesh;
 let lastResults = null;
 let currentImg = null;
@@ -74,7 +85,9 @@ function onResults(results){
     canvasElement.height = (currentImg)? (currentImg.height*(canvasElement.width/currentImg.width)) : videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
     canvasCtx.save();
     canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
-    canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
+    if(currentImg) canvasCtx.drawImage(currentImg,0,0,canvasElement.width,canvasElement.height);
+    else canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
+
     detectedIssues = {};
     if(results.multiFaceLandmarks){
         for(const landmarks of results.multiFaceLandmarks){
@@ -87,6 +100,7 @@ function onResults(results){
 
 async function initCamera(){
     currentImg=null;
+    previewImg.classList.add('hidden');
     videoElement.classList.remove('hidden');
     const camera = new Camera(videoElement, {onFrame: async()=>{await faceMesh.send({image:videoElement});}});
     camera.start();
@@ -94,11 +108,13 @@ async function initCamera(){
 
 function processFile(event){
     const file = event.target.files[0];
-    if(!file)return;
+    if(!file) return;
     const img = new Image();
     img.onload = async ()=>{
         currentImg=img;
         videoElement.classList.add('hidden');
+        previewImg.src = img.src;
+        previewImg.classList.remove('hidden');
         await faceMesh.send({image:img});
     };
     img.src = URL.createObjectURL(file);
@@ -114,74 +130,121 @@ function analyzeFace(landmarks){
     const forehead = getPixelMean(landmarks[10]);
     const cheek = getPixelMean(landmarks[205]);
     const eye = (getPixelMean(landmarks[130])+getPixelMean(landmarks[350]))/2;
+
     const pigmentDiff = cheek/forehead;
     const eyeDiff = eye/forehead;
-    detectedIssues.halations=(eyeDiff<0.85)? true:false;
-    detectedIssues.pigment=(pigmentDiff<0.90)? true:false;
-    detectedIssues.acne=false; // يمكن تطوير اكتشاف الحبوب لاحقًا
-    detectedIssues.dry=false; // يمكن تطوير اكتشاف الجفاف لاحقًا
+
+    detectedIssues.halations = (eyeDiff<0.85);
+    detectedIssues.pigment = (pigmentDiff<0.90);
+    detectedIssues.acne = Math.random()<0.5; // مؤقت لاختبار الأسئلة
+    detectedIssues.dryness = Math.random()<0.5;
 }
 
 function triggerQuestions(){
-    if(!lastResults || !lastResults.multiFaceLandmarks) return alert('يرجى التقاط وجه واضح أولاً');
-    const qCard=document.getElementById('questionCard');
-    const qArea=document.getElementById('questionsArea');
-    qArea.innerHTML='';
-    // الأسئلة تظهر فقط عند اكتشاف مشكلة
+    if(!lastResults) return alert('يرجى التقاط وجه واضح أولاً');
+    const qCard = document.getElementById('questionCard');
+    const qArea = document.getElementById('questionsArea');
+    qArea.innerHTML = '';
+
+    // الأسئلة الأساسية حسب التحليل
     if(detectedIssues.halations){
-        qArea.innerHTML+='<label>الهالات تحت العين: <select id="halations"><option value="نعم" selected>نعم</option><option value="لا">لا يوجد</option></select></label><br>';
+        qArea.innerHTML += `<label>الهالات تحت العين: 
+        <select id="halations"><option value="نعم" selected>نعم</option><option value="لا">لا</option></select></label>`;
+    } else {
+        qArea.innerHTML += `<label>الهالات تحت العين: 
+        <select id="halations"><option value="نعم">نعم</option><option value="لا" selected>لا</option></select></label>`;
     }
+
     if(detectedIssues.pigment){
-        qArea.innerHTML+='<label>التصبغات: <select id="pigment"><option value="خفيفة" selected>خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option><option value="لا">لا يوجد</option></select></label><br>';
+        qArea.innerHTML += `<label>التصبغات أو البقع: 
+        <select id="pigment"><option value="نعم" selected>نعم</option><option value="لا">لا</option></select></label>
+        <label>درجة التصبغ: 
+        <select id="pigmentLevel"><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option></select></label>`;
+    } else {
+        qArea.innerHTML += `<label>التصبغات أو البقع: 
+        <select id="pigment"><option value="نعم">نعم</option><option value="لا" selected>لا</option></select></label>`;
     }
-    qArea.innerHTML+='<label>الحبوب: <select id="acne"><option value="لا" selected>لا يوجد</option><option value="نعم">نعم</option></select></label><br>';
-    qArea.innerHTML+='<label>جفاف البشرة: <select id="dry"><option value="لا" selected>لا يوجد</option><option value="نعم">نعم</option></select></label><br>';
-    qArea.innerHTML+='<label>هل تريد نضارة أو نضارة وتفتيح؟ <select id="glow"><option value="نضارة">نضارة</option><option value="نضارة+تفتيح">نضارة + تفتيح</option></select></label><br>';
+
+    if(detectedIssues.acne){
+        qArea.innerHTML += `<label>الحبوب: 
+        <select id="acne"><option value="نعم" selected>نعم</option><option value="لا">لا</option></select></label>`;
+    } else {
+        qArea.innerHTML += `<label>الحبوب: 
+        <select id="acne"><option value="نعم">نعم</option><option value="لا" selected>لا</option></select></label>`;
+    }
+
     qCard.classList.remove('hidden');
 }
 
 function computeRoutine(){
-    const routineArea=document.getElementById('routineArea');
+    const routineArea = document.getElementById('routineArea');
     routineArea.innerHTML='';
     routineArea.classList.remove('hidden');
-    document.getElementById('recommendCard').classList.remove('hidden');
 
-    const halations = document.getElementById('halations')?.value;
-    const pigment = document.getElementById('pigment')?.value;
-    const acne = document.getElementById('acne')?.value;
-    const dry = document.getElementById('dry')?.value;
-    const glow = document.getElementById('glow')?.value;
-
-    // بناء الروتين حسب المشاكل
-    const productsBase = [];
-    if(dry==='نعم'){productsBase.push('مرطب إجباري للبشرة الجافة');}
-    if(pigment && pigment!=='لا'){productsBase.push('سيروم تفتيح للبقع');}
-    if(halations==='نعم'){productsBase.push('كريم العيون للهالات');}
-    if(acne==='نعم'){productsBase.push('غسول ومقشر للحبوب');}
-    if(glow==='نضارة+تفتيح'){productsBase.push('سيروم تفتيح إضافي');}
-
+    // مثال روتين مخصص حسب كل المشاكل المكتشفة
     const rData=[
-        {type:'اقتصادي', products:productsBase.join(' + '), price:'200 جنيه', duration:'4 أسابيع', improvement:'50%'},
-        {type:'سوبر', products:productsBase.join(' + ')+ ' + واقي شمس و سيروم إضافي', price:'500 جنيه', duration:'6 أسابيع', improvement:'70%'},
-        {type:'ألترا', products:productsBase.join(' + ')+ ' + كامل الروتين المتكامل', price:'900 جنيه', duration:'8 أسابيع', improvement:'90%'}
+        {
+            type:'اقتصادي',
+            products:[
+                {name:'غسول ستارفيل FHD', active:'زيت شجرة الشاي + حمض الساليسيليك', role:'تنظيف البشرة وحب الشباب'},
+                {name:'سيروم فيتامين C غارنييه', active:'فيتامين C + نياسيناميد', role:'تفتيح وتوحيد اللون'},
+                {name:'كريم عين يوليسيوس', active:'كافيين + شاي أخضر + فيتامين E', role:'الهالات السوداء'},
+                {name:'واقي شمس كولاجرا SPF50', active:'SPF50 + مضادات أكسدة', role:'حماية يومية'},
+            ],
+            price:'250 جنيه',
+            duration:'4 أسابيع',
+            improvement:'50%'
+        },
+        {
+            type:'سوبر',
+            products:[
+                {name:'غسول دير 400 مل', active:'فيتامين E + بانثينول', role:'تنظيف وترطيب'},
+                {name:'سيروم Natavis', active:'Alpha Arbutin + Niacinamide + Ferulic Acid', role:'تفتيح البقع والتصبغات'},
+                {name:'سيروم ريتينول انفينيتي', active:'ريتينول + حمض الهيالورونيك', role:'تقليل التجاعيد وتحسين مرونة الجلد'},
+                {name:'كريم عين ديرماسي', active:'Peptides + كافيين', role:'الهالات السوداء'},
+                {name:'واقي شمس إيفا SPF50', active:'حماية + تحكم الدهون', role:'حماية يومية'},
+            ],
+            price:'550 جنيه',
+            duration:'6 أسابيع',
+            improvement:'70%'
+        },
+        {
+            type:'ألترا',
+            products:[
+                {name:'غسول فاست برايت فيتامين C', active:'فيتامين C + مستخلص الليمون', role:'تنظيف وإشراقة'},
+                {name:'سيروم كولاجرا ريتينول C', active:'ريتينول + فيتامين C', role:'تفتيح + مكافحة شيخوخة'},
+                {name:'سيروم الكافيار والذهب 24K', active:'ذهب + كافيار + فيتامينات', role:'إشراقة وترطيب + مكافحة الشيخوخة'},
+                {name:'كريم عين برايت اند جلو', active:'كافيين + شاي أخضر + حمض الهيالورونيك + فيتامين E', role:'الهالات السوداء'},
+                {name:'واقي شمس ستارفيل SPF50+', active:'SPF50+ + تفتيح', role:'حماية يومية + تفتيح'},
+            ],
+            price:'950 جنيه',
+            duration:'8 أسابيع',
+            improvement:'90%'
+        },
     ];
 
     rData.forEach(r=>{
-        const card=document.createElement('div');
+        const card = document.createElement('div');
         card.className='routine-card';
-        card.innerHTML=`<h4 style='color:var(--gold)'>${r.type}</h4>
-        <p><b>المنتجات والمواد الفعالة:</b> ${r.products}</p>
+        let productList = '<ul>';
+        r.products.forEach(p=>productList+=`<li><b>${p.name}</b>: ${p.active} → ${p.role}</li>`);
+        productList+='</ul>';
+        card.innerHTML = `<h4 style='color:var(--gold)'>${r.type}</h4>
+        ${productList}
         <p><b>السعر:</b> ${r.price}</p>
         <p><b>مدة الاستخدام:</b> ${r.duration}</p>
         <p><b>نسبة التحسن المتوقعة:</b> ${r.improvement}</p>
         <button onclick="sendWA('${r.type}')">اختيار هذا الروتين ✅</button>`;
         routineArea.appendChild(card);
     });
+
+    document.getElementById('recommendCard').classList.remove('hidden');
 }
 
 function sendWA(type){
     const text=`اختار الروتين: ${type}`;
     window.open(`https://wa.me/201063994139?text=${text}`);
 }
-</script></body>
+</script>
+</body>
 </html>
