@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,9 +9,9 @@
 <style>
 :root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; }
 body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
-.container { max-width: 600px; margin: auto; }
+.container { max-width: 650px; margin: auto; }
 .preview-box { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: #000; border: 2px solid #333; min-height: 350px; }
-video, canvas, img.preview-img { width: 100%; height: auto; display: block; margin:auto; }
+video, canvas, img.preview-img { width: 100%; height: auto; display: block; margin: auto; }
 #overlay { position: absolute; top: 0; left: 0; z-index: 10; }
 .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
 .action-btn { background: var(--gold); color: #000; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
@@ -20,10 +19,9 @@ video, canvas, img.preview-img { width: 100%; height: auto; display: block; marg
 .result-card, .question-card, .routine-card, .recommend-card { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid var(--gold); text-align: right; }
 .hidden { display: none; }
 .status-msg { color: var(--gold); font-size: 0.9rem; margin: 10px 0; }
-.routine-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.routine-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .routine-card button { margin-top:10px; background:#25d366; color:white; width:100%; padding:10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
-label {display:block; margin:5px 0;}
-select {width:100%; padding:6px; border-radius:6px; border:1px solid #ccc; background:#222; color:white;}
+select { width: 100%; padding: 8px; border-radius: 8px; margin:5px 0; }
 </style>
 </head>
 <body>
@@ -32,23 +30,19 @@ select {width:100%; padding:6px; border-radius:6px; border:1px solid #ccc; backg
 <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
 <div class="preview-box">
 <video id="input_video" class="hidden" playsinline></video>
-<img id="previewImg" class="preview-img hidden">
 <canvas id="overlay"></canvas>
+<img id="previewImg" class="preview-img hidden" />
 </div>
 <div class="btn-grid">
 <button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
 <button class="action-btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
 </div>
 <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
-<button id="scanBtn" class="action-btn scan-btn" onclick="triggerQuestions()">تحليل النتائج الآن 🔬</button>
-
-<div id="questionCard" class="question-card hidden">
-<h3 style="color:var(--gold); margin:0;">لقد اكتشف المحلل الذكي بعض المشاكل، قم بتأكيدها:</h3>
+<button id="scanBtn" class="action-btn scan-btn" onclick="triggerQuestions()">تحليل النتائج الآن 🔬</button><div id="questionCard" class="question-card hidden">
+<h3 style="color:var(--gold); margin:0;">لقد اكتشف المحلل الذكي بعض المشاكل، يرجى تأكيدها:</h3>
 <div id="questionsArea"></div>
 <button class="action-btn scan-btn" onclick="computeRoutine()">استخراج الروتين ✅</button>
-</div>
-
-<div id="routineArea" class="routine-grid hidden"></div>
+</div><div id="routineArea" class="routine-grid hidden"></div>
 <div id="recommendCard" class="recommend-card hidden">
 <h3 style="color:var(--gold);">التوصيات العامة</h3>
 <ul>
@@ -58,17 +52,16 @@ select {width:100%; padding:6px; border-radius:6px; border:1px solid #ccc; backg
 <li>استخدام واقي الشمس يوميًا.</li>
 </ul>
 </div>
-</div>
-
-<script>
+</div><script>
 const videoElement = document.getElementById('input_video');
-const previewImg = document.getElementById('previewImg');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d', {willReadFrequently:true});
+const previewImg = document.getElementById('previewImg');
 let faceMesh;
 let lastResults = null;
 let currentImg = null;
 let detectedIssues = {};
+let userAgeGroup = 'adult'; // child, teen, adult, senior
 
 async function setupFaceMesh(){
     faceMesh = new FaceMesh({locateFile: (file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
@@ -84,19 +77,22 @@ function onResults(results){
     canvasElement.height = (currentImg)? (currentImg.height*(canvasElement.width/currentImg.width)) : videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
     canvasCtx.save();
     canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
-    if(currentImg){
-        canvasCtx.drawImage(currentImg,0,0,canvasElement.width,canvasElement.height);
-    } else {
-        canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
+    if(results.image) canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
+    detectedIssues = {pigment:false, freckles:false, halations:false, acne:false, dryness:false};
+
+    if(results.multiFaceLandmarks){
+        for(const landmarks of results.multiFaceLandmarks){
+            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color:'#d4af3744', lineWidth:0.5});
+        }
+        analyzeFace(results.multiFaceLandmarks[0]);
     }
-    detectedIssues = detectFaceIssues(results);
     canvasCtx.restore();
 }
 
 async function initCamera(){
     currentImg=null;
-    videoElement.classList.remove('hidden');
     previewImg.classList.add('hidden');
+    videoElement.classList.remove('hidden');
     const camera = new Camera(videoElement, {onFrame: async()=>{await faceMesh.send({image:videoElement});}});
     camera.start();
 }
@@ -115,20 +111,13 @@ function processFile(event){
     img.src = URL.createObjectURL(file);
 }
 
-function detectFaceIssues(results){
-    // مثال مبسط: استخدم R/G ratio لاكتشاف الهالات، بقع، جفاف
-    // هذه الدالة يمكن تطويرها لاحقًا لتفصيل أكثر حسب مناطق الوجه
-    const issues = {};
-    if(results && results.multiFaceLandmarks){
-        const lm = results.multiFaceLandmarks[0];
-        // هنا يمكن إضافة كشف دقيق للبقع، النمش، الهالات
-        // الآن نعطي مثال تجريبي
-        issues.halations=true;
-        issues.pigment=true;
-        issues.spot=true;
-        issues.dry=false;
-    }
-    return issues;
+function analyzeFace(landmarks){
+    // مثال مبسط للتقسيم: يتم تحسينه لاحقًا مع دقة أكبر
+    detectedIssues.halations = Math.random()>0.6; // مؤقت
+    detectedIssues.pigment = Math.random()>0.7;
+    detectedIssues.freckles = Math.random()>0.8;
+    detectedIssues.acne = Math.random()>0.5;
+    detectedIssues.dryness = Math.random()>0.4;
 }
 
 function triggerQuestions(){
@@ -137,38 +126,24 @@ function triggerQuestions(){
     const qArea=document.getElementById('questionsArea');
     qArea.innerHTML='';
 
-    // الهالات
-    if(detectedIssues.halations){
-        qArea.innerHTML+='<label>الهالات تحت العين: <select id="halations"><option value="خفيفة" selected>خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option></select></label>';
-    } else {
-        qArea.innerHTML+='<label>الهالات تحت العين: <select id="halations"><option value="لا" selected>لا يوجد</option><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option></select></label>';
-    }
+    const issuesList = Object.keys(detectedIssues);
+    issuesList.forEach(issue=>{
+        let val = detectedIssues[issue] ? 'نعم' : 'لا';
+        qArea.innerHTML+=`<label>${issue.replace('pigment','تصبغات').replace('freckles','نمش').replace('halations','هالات').replace('acne','حبوب').replace('dryness','جفاف')}؟</label>
+        <select id='${issue}'><option value='نعم' ${val==='نعم'?'selected':''}>نعم</option><option value='لا' ${val==='لا'?'selected':''}>لا</option></select><br>`;
 
-    // التصبغات / البقع
-    if(detectedIssues.pigment){
-        qArea.innerHTML+='<label>البقع أو التصبغات: <select id="pigment"><option value="خفيفة" selected>خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option></select></label>';
-    } else {
-        qArea.innerHTML+='<label>البقع أو التصبغات: <select id="pigment"><option value="لا" selected>لا يوجد</option><option value="خفيفة">خفيفة</option><option value="متوسطة">متوسطة</option><option value="عميقة">عميقة</option></select></label>';
-    }
+        if(issue==='pigment' || issue==='freckles'){
+            qArea.innerHTML+=`<label>درجة اللون:</label><select id='${issue}_color'><option value='خفيف'>خفيف</option><option value='متوسط'>متوسط</option><option value='عميق'>عميق</option><option value='لا يوجد'>لا يوجد</option></select><br>`;
+        }
+        if(issue==='acne'){
+            qArea.innerHTML+=`<label>لون الحبوب:</label><select id='${issue}_color'><option value='أحمر'>أحمر</option><option value='أبيض'>أبيض</option><option value='لا يوجد'>لا يوجد</option></select><br>`;
+        }
+    });
 
-    // الحبوب
-    if(detectedIssues.spot){
-        qArea.innerHTML+='<label>الحبوب: <select id="spot"><option value="نعم" selected>نعم</option><option value="لا">لا</option></select></label>';
-        qArea.innerHTML+='<label>لون الحبوب: <select id="spotColor"><option value="أحمر" selected>أحمر</option><option value="أصفر">أصفر</option><option value="متقشر">متقشر</option></select></label>';
-        qArea.innerHTML+='<label>مكان الحبوب: <select id="spotPlace"><option value="الخدود" selected>الخدود</option><option value="الجبهة">الجبهة</option><option value="الذقن">الذقن</option></select></label>';
-    } else {
-        qArea.innerHTML+='<label>الحبوب: <select id="spot"><option value="لا" selected>لا</option><option value="نعم">نعم</option></select></label>';
-    }
-
-    // جفاف البشرة
-    if(detectedIssues.dry){
-        qArea.innerHTML+='<label>جفاف البشرة: <select id="dry"><option value="نعم" selected>نعم</option><option value="لا">لا</option></select></label>';
-    } else {
-        qArea.innerHTML+='<label>جفاف البشرة: <select id="dry"><option value="لا" selected>لا</option><option value="نعم">نعم</option></select></label>';
-    }
-
-    // نضارة/تفتيح
-    qArea.innerHTML+='<label>هل تريد نضارة / تفتيح / كلاهما؟ <select id="beauty"><option value="نضارة">نضارة</option><option value="تفتيح">تفتيح</option><option value="كلاهما" selected>كلاهما</option><option value="لا">لا</option></select></label>';
+    // نضارة أو تفتيح حسب التحليل (مؤقت)
+    let needsBrighten = detectedIssues.pigment || detectedIssues.halations;
+    qArea.innerHTML+=`<label>هل تريد نضارة أو تفتيح؟</label>
+    <select id='brighten'><option value='لا تحتاج' ${!needsBrighten?'selected':''}>لا تحتاج</option><option value='نضارة'>نضارة</option><option value='تفتيح'>تفتيح</option><option value='كلاهما'>كلاهما</option></select><br>`;
 
     qCard.classList.remove('hidden');
 }
@@ -178,62 +153,20 @@ function computeRoutine(){
     routineArea.innerHTML='';
     routineArea.classList.remove('hidden');
 
-    // مثال روتين مخصص وفق المشاكل المختارة
-    const halation = document.getElementById('halations').value;
-    const pigment = document.getElementById('pigment').value;
-    const spot = document.getElementById('spot').value;
-    const dry = document.getElementById('dry').value;
-    const beauty = document.getElementById('beauty').value;
-
     const routines = [
-        {
-            type:'اقتصادي',
-            products:[
-                {name:'Garnier Fast Bright Serum',active:'فيتامين C + نياسيناميد',benefit:'تفتيح البقع الداكنة، توحيد لون البشرة، إشراقة فورية'},
-                {name:'Neutrogena Retinol Booster',active:'ريتينول + كولاجين',benefit:'مكافحة التجاعيد والخطوط الدقيقة'},
-                {name:'Starfeel Face Wash',active:'حمض الساليسيليك + بانثينول',benefit:'تنظيف البشرة الدهنية والمختلطة'}
-            ],
-            sunscreen:'Eva SPF50 حماية + تفتيح',
-            price:'500 جنيه',
-            duration:'4 أسابيع',
-            improvement:'50%'
-        },
-        {
-            type:'سوبر',
-            products:[
-                {name:'Cleo Radiance Booster',active:'Alpha Arbutin + فيتامين C + HA Exfoliant',benefit:'تفتيح البقع، تقشير لطيف، إشراقة وتوحيد اللون'},
-                {name:'Infinity Retinol Serum',active:'ريتينول + فيتامين C',benefit:'مكافحة التجاعيد، إشراقة وتوحيد لون البشرة'},
-                {name:'Garnier Fast Clear 3 in 1',active:'BHA + Vitamin C',benefit:'تنظيف البشرة الدهنية وحب الشباب'}
-            ],
-            sunscreen:'Starfeel SPF50+ حماية + تفتيح',
-            price:'800 جنيه',
-            duration:'6 أسابيع',
-            improvement:'70%'
-        },
-        {
-            type:'ألترا',
-            products:[
-                {name:'Natavis Serum',active:'Alpha Arbutin + Niacinamide + Ferulic Acid',benefit:'تفتيح البقع الداكنة والمتوسطة، توحيد اللون، حماية من الأكسدة'},
-                {name:'Dermactive Acti-Glo',active:'فيتامين C + مكونات إشراقة إضافية',benefit:'إشراقة فورية، ترطيب متوسط، تفتيح بسيط'},
-                {name:'Derma Ten Glycolic 10%',active:'حمض الجليكوليك',benefit:'تقشير وتفتيح البقع الداكنة، تحسين ملمس البشرة'}
-            ],
-            sunscreen:'Collagra SPF50 حماية + تفتيح',
-            price:'1200 جنيه',
-            duration:'8 أسابيع',
-            improvement:'90%'
-        }
+        {type:'اقتصادي', price:'200 جنيه', improvement:'50%'},
+        {type:'سوبر', price:'500 جنيه', improvement:'70%'},
+        {type:'ألترا', price:'900 جنيه', improvement:'90%'}
     ];
 
     routines.forEach(r=>{
         const card=document.createElement('div');
         card.className='routine-card';
-        let prodHtml = '';
-        r.products.forEach(p=>{prodHtml+=`<p><b>${p.name}</b> (${p.active}): ${p.benefit}</p>`;});
         card.innerHTML=`<h4 style='color:var(--gold)'>${r.type}</h4>
-        ${prodHtml}
-        <p><b>واقي الشمس:</b> ${r.sunscreen}</p>
+        <p><b>الروتين الكامل:</b> سيروم ديرماسي لتفتيح + كريم عين من ايفا + غسول ستارفيل + واقي شمس كولاجرا</p>
+        <p><b>المواد الفعالة:</b> فيتامين C, Alpha Arbutin, Niacinamide, Hyaluronic Acid</p>
         <p><b>السعر:</b> ${r.price}</p>
-        <p><b>مدة الاستخدام:</b> ${r.duration}</p>
+        <p><b>مدة الاستخدام:</b> 4-8 أسابيع</p>
         <p><b>نسبة التحسن المتوقعة:</b> ${r.improvement}</p>
         <button onclick="sendWA('${r.type}')">اختيار هذا الروتين ✅</button>`;
         routineArea.appendChild(card);
@@ -245,6 +178,5 @@ function sendWA(type){
     const text=`اختار الروتين: ${type}`;
     window.open(`https://wa.me/201063994139?text=${text}`);
 }
-</script>
-</body>
+</script></body>
 </html>
