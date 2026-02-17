@@ -1,51 +1,24 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI PRO</title>
+<title>VERONA AI - Pro Facial Precision</title>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 <style>
-:root{
+:root {
   --gold:#d4af37;
   --gold-soft:#f1d77a;
   --bg1:#0a0a0a;
   --bg2:#111111;
   --glass:rgba(255,255,255,0.05);
 }
-body{
-  margin:0;
-  font-family:'Segoe UI',Tahoma,sans-serif;
-  background:radial-gradient(circle at top,var(--bg2),var(--bg1));
-  color:#fff;
-  text-align:center;
-  overflow-x:hidden;
-}
-#splash{
-  position:fixed;top:0;left:0;width:100%;height:100%;background:#111;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:1000;animation:fadeOut 0.8s ease forwards;animation-delay:2s;
-}
-#splash h1{
-  font-size:3rem;
-  background:linear-gradient(90deg,var(--gold),var(--gold-soft));
-  -webkit-background-clip:text;
-  color:transparent;
-  font-weight:900;
-  text-transform:uppercase;
-  animation:shine 2s linear infinite;
-}
-@keyframes shine{
-  0%{background-position:0%;}
-  100%{background-position:200%;}
-}
-@keyframes fadeOut{
-  0%{opacity:1;}
-  100%{opacity:0;visibility:hidden;}
-}
-.container{max-width:700px;margin:auto;padding:20px;position:relative;z-index:1;}
-.preview-box{position:relative;width:100%;border-radius:25px;overflow:hidden;background:#000;border:1px solid var(--gold);box-shadow:0 0 40px rgba(212,175,55,0.25);backdrop-filter:blur(10px);min-height:350px;margin-top:20px;}
-video,canvas{width:100%;display:block;}
+body{margin:0;font-family:'Segoe UI',Tahoma,sans-serif;background:radial-gradient(circle at top,var(--bg2),var(--bg1));color:#fff;text-align:center;}
+.container{max-width:700px;margin:auto;padding:20px;}
+h2{letter-spacing:2px;font-weight:700;}
+.preview-box{position:relative;width:100%;border-radius:25px;overflow:hidden;background:#000;border:1px solid var(--gold);box-shadow:0 0 40px rgba(212,175,55,0.25);backdrop-filter:blur(10px);min-height:350px;}
+video,canvas,img.preview-img{width:100%;display:block;}
 #overlay{position:absolute;top:0;left:0;z-index:10;}
 .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:20px 0;}
 .action-btn{background:linear-gradient(135deg,var(--gold),var(--gold-soft));color:#000;padding:15px;border:none;border-radius:14px;font-weight:bold;cursor:pointer;transition:0.3s;box-shadow:0 5px 20px rgba(212,175,55,0.4);}
@@ -60,36 +33,27 @@ video,canvas{width:100%;display:block;}
 select{width:100%;padding:10px;border-radius:10px;margin:8px 0;background:#1c1c1c;color:#fff;border:1px solid var(--gold);}
 .hidden{display:none;}
 .premium-badge{display:inline-block;padding:6px 14px;border-radius:20px;background:linear-gradient(90deg,var(--gold),var(--gold-soft));color:#000;font-size:0.75rem;font-weight:bold;margin-bottom:10px;box-shadow:0 0 15px rgba(212,175,55,0.6);}
-#skinScoreCanvas{margin:20px auto;display:block;}
 </style>
 </head>
 <body>
-<div id="splash">
-<h1>VERONA AI PRO</h1>
-</div>
-
 <div class="container">
+<h2>VERONA <span style="color:var(--gold)">AI PRO</span></h2>
 <div id="status" class="status-msg">جاري تحميل المحرك الذكي...</div>
-
 <div class="preview-box">
 <video id="input_video" class="hidden" playsinline></video>
 <canvas id="overlay"></canvas>
-<canvas id="skinScoreCanvas" width="200" height="200" class="hidden"></canvas>
 </div>
-
 <div class="btn-grid">
 <button class="action-btn" onclick="initCamera()">📸 الكاميرا</button>
 <button class="action-btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">📁 رفع صورة</button>
 </div>
 <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="processFile(event)">
 <button id="scanBtn" class="action-btn scan-btn" onclick="triggerQuestions()">تحليل النتائج الآن 🔬</button>
-
 <div id="questionCard" class="question-card hidden">
 <h3 style="color:var(--gold); margin:0;">لقد اكتشف المحلل الذكي بعض المشاكل، يرجى تأكيدها:</h3>
 <div id="questionsArea"></div>
 <button class="action-btn scan-btn" onclick="computeRoutine()">استخراج الروتين ✅</button>
 </div>
-
 <div id="routineArea" class="routine-grid hidden"></div>
 <div id="recommendCard" class="recommend-card hidden">
 <h3 style="color:var(--gold);">التوصيات العامة</h3>
@@ -101,199 +65,130 @@ select{width:100%;padding:10px;border-radius:10px;margin:8px 0;background:#1c1c1
 </ul>
 </div>
 </div>
-
 <script>
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('overlay');
-const canvasCtx = canvasElement.getContext('2d', {willReadFrequently:true});
-const skinScoreCanvas = document.getElementById('skinScoreCanvas');
-const skinScoreCtx = skinScoreCanvas.getContext('2d');
-let faceMesh, lastResults=null, currentImg=null, detectedIssues={}, analysisData={};
-
+const canvasCtx = canvasElement.getContext('2d',{willReadFrequently:true});
+let faceMesh,lastResults=null,currentImg=null,detectedIssues={},analysisData={};
 async function setupFaceMesh(){
-    faceMesh = new FaceMesh({locateFile: (file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
-    faceMesh.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5 });
-    faceMesh.onResults(onResults);
-    document.getElementById('status').innerText="المحرك جاهز للفحص ✅";
+ faceMesh=new FaceMesh({locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+ faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.5});
+ faceMesh.onResults(onResults);
+ document.getElementById('status').innerText="المحرك جاهز للفحص ✅";
 }
 setupFaceMesh();
-
 function onResults(results){
-    lastResults = results;
-    canvasElement.width = canvasElement.clientWidth;
-    canvasElement.height = (currentImg)? (currentImg.height*(canvasElement.width/currentImg.width)) : videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
-    canvasCtx.save();
-    canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
-    if(results.image) canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
-    detectedIssues = {pigment:false, freckles:false, halations:false, acne:false, dryness:false};
-    analysisData = {pigmentLevel:null, halationLevel:null, confidence:0, skinType:null};
-    if(results.multiFaceLandmarks){
-        for(const landmarks of results.multiFaceLandmarks){
-            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color:'#d4af3744', lineWidth:0.5});
-        }
-        analyzeFace(results.multiFaceLandmarks[0]);
-    }
-    canvasCtx.restore();
+ lastResults=results;
+ canvasElement.width=canvasElement.clientWidth;
+ canvasElement.height=(currentImg)?(currentImg.height*(canvasElement.width/currentImg.width)):videoElement.videoHeight*(canvasElement.width/videoElement.videoWidth);
+ canvasCtx.save();
+ canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
+ if(results.image) canvasCtx.drawImage(results.image,0,0,canvasElement.width,canvasElement.height);
+ detectedIssues={pigment:false,freckles:false,halations:false,acne:false,dryness:false};
+ analysisData={pigmentLevel:null,halationLevel:null,confidence:0,skinType:null};
+ if(results.multiFaceLandmarks){
+  for(const landmarks of results.multiFaceLandmarks){
+   drawConnectors(canvasCtx,landmarks,FACEMESH_TESSELATION,{color:'#d4af3744',lineWidth:0.5});
+  }
+  analyzeFace(results.multiFaceLandmarks[0]);
+ }
+ canvasCtx.restore();
 }
-
 async function initCamera(){
-    currentImg=null;
-    videoElement.classList.remove('hidden');
-    const camera = new Camera(videoElement, {onFrame: async()=>{await faceMesh.send({image:videoElement});}});
-    camera.start();
+ currentImg=null;
+ videoElement.classList.remove('hidden');
+ const camera=new Camera(videoElement,{onFrame:async()=>{await faceMesh.send({image:videoElement});}});
+ camera.start();
 }
-
 function processFile(event){
-    const file = event.target.files[0];
-    if(!file)return;
-    const img = new Image();
-    img.onload = async ()=>{
-        currentImg=img;
-        videoElement.classList.add('hidden');
-        await faceMesh.send({image:img});
-    };
-    img.src = URL.createObjectURL(file);
+ const file=event.target.files[0];
+ if(!file) return;
+ const img=new Image();
+ img.onload=async ()=>{
+  currentImg=img;
+  videoElement.classList.add('hidden');
+  await faceMesh.send({image:img});
+ };
+ img.src=URL.createObjectURL(file);
 }
-
 function getPixelMean(lm){
-    const x = Math.floor(lm.x * canvasElement.width);
-    const y = Math.floor(lm.y * canvasElement.height);
-    const size = 5;
-    try{
-        const startX=Math.max(0,x-2);
-        const startY=Math.max(0,y-2);
-        const width=Math.min(size, canvasElement.width-startX);
-        const height=Math.min(size, canvasElement.height-startY);
-        const pData = canvasCtx.getImageData(startX,startY,width,height).data;
-        let totalLum=0, validPixels=0;
-        for(let i=0;i<pData.length;i+=4){
-            const r=pData[i], g=pData[i+1], b=pData[i+2];
-            if(r<20 && g<20 && b<20) continue;
-            const lum=0.299*r+0.587*g+0.114*b;
-            totalLum+=lum; validPixels++;
-        }
-        return validPixels===0?150:totalLum/validPixels;
-    }catch(e){return 150;}
+ const x=Math.floor(lm.x*canvasElement.width);
+ const y=Math.floor(lm.y*canvasElement.height);
+ const size=5;
+ try{
+  const startX=Math.max(0,x-2),startY=Math.max(0,y-2),width=Math.min(size,canvasElement.width-startX),height=Math.min(size,canvasElement.height-startY);
+  const pData=canvasCtx.getImageData(startX,startY,width,height).data;
+  let totalLum=0,validPixels=0;
+  for(let i=0;i<pData.length;i+=4){
+   const r=pData[i],g=pData[i+1],b=pData[i+2];
+   if(r<20&&g<20&&b<20) continue;
+   totalLum+=0.299*r+0.587*g+0.114*b; validPixels++;
+  }
+  return validPixels?totalLum/validPixels:150;
+ }catch(e){return 150;}
 }
-
-function analyzeFace(landmarks){
-    if(!landmarks) return;
-    const forehead = getPixelMean(landmarks[10]);
-    const leftCheek = getPixelMean(landmarks[205]);
-    const rightCheek = getPixelMean(landmarks[425]);
-    const leftEye = getPixelMean(landmarks[159]);
-    const rightEye = getPixelMean(landmarks[386]);
-    const cheekAvg = (leftCheek+rightCheek)/2;
-    const eyeAvg = (leftEye+rightEye)/2;
-    const pigmentRatio = cheekAvg/forehead;
-    detectedIssues.pigment = pigmentRatio<0.93;
-    let pigmentLevel='خفيف';
-    if(pigmentRatio<0.85) pigmentLevel='عميق';
-    else if(pigmentRatio<0.90) pigmentLevel='متوسط';
-    const halationRatio = eyeAvg/forehead;
-    detectedIssues.halations = halationRatio<0.90;
-    let halationLevel='خفيف';
-    if(halationRatio<0.80) halationLevel='شديد';
-    else if(halationRatio<0.87) halationLevel='متوسط';
-    detectedIssues.dryness = cheekAvg<110;
-    if(cheekAvg<105) analysisData.skinType='جافة';
-    else if(cheekAvg>150) analysisData.skinType='دهنية';
-    else analysisData.skinType='مختلطة';
-    const colorVariance = Math.abs(leftCheek-rightCheek);
-    detectedIssues.freckles=colorVariance>18;
-    detectedIssues.acne=Math.abs(forehead-cheekAvg)>25;
-    let confidenceScore=100;
-    if(detectedIssues.pigment) confidenceScore-=5;
-    if(detectedIssues.halations) confidenceScore-=5;
-    if(detectedIssues.acne) confidenceScore-=5;
-    if(detectedIssues.freckles) confidenceScore-=3;
-    confidenceScore=Math.max(75,confidenceScore);
-    analysisData.pigmentLevel=pigmentLevel;
-    analysisData.halationLevel=halationLevel;
-    analysisData.confidence=confidenceScore;
-    document.getElementById('status').innerText=`تم الفحص بدقة ${confidenceScore}% | نوع البشرة: ${analysisData.skinType}`;
-    drawSkinScore(confidenceScore);
+function analyzeFace(lm){
+ if(!lm) return;
+ const forehead=getPixelMean(lm[10]),leftCheek=getPixelMean(lm[205]),rightCheek=getPixelMean(lm[425]),leftEye=getPixelMean(lm[159]),rightEye=getPixelMean(lm[386]);
+ const cheekAvg=(leftCheek+rightCheek)/2,eyeAvg=(leftEye+rightEye)/2;
+ detectedIssues.pigment=cheekAvg/forehead<0.93;
+ detectedIssues.halations=eyeAvg/forehead<0.90;
+ detectedIssues.dryness=cheekAvg<110;
+ const colorVariance=Math.abs(leftCheek-rightCheek);
+ detectedIssues.freckles=colorVariance>18;
+ detectedIssues.acne=Math.abs(forehead-cheekAvg)>25;
+ analysisData.skinType=cheekAvg<105?'جافة':cheekAvg>150?'دهنية':'مختلطة';
+ let pigmentRatio=cheekAvg/forehead,pigmentLevel='خفيف';
+ if(pigmentRatio<0.85) pigmentLevel='عميق'; else if(pigmentRatio<0.90) pigmentLevel='متوسط';
+ analysisData.pigmentLevel=pigmentLevel;
+ let halationRatio=eyeAvg/forehead,halationLevel='خفيف';
+ if(halationRatio<0.80) halationLevel='شديد'; else if(halationRatio<0.87) halationLevel='متوسط';
+ analysisData.halationLevel=halationLevel;
+ let confidenceScore=100;
+ if(detectedIssues.pigment) confidenceScore-=5;
+ if(detectedIssues.halations) confidenceScore-=5;
+ if(detectedIssues.acne) confidenceScore-=5;
+ if(detectedIssues.freckles) confidenceScore-=3;
+ analysisData.confidence=Math.max(75,confidenceScore);
+ document.getElementById('status').innerText=`تم الفحص بدقة تقنية ${analysisData.confidence}% | نوع البشرة: ${analysisData.skinType}`;
 }
-
-function drawSkinScore(score){
-    skinScoreCanvas.classList.remove('hidden');
-    skinScoreCtx.clearRect(0,0,skinScoreCanvas.width,skinScoreCanvas.height);
-    const centerX = skinScoreCanvas.width/2;
-    const centerY = skinScoreCanvas.height/2;
-    const radius = 80;
-    const startAngle = -Math.PI/2;
-    const endAngle = startAngle + (score/100)*2*Math.PI;
-    skinScoreCtx.lineWidth=15;
-    skinScoreCtx.strokeStyle="#333";
-    skinScoreCtx.beginPath();
-    skinScoreCtx.arc(centerX,centerY,radius,0,2*Math.PI);
-    skinScoreCtx.stroke();
-    skinScoreCtx.strokeStyle="#d4af37";
-    skinScoreCtx.beginPath();
-    skinScoreCtx.arc(centerX,centerY,radius,startAngle,endAngle);
-    skinScoreCtx.stroke();
-    skinScoreCtx.font="20px Arial"; skinScoreCtx.fillStyle="#fff"; skinScoreCtx.textAlign="center"; skinScoreCtx.textBaseline="middle";
-    skinScoreCtx.fillText(`Skin Score: ${score}%`,centerX,centerY);
-}
-
 function triggerQuestions(){
-    if(!lastResults) return alert('يرجى التقاط وجه واضح أولاً');
-    const qCard=document.getElementById('questionCard');
-    const qArea=document.getElementById('questionsArea');
-    qArea.innerHTML='';
-    const issuesList=Object.keys(detectedIssues);
-    issuesList.forEach(issue=>{
-        let val=detectedIssues[issue]?'نعم':'لا';
-        qArea.innerHTML+=`<label>${issue.replace('pigment','تصبغات').replace('freckles','نمش').replace('halations','هالات').replace('acne','حبوب').replace('dryness','جفاف')}؟</label>
-        <select id='${issue}'><option value='نعم' ${val==='نعم'?'selected':''}>نعم</option><option value='لا' ${val==='لا'?'selected':''}>لا</option></select><br>`;
-    });
-    let needsBrighten=detectedIssues.pigment || detectedIssues.halations;
-    qArea.innerHTML+=`<label>هل تريد نضارة أو تفتيح؟</label>
-    <select id='brighten'><option value='لا تحتاج' ${!needsBrighten?'selected':''}>لا تحتاج</option><option value='نضارة'>نضارة</option><option value='تفتيح'>تفتيح</option><option value='كلاهما'>كلاهما</option></select><br>`;
-    qCard.classList.remove('hidden');
+ if(!lastResults) return alert('يرجى التقاط وجه واضح أولاً');
+ const qCard=document.getElementById('questionCard');
+ const qArea=document.getElementById('questionsArea');
+ qArea.innerHTML='';
+ const issuesList=Object.keys(detectedIssues);
+ issuesList.forEach(issue=>{
+  let val=detectedIssues[issue]?'نعم':'لا';
+  qArea.innerHTML+=`<label>${issue.replace('pigment','تصبغات').replace('freckles','نمش').replace('halations','هالات').replace('acne','حبوب').replace('dryness','جفاف')}؟</label><select id='${issue}'><option value='نعم' ${val==='نعم'?'selected':''}>نعم</option><option value='لا' ${val==='لا'?'selected':''}>لا</option></select><br>`;
+ });
+ let needsBrighten=detectedIssues.pigment||detectedIssues.halations;
+ qArea.innerHTML+=`<label>هل تريد نضارة أو تفتيح؟</label><select id='brighten'><option value='لا تحتاج' ${!needsBrighten?'selected':''}>لا تحتاج</option><option value='نضارة'>نضارة</option><option value='تفتيح'>تفتيح</option><option value='كلاهما'>كلاهما</option></select><br>`;
+ qCard.classList.remove('hidden');
 }
-
 function computeRoutine(){
-    const routineArea=document.getElementById('routineArea');
-    routineArea.innerHTML=''; routineArea.classList.remove('hidden');
-
-    const drynessSelected=document.getElementById('dryness')?.value==='نعم';
-    const pigmentSelected=document.getElementById('pigment')?.value==='نعم';
-    const halationsSelected=document.getElementById('halations')?.value==='نعم';
-    const acneSelected=document.getElementById('acne')?.value==='نعم';
-    const frecklesSelected=document.getElementById('freckles')?.value==='نعم';
-    const brighten=document.getElementById('brighten')?.value;
-
-    const routines=[
-        {type:'اقتصادي', price:'450 جنيه', improvement:'50%'},
-        {type:'سوبر', price:'950 جنيه', improvement:'75%'},
-        {type:'ألترا (بريميوم)', price:'1850 جنيه', improvement:'95%'}
-    ];
-
-    routines.forEach(r=>{
-        let products='';
-        if(drynessSelected) products+='مرحلة ترطيب إجبارية: غسول مرطب + سيروم هيالورونيك أسيد.\n';
-        if(pigmentSelected) products+='سيروم ألفا أربوتين 2% لتفتيح البقع، كريم عين كافيين للهالات.\n';
-        if(halationsSelected && !pigmentSelected) products+='كريم عين للهالات.\n';
-        if(acneSelected) products+='كريم علاج حبوب + غسول لطيف.\n';
-        if(frecklesSelected) products+='منتج مخصص للنمش + واقي شمس.\n';
-        if(brighten!=='لا تحتاج') products+=`منتج إضافي للتفتيح/النضارة حسب رغبتك (${brighten}).\n`;
-
-        const card=document.createElement('div');
-        card.className='routine-card';
-        card.innerHTML=`<div class="premium-badge">${r.type}</div>
-        <h4 style="color:var(--gold); margin:10px 0;">باقة التحسن بنسبة ${r.improvement}</h4>
-        <p style="font-size:0.9rem; line-height:1.4;"><b>المنتجات:</b><br>${products.replace(/\n/g,'<br>')}</p>
-        <p><b>التكلفة التقديرية:</b> ${r.price}</p>
-        <button onclick="sendWA('${r.type}')">حجز الباقة عبر واتساب ✅</button>`;
-        routineArea.appendChild(card);
-    });
-    document.getElementById('recommendCard').classList.remove('hidden');
+ const routineArea=document.getElementById('routineArea');
+ routineArea.innerHTML='';
+ routineArea.classList.remove('hidden');
+ const routines=[
+ {type:'اقتصادي',price:'450 جنيه',improvement:'50%',products:`غسول ستارفيل، سيروم فيتامين C محلي، واقي شمس بوبي`},
+ {type:'سوبر',price:'950 جنيه',improvement:'75%',products:`غسول لاروش بوزيه، سيروم ألفا أربوتين (The Ordinary)، كريم عين كافيين، واقي شمس كولاجرا`},
+ {type:'ألترا (بريميوم)',price:'1850 جنيه',improvement:'95%',products:`الروتين المكامل: غسول فيشي، سيروم نضارة مزدوج، كريم عين ببتيدات، واقي شمس مستورد، مع متابعة مجانية`}
+ ];
+ routines.forEach(r=>{
+  const card=document.createElement('div');
+  card.className='routine-card';
+  card.innerHTML=`<div class='premium-badge'>${r.type}</div>
+   <h4 style='color:var(--gold); margin:10px 0;'>باقة التحسن بنسبة ${r.improvement}</h4>
+   <p style='font-size:0.9rem; line-height:1.4;'><b>المنتجات:</b> ${r.products}</p>
+   <p><b>التكلفة التقديرية:</b> ${r.price}</p>
+   <button onclick="sendWA('${r.type}')">حجز الباقة عبر واتساب ✅</button>`;
+  routineArea.appendChild(card);
+ });
+ document.getElementById('recommendCard').classList.remove('hidden');
 }
-
 function sendWA(type){
-    const text=`اختار الروتين: ${type}`;
-    window.open(`https://wa.me/201063994139?text=${text}`);
+ window.open(`https://wa.me/201063994139?text=اختار الروتين: ${type}`);
 }
 </script>
 </body>
