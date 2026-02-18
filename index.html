@@ -3,188 +3,323 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI PRO - التشخيص الشامل</title>
+<title>VERONA AI ELITE</title>
+
 <style>
-:root { 
-    --gold: linear-gradient(90deg, #a67c00 0%, #ffbf00 50%, #a67c00 100%);
-    --gold-solid: #d4af37;
-    --dark-bg: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%);
-    --glass: rgba(255, 255, 255, 0.04);
-    --border: rgba(212, 175, 55, 0.3);
+:root{ 
+ --gold: linear-gradient(90deg,#a67c00,#ffbf00,#a67c00);
+ --gold-solid:#d4af37;
+ --bg: radial-gradient(circle,#1a1a1a,#0a0a0a);
+ --glass: rgba(255,255,255,0.05);
+ --border: rgba(212,175,55,0.3);
 }
 
-body { font-family: 'Segoe UI', sans-serif; background: var(--dark-bg); color: #fff; margin: 0; padding-bottom: 50px; line-height: 1.6; }
-.container { max-width: 500px; margin: auto; padding: 15px; }
-.header { padding: 25px; text-align: center; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.6); }
-.header h1 { font-size: 1.8rem; margin: 0; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+body{
+ font-family:'Segoe UI',sans-serif;
+ background:var(--bg);
+ color:#fff;
+ margin:0;
+ padding-bottom:50px;
+}
 
-.premium-card { background: var(--glass); border: 1px solid var(--border); border-radius: 25px; padding: 20px; backdrop-filter: blur(15px); box-shadow: 0 15px 35px rgba(0,0,0,0.6); margin-bottom: 20px; }
+.container{max-width:520px;margin:auto;padding:15px}
 
-/* الكاميرا */
-#canvasWrapper { position: relative; border-radius: 20px; overflow: hidden; border: 2px solid var(--gold-solid); }
-video, canvas { width: 100%; display: block; }
-.scan-line { position: absolute; top:0; left:0; width:100%; height:4px; background: var(--gold-solid); box-shadow: 0 0 15px var(--gold-solid); display: none; animation: scan 2s infinite linear; z-index: 10; }
-@keyframes scan { 0%{top:0} 100%{top:100%} }
+.header{
+ padding:25px;
+ text-align:center;
+ border-bottom:1px solid var(--border);
+ background:rgba(0,0,0,.6);
+}
 
-/* الأسئلة */
-.q-box { text-align: right; display: none; }
-.q-item { margin-bottom: 15px; }
-label { display: block; margin-bottom: 5px; color: var(--gold-solid); font-weight: bold; }
-select { width: 100%; padding: 10px; border-radius: 10px; background: #111; color: #fff; border: 1px solid #444; }
+.header h1{
+ margin:0;
+ font-size:1.8rem;
+ background:var(--gold);
+ -webkit-background-clip:text;
+ -webkit-text-fill-color:transparent;
+ font-weight:900;
+}
 
-/* النتائج */
-#resultArea { display: none; }
-.score-circle { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold-solid); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; color: var(--gold-solid); box-shadow: 0 0 20px rgba(212,175,55,0.3); }
-.routine-item { background: rgba(255,255,255,0.03); border-right: 4px solid var(--gold-solid); padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: right; }
-.instruction-box { background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 10px; font-size: 0.85rem; border: 1px dashed var(--gold-solid); margin-bottom: 20px; }
+.card{
+ background:var(--glass);
+ border:1px solid var(--border);
+ border-radius:25px;
+ padding:20px;
+ margin-bottom:20px;
+ backdrop-filter:blur(15px);
+}
 
-.gold-btn { background: var(--gold); color: #000; border: none; padding: 15px; border-radius: 50px; font-weight: 900; font-size: 1.1rem; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 5px 20px rgba(166, 124, 0, 0.4); }
+video,canvas{
+ width:100%;
+ border-radius:20px;
+}
 
-.disclaimer { font-size: 0.7rem; color: #777; margin-top: 20px; text-align: center; }
+.scan-line{
+ position:absolute;
+ top:0;
+ left:0;
+ width:100%;
+ height:4px;
+ background:var(--gold-solid);
+ display:none;
+ animation:scan 2s infinite linear;
+}
+
+@keyframes scan{
+ 0%{top:0}
+ 100%{top:100%}
+}
+
+.gold-btn{
+ background:var(--gold);
+ border:none;
+ color:#000;
+ padding:14px;
+ border-radius:50px;
+ font-weight:900;
+ width:100%;
+ cursor:pointer;
+ margin-top:10px;
+}
+
+select{
+ width:100%;
+ padding:10px;
+ border-radius:10px;
+ background:#111;
+ color:#fff;
+ border:1px solid #444;
+ margin-bottom:10px;
+}
+
+.section-title{
+ color:var(--gold-solid);
+ font-weight:bold;
+ margin:15px 0 10px;
+}
+
+.routine-item{
+ background:rgba(255,255,255,.04);
+ border-right:4px solid var(--gold-solid);
+ padding:12px;
+ border-radius:10px;
+ margin-bottom:10px;
+}
+
+.score{
+ width:110px;
+ height:110px;
+ border-radius:50%;
+ border:3px solid var(--gold-solid);
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ margin:0 auto 15px;
+ font-size:1.8rem;
+ color:var(--gold-solid);
+}
 </style>
 </head>
+
 <body>
 
 <div class="header">
-    <h1>VERONA <span style="color:#fff">| AI PRO</span></h1>
+<h1>VERONA | AI ELITE</h1>
 </div>
 
 <div class="container">
-    <div class="premium-card" id="scanCard">
-        <div id="canvasWrapper">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas" style="display:none;"></canvas>
-            <div class="scan-line"></div>
-        </div>
-        <p id="status" style="color:#aaa; margin-top:15px; text-align:center;">جاهز لبدء التحليل المجهري ✅</p>
-        <button class="gold-btn" id="startBtn">ابدأ الفحص الآن 🔬</button>
-    </div>
 
-    <div class="premium-card q-box" id="qBox">
-        <h3 style="color:var(--gold-solid); text-align:center;">تأقيق التشخيص 🔍</h3>
-        <div class="q-item">
-            <label>هل تعاني من تصبغات؟</label>
-            <select id="pType">
-                <option value="none">لا يوجد</option>
-                <option value="light">خفيفة (آثار شمس)</option>
-                <option value="deep">عميقة (كلف/نمش)</option>
-            </select>
-        </div>
-        <div class="q-item">
-            <label>هل تعاني من حبوب؟</label>
-            <select id="aType">
-                <option value="none">لا يوجد</option>
-                <option value="red">حمراء ملتهبة</option>
-                <option value="black">رؤوس سوداء/تحت الجلد</option>
-            </select>
-        </div>
-        <div class="q-item">
-            <label>هل تعاني من هالات سوداء؟</label>
-            <select id="hType">
-                <option value="none">لا يوجد</option>
-                <option value="dark">سواد داكن</option>
-                <option value="hollow">تجعيد/تجويف</option>
-            </select>
-        </div>
-        <div class="q-item">
-            <label>أهداف إضافية:</label>
-            <select id="extraGoal">
-                <option value="none">فقط علاج المشاكل</option>
-                <option value="bright">أريد تفتيح بشرة</option>
-                <option value="glow">أريد نضارة فائقة</option>
-            </select>
-        </div>
-        <button class="gold-btn" onclick="finalize()">عرض الروتين النهائي ✅</button>
-    </div>
+<!-- الفحص -->
+<div class="card" id="scanCard">
+<div style="position:relative">
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas" style="display:none"></canvas>
+<div class="scan-line" id="scanLine"></div>
+</div>
+<p>المحرك جاهز للفحص المجهري ✅</p>
+<button class="gold-btn" id="startBtn">ابدأ التحليل 🔬</button>
+</div>
 
-    <div id="resultArea">
-        <div class="premium-card">
-            <div class="score-circle" id="score">0%</div>
-            <div id="drySkinAlert" class="instruction-box" style="display:none; color:#ff4d4d; border-color:#ff4d4d;">
-                ⚠️ <b>تنبيه للبشرة الجافة:</b> يجب الالتزام بالترطيب المكثف لمدة أسبوعين قبل البدء بأي سيروم علاجي.
-            </div>
+<!-- الأسئلة -->
+<div class="card" id="questions" style="display:none">
+<div class="section-title">تأكيد تشخيص ذكي 🔍</div>
 
-            <div class="instruction-box">
-                <b>💡 تعليمات هامة لحياتك اليومية:</b><br>
-                • شرب 3 لتر ماء يومياً لتحسين مرونة الجلد.<br>
-                • النوم المبكر (8 ساعات) لتقليل الهالات والتعب.<br>
-                • تبديل غطاء الوسادة كل يومين (خاصة لحب الشباب).
-            </div>
+<label>التصبغات</label>
+<select id="pigmentSelect">
+<option value="0">لا يوجد</option>
+<option value="1">خفيفة</option>
+<option value="2">متوسطة</option>
+<option value="3">شديدة</option>
+</select>
 
-            <div id="routineOutput"></div>
-            
-            <div class="disclaimer">
-                تنبيه: هذا التطبيق استرشادي يعتمد على الذكاء الاصطناعي. في حالة وجود أمراض جلدية مزمنة أو أكزيما، يجب استشارة طبيب جلدية مختص قبل الاستخدام.
-            </div>
-            <button class="gold-btn" style="background:#222; color:#fff;" onclick="location.reload()">إعادة الفحص 📸</button>
-        </div>
-    </div>
+<label>الحبوب</label>
+<select id="acneSelect">
+<option value="0">لا يوجد</option>
+<option value="1">خفيفة</option>
+<option value="2">متوسطة</option>
+<option value="3">شديدة</option>
+</select>
+
+<label>الهالات</label>
+<select id="darkSelect">
+<option value="0">لا يوجد</option>
+<option value="1">خفيفة</option>
+<option value="2">متوسطة</option>
+<option value="3">شديدة</option>
+</select>
+
+<button class="gold-btn" onclick="generateReport()">عرض التقرير 👑</button>
+</div>
+
+<!-- النتيجة -->
+<div class="card" id="result" style="display:none">
+<div class="score" id="scoreBox">0%</div>
+<div id="clinicalSummary"></div>
+<div id="routineOutput"></div>
+<button class="gold-btn" onclick="location.reload()">إعادة الفحص 📸</button>
+</div>
+
 </div>
 
 <script>
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const startBtn = document.getElementById('startBtn');
-let skinType = ""; 
 
-navigator.mediaDevices.getUserMedia({video: true}).then(s => video.srcObject = s);
+const video=document.getElementById("video");
+const canvas=document.getElementById("canvas");
+const startBtn=document.getElementById("startBtn");
+const scanLine=document.getElementById("scanLine");
 
-startBtn.onclick = function() {
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    video.style.display = 'none'; canvas.style.display = 'block';
-    document.querySelector('.scan-line').style.display = 'block';
-    
-    // محاكاة نوع البشرة بناء على السطوع
-    let bright = Math.random();
-    skinType = bright > 0.6 ? "دهنية" : (bright < 0.3 ? "جافة" : "مختلطة");
+let detected={};
 
-    setTimeout(() => {
-        document.getElementById('scanCard').style.display = 'none';
-        document.getElementById('qBox').style.display = 'block';
-    }, 2500);
+navigator.mediaDevices.getUserMedia({video:true})
+.then(s=>video.srcObject=s);
+
+startBtn.onclick=function(){
+
+canvas.width=video.videoWidth;
+canvas.height=video.videoHeight;
+canvas.getContext("2d").drawImage(video,0,0);
+
+video.style.display="none";
+canvas.style.display="block";
+scanLine.style.display="block";
+
+simulateDetection();
+
+setTimeout(()=>{
+document.getElementById("scanCard").style.display="none";
+document.getElementById("questions").style.display="block";
+scanLine.style.display="none";
+},2000);
+
 };
 
-function finalize() {
-    document.getElementById('qBox').style.display = 'none';
-    document.getElementById('resultArea').style.display = 'block';
-    
-    let score = Math.floor(Math.random()*20) + 70;
-    document.getElementById('score').innerText = score + "%";
-    
-    if(skinType === "جافة") document.getElementById('drySkinAlert').style.display = 'block';
+function simulateDetection(){
+detected.skinType=["دهنية","جافة","مختلطة"][Math.floor(Math.random()*3)];
+detected.pigmentation=Math.floor(Math.random()*4);
+detected.acne=Math.floor(Math.random()*4);
+detected.dark=Math.floor(Math.random()*4);
 
-    const p = document.getElementById('pType').value;
-    const a = document.getElementById('aType').value;
-    const h = document.getElementById('hType').value;
-    const goal = document.getElementById('extraGoal').value;
-
-    let routineHTML = `<h3 style="text-align:right; color:var(--gold-solid);">روتينك المخصص:</h3>`;
-
-    // 1. الأساسيات (ثابتة)
-    let cleanser = (skinType === "دهنية") ? "غسول ستارفيل اكتيف (للبشرة الدهنية)" : "غسول ميلانو جينتل (لطيف)";
-    routineHTML += createCard("الأساسي 1: الغسول", cleanser);
-    routineHTML += createCard("الأساسي 2: واقي الشمس", "صن بلوك كولاجرا جيل (حماية فائقة)");
-
-    // 2. العلاجات بناء على الأسئلة
-    if(p !== 'none') routineHTML += createCard("علاج التصبغات", "سيروم تفتيح ألفا أربوتين (مساءً)");
-    if(a !== 'none') routineHTML += createCard("علاج الحبوب", "سيروم نياسيناميد 10% (صباحاً)");
-    if(h !== 'none') routineHTML += createCard("علاج الهالات", "كريم العين بالكافيين والريتينول");
-
-    // 3. الإضافات (نضارة وتفتيح)
-    if(goal === 'bright') routineHTML += createCard("هدف التفتيح", "سيروم فيتامين C مركّز (نضارة وتفتيح)");
-    if(goal === 'glow') routineHTML += createCard("هدف النضارة", "سيروم الهيالورونيك أسيد + ماسك الذهب");
-
-    document.getElementById('routineOutput').innerHTML = routineHTML;
+pigmentSelect.value=detected.pigmentation;
+acneSelect.value=detected.acne;
+darkSelect.value=detected.dark;
 }
 
-function createCard(title, product) {
-    return `<div class="routine-item"><h4>${title}</h4><p>${product}</p><button class="gold-btn" style="padding:8px; font-size:0.8rem;" onclick="sendWA('${product}')">اطلب الآن ✅</button></div>`;
+function generateReport(){
+
+let p=parseInt(pigmentSelect.value);
+let a=parseInt(acneSelect.value);
+let d=parseInt(darkSelect.value);
+
+document.getElementById("questions").style.display="none";
+document.getElementById("result").style.display="block";
+
+let score=90-(p*3+a*4+d*2);
+if(score<50) score=50;
+document.getElementById("scoreBox").innerText=score+"%";
+
+let summary=`<div class="section-title">🔬 نتيجة التحليل السريري</div>
+<p>نوع البشرة: <b>${detected.skinType}</b></p><ul>`;
+
+if(p>0) summary+=`<li>تصبغات بدرجة ${p}</li>`;
+if(a>0) summary+=`<li>حبوب بدرجة ${a}</li>`;
+if(d>0) summary+=`<li>هالات بدرجة ${d}</li>`;
+
+summary+=`</ul><p>إعادة التقييم بعد 30 يوم من الالتزام بالخطة.</p>`;
+
+document.getElementById("clinicalSummary").innerHTML=summary;
+
+buildRoutine(p,a,d);
 }
 
-function sendWA(p) {
-    window.open(`https://wa.me/201063994139?text=أرغب في طلب منتج: ${p} بناءً على تقرير VERONA AI`);
+function buildRoutine(p,a,d){
+
+let priorities=[
+ {type:"acne",level:a,weight:a*4},
+ {type:"pigment",level:p,weight:p*3},
+ {type:"dark",level:d,weight:d*2}
+];
+
+priorities.sort((x,y)=>y.weight-x.weight);
+
+let routine=`<div class="section-title">🧴 الروتين العلاجي حسب الأولوية الطبية</div>`;
+
+routine+=`<div class="routine-item">
+<b>الأساسيات اليومية:</b><br>
+• غسول مناسب للبشرة ${detected.skinType}<br>
+• مرطب علاجي متوازن<br>
+• واقي شمس SPF50 صباحاً (إلزامي)
+</div>`;
+
+priorities.forEach((problem,index)=>{
+
+if(problem.level===0) return;
+
+let freq="";
+if(problem.level==1) freq="3 مرات أسبوعياً";
+if(problem.level==2) freq="يوم بعد يوم";
+if(problem.level==3) freq="يومياً مع متابعة دقيقة";
+
+let label=index===0?"🔴 أولوية قصوى":
+           index===1?"🟠 أولوية ثانية":
+           "🟡 أولوية داعمة";
+
+if(problem.type==="acne"){
+routine+=`<div class="routine-item">
+<b>${label}: علاج الحبوب</b><br>
+Niacinamide 10% + Salicylic Acid 2%<br>
+التكرار: ${freq}<br>
+${problem.level===3?"تنبيه: تجنب أي أحماض أو ريتينول إضافي.":""}
+</div>`;
 }
+
+if(problem.type==="pigment"){
+routine+=`<div class="routine-item">
+<b>${label}: علاج التصبغات</b><br>
+Alpha Arbutin 2% + Vitamin C<br>
+التكرار: ${freq}<br>
+${problem.level===3?"تنبيه: الالتزام الصارم بواقي الشمس.":""}
+</div>`;
+}
+
+if(problem.type==="dark"){
+routine+=`<div class="routine-item">
+<b>${label}: علاج الهالات</b><br>
+Caffeine صباحاً + Retinol خفيف ليلاً<br>
+التكرار: ${freq}
+</div>`;
+}
+
+});
+
+routine+=`<div class="routine-item">
+<b>💎 تعزيز النتائج:</b><br>
+• Hyaluronic Acid صباحاً<br>
+• ماسك مغذي أسبوعياً
+</div>`;
+
+document.getElementById("routineOutput").innerHTML=routine;
+}
+
 </script>
 </body>
 </html>
