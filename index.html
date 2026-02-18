@@ -1,89 +1,150 @@
-<!DOCTYPE html><html lang="ar">
+<!DOCTYPE html>
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VERONA AI - تحليل البشرة</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #fafafa; margin:0; padding:0; }
-  #cameraContainer { position: relative; width: 100%; max-width: 480px; margin: auto; }
-  video, canvas { width: 100%; border-radius: 10px; }
-  #scanLine { position: absolute; top:0; left:0; width:100%; height:4px; background: gold; box-shadow:0 0 15px gold; display:none; z-index:10; animation: scanMove 2s linear; }
-  @keyframes scanMove { 0% { top:0; } 100% { top:100%; } }
-  .analysis-mode { filter: grayscale(1) contrast(1.2) brightness(0.8); transition: all 1s ease; }
-  #status { text-align:center; margin:10px; font-weight:bold; }
-  #questionCard, #routineArea { display:none; margin:20px; }
-  .routine-card { display:inline-block; width:30%; margin:5px; padding:10px; border:1px solid #ccc; border-radius:8px; background:#fff; vertical-align:top; }
-  button { padding:8px 12px; margin-top:5px; cursor:pointer; border:none; border-radius:5px; background: #333; color:#fff; }
+  body { font-family: Arial, sans-serif; background:#f5f5f5; text-align:center; }
+  video, canvas { border-radius:10px; max-width:300px; }
+  #canvasWrapper { position:relative; display:inline-block; }
+  .scan-line { position:absolute; top:0; left:0; width:100%; height:4px;
+               background:gold; box-shadow:0 0 15px gold; display:none;
+               animation: scan-move 2s linear; z-index:10; }
+  @keyframes scan-move {0%{top:0;}100%{top:100%;}}
+  .analysis-mode { filter: grayscale(1) contrast(1.2) brightness(0.8); transition:all 1s ease; }
+  #routineArea, #questionsArea { margin-top:20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .routine-card { border:1px solid #ccc; padding:10px; border-radius:8px; width:200px; background:#fff; }
+  button { padding:10px 15px; margin:5px; cursor:pointer; border:none; border-radius:5px; background:gold; }
 </style>
 </head>
-<body><h2 style="text-align:center;">VERONA AI - تحليل البشرة</h2>
-<div id="cameraContainer">
-  <video id="video" autoplay muted playsinline></video>
+<body>
+
+<h2>VERONA AI - تحليل البشرة</h2>
+<p id="status">المحرك جاهز للفحص ✅</p>
+
+<div id="canvasWrapper">
+  <video id="video" autoplay playsinline width="300"></video>
   <canvas id="canvas" style="display:none;"></canvas>
-  <div id="scanLine"></div>
+  <div id="scanLine" class="scan-line"></div>
 </div>
-<div id="status">المحرك جاهز للفحص ✅</div>
-<div style="text-align:center;">
-  <button id="startBtn">ابدأ التحليل 🔬</button>
-  <button id="resetBtn" style="display:none;">إعادة التقاط 📸</button>
-</div>
-<div id="questionCard">
-  <h3>الأسئلة التسلسلية بعد الفحص</h3>
-  <div id="questionsArea"></div>
-</div>
+<br>
+<button id="startBtn">ابدأ التحليل 🔬</button>
+<button id="resetBtn" style="display:none;">إعادة التقاط 📸</button>
+
+<div id="questionsArea"></div>
 <div id="routineArea"></div>
+
 <script>
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 const scanLine = document.getElementById('scanLine');
-let lastResults = null;
 let analysisData = {};
-let detectedIssues = {};// تشغيل الكاميرا navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{video.srcObject=stream;});
+let detectedIssues = { pigment:false, halations:false, acne:false };
 
-// دالة التحليل function analyzeFace(){ const ctx = canvas.getContext('2d'); canvas.width = video.videoWidth; canvas.height = video.videoHeight; ctx.drawImage(video,0,0,canvas.width,canvas.height);
+// تفعيل الكاميرا
+navigator.mediaDevices.getUserMedia({video:true}).then(stream => {
+  video.srcObject = stream;
+});
 
-video.style.display='none';
-canvas.style.display='block';
+// عند الضغط على زر البدء
+document.getElementById('startBtn').addEventListener('click', analyzeFace);
+document.getElementById('resetBtn').addEventListener('click', resetAnalysis);
 
-document.getElementById('status').innerText='🔬 جاري المسح المجهري لطبقات الجلد...';
-scanLine.style.display='block';
-canvas.classList.add('analysis-mode');
+function analyzeFace() {
+  // رسم الصورة الحالية على الكانفاس
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  video.style.display = 'none';
+  canvas.style.display = 'block';
+  scanLine.style.display = 'block';
+  canvas.classList.add('analysis-mode');
+  document.getElementById('status').innerText = '🔬 جاري المسح المجهري لطبقات الجلد...';
 
-setTimeout(()=>{
-    scanLine.style.display='none';
-    // تحليل افتراضي: اكتشاف مشاكل عشوائية
-    detectedIssues = {
-        pigment: Math.random()>0.4,
-        halations: Math.random()>0.5,
-        acne: Math.random()>0.3
-    };
-
-    // رسم Heatmap
-    ctx.fillStyle="rgba(255,215,0,0.4)";
-    for(let i=0;i<5;i++){
-        let x=Math.random()*canvas.width;
-        let y=Math.random()*canvas.height;
-        ctx.beginPath();
-        ctx.arc(x,y,20,0,Math.PI*2);
-        ctx.fill();
-    }
-
-    // عرض الأسئلة
-    triggerQuestions();
-    document.getElementById('resetBtn').style.display='inline-block';
-},2000);
-
+  setTimeout(()=>{
+    scanLine.style.display = 'none';
+    canvas.classList.remove('analysis-mode');
+    detectSkinIssues();
+    showQuestions();
+    showRoutines();
+    document.getElementById('resetBtn').style.display = 'inline-block';
+    document.getElementById('status').innerText = '✅ التحليل اكتمل';
+  },2000);
 }
 
-function triggerQuestions(){ const qCard = document.getElementById('questionCard'); const qArea = document.getElementById('questionsArea'); qArea.innerHTML=''; const questions=[ 'هل تستخدم واقي شمس يومياً؟', 'هل تتعرض للشمس كثيراً؟', 'هل لديك تاريخ لحب الشباب؟' ]; questions.forEach((q,i)=>{ const div=document.createElement('div'); div.innerHTML=${q} <select id='q${i}'><option>نعم</option><option>لا</option></select>; qArea.appendChild(div); }); qCard.style.display='block'; showRoutines(); }
+function detectSkinIssues() {
+  // منطق وهمي لاكتشاف المشاكل (يمكن تطويره لاحقاً)
+  detectedIssues.pigment = Math.random()>0.3;
+  detectedIssues.halations = Math.random()>0.5;
+  detectedIssues.acne = Math.random()>0.6;
 
-function showRoutines(){ const routineArea=document.getElementById('routineArea'); routineArea.innerHTML=''; const routines=[ {type:'اقتصادي', improvement:'50%', products:['ستارفيل جل','Garnier Fast Bright'] ,note:'متاحة للتسليم الفوري.'}, {type:'سوبر', improvement:'75%', products:['كولاجرا سيروم','Alpha Arbutin'] ,note:'الأكثر طلباً هذا الأسبوع 🔥.'}, {type:'ألترا', improvement:'95%', products:['Nano Treat 24K','Cleo Radiance'] ,note:'تتضمن استشارة مجانية لمتابعة النتائج.'} ]; routines.forEach(r=>{ const card=document.createElement('div'); card.className='routine-card'; card.innerHTML=<h4>${r.type}</h4> <p>نسبة التحسن: ${r.improvement}</p> <p>المنتجات: ${r.products.join(' - ')}</p> <p>${r.note}</p> <button onclick="sendWA('${r.type}')">حجز الباقة عبر واتساب ✅</button>; routineArea.appendChild(card); }); routineArea.style.display='block'; }
+  // رسم نقاط توهج على الكانفاس
+  ctx.fillStyle = "rgba(255,215,0,0.4)";
+  for(let i=0;i<5;i++){
+    let x = Math.random()*canvas.width;
+    let y = Math.random()*canvas.height;
+    ctx.beginPath();
+    ctx.arc(x,y,20,0,Math.PI*2);
+    ctx.fill();
+  }
+}
 
-function sendWA(type){ const score=Math.floor(Math.random()*40)+60; let issues=[]; if(detectedIssues.pigment) issues.push('تصبغات'); if(detectedIssues.halations) issues.push('هالات سوداء'); if(detectedIssues.acne) issues.push('حب شباب/مسام'); const msg=*تقرير VERONA AI PRO*%0A---------------------------%0A• *نتيجة الفحص:* ${score}%25%0A• *المشاكل المكتشفة:* ${issues.join(' - ') || 'بشرة صافية'}%0A• *الباقة المختارة:* ${type}%0A---------------------------%0Aأرغب في تأكيد الحجز وبدء الروتين المخصص.%0A*ملاحظة:* تم إنشاء هذا التقرير بواسطة تقنية VERONA AI.; window.open(https://wa.me/201063994139?text=${msg},'_blank'); }
+function showQuestions() {
+  const qArea = document.getElementById('questionsArea');
+  qArea.innerHTML = '';
+  const questions = [
+    "هل تعاني من حساسية الجلد؟",
+    "هل تستخدم كريمات تفتيح حالياً؟",
+    "هل تواجه حب شباب متكرر؟"
+  ];
+  questions.forEach(q=>{
+    const div = document.createElement('div');
+    div.style.background="#fff"; div.style.padding="8px"; div.style.borderRadius="5px";
+    div.innerText = q;
+    qArea.appendChild(div);
+  });
+}
 
-function resetAnalysis(){ video.style.display='block'; canvas.style.display='none'; document.getElementById('routineArea').innerHTML=''; document.getElementById('questionCard').style.display='none'; document.getElementById('status').innerText='المحرك جاهز لفحص جديد ✅'; document.getElementById('resetBtn').style.display='none'; }
+function showRoutines() {
+  const routineArea = document.getElementById('routineArea');
+  routineArea.innerHTML = '';
+  const routines = [
+    {type:'اقتصادي', products:'غسول ستارفيل + فيتامين C + واقي شمس ستارفيل', note:'متاحة للتسليم الفوري.'},
+    {type:'سوبر', products:'غسول لاروش + سيروم ألفا أربوتين + كريم عين كافيين + واقي شمس كولاجرا', note:'الأكثر طلباً هذا الأسبوع 🔥.'},
+    {type:'ألترا', products:'Nano Treat 24K Gold Serum + سيروم الكافيار + دا اكتي-جلو + واقي الشمس كولاجرا', note:'تتضمن استشارة مجانية لمتابعة النتائج.'}
+  ];
+  routines.forEach(r=>{
+    const card = document.createElement('div'); card.className='routine-card';
+    card.innerHTML = `<h4>${r.type}</h4><p>${r.products}</p><p style="color:green;">${r.note}</p>
+    <button onclick="sendWA('${r.type}')">حجز الباقة عبر واتساب ✅</button>`;
+    routineArea.appendChild(card);
+  });
+}
 
-document.getElementById('startBtn').addEventListener('click',analyzeFace); document.getElementById('resetBtn').addEventListener('click',resetAnalysis); </script>
+function sendWA(type){
+  const issuesArr = [];
+  if(detectedIssues.pigment) issuesArr.push("تصبغات");
+  if(detectedIssues.halations) issuesArr.push("هالات سوداء");
+  if(detectedIssues.acne) issuesArr.push("حب شباب/مسام");
+
+  const message = `*تقرير VERONA AI PRO*%0A------------------%0A`+
+  `• الباقة المختارة: ${type}%0A`+
+  `• المشاكل المكتشفة: ${issuesArr.join(' - ')||'بشرة صافية'}%0A`+
+  `*ملاحظة:* تم إنشاء هذا التقرير بواسطة تقنية VERONA AI للهواتف الذكية.`;
+
+  window.open(`https://wa.me/201063994139?text=${message}`,'_blank');
+}
+
+function resetAnalysis(){
+  video.style.display='block';
+  canvas.style.display='none';
+  document.getElementById('routineArea').innerHTML='';
+  document.getElementById('questionsArea').innerHTML='';
+  document.getElementById('status').innerText='المحرك جاهز للفحص ✅';
+  document.getElementById('resetBtn').style.display='none';
+}
+</script>
 
 </body>
 </html>
