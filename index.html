@@ -14,110 +14,30 @@
  --border: rgba(212,175,55,0.3);
 }
 
-body{
- font-family:'Segoe UI',sans-serif;
- background:var(--bg);
- color:#fff;
- margin:0;
- padding-bottom:50px;
-}
-
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0}
 .container{max-width:520px;margin:auto;padding:15px}
+.header{padding:25px;text-align:center;border-bottom:1px solid var(--border)}
+.header h1{margin:0;font-size:1.8rem;background:var(--gold);
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
 
-.header{
- padding:25px;
- text-align:center;
- border-bottom:1px solid var(--border);
- background:rgba(0,0,0,.6);
-}
+.card{background:var(--glass);border:1px solid var(--border);
+border-radius:25px;padding:20px;margin-bottom:20px;backdrop-filter:blur(15px)}
 
-.header h1{
- margin:0;
- font-size:1.8rem;
- background:var(--gold);
- -webkit-background-clip:text;
- -webkit-text-fill-color:transparent;
- font-weight:900;
-}
+video,canvas{width:100%;border-radius:20px}
+.gold-btn{background:var(--gold);border:none;color:#000;padding:14px;
+border-radius:50px;font-weight:900;width:100%;cursor:pointer;margin-top:10px}
 
-.card{
- background:var(--glass);
- border:1px solid var(--border);
- border-radius:25px;
- padding:20px;
- margin-bottom:20px;
- backdrop-filter:blur(15px);
-}
+select{width:100%;padding:10px;border-radius:10px;background:#111;color:#fff;
+border:1px solid #444;margin-bottom:10px}
 
-video,canvas{
- width:100%;
- border-radius:20px;
-}
+.section-title{color:var(--gold-solid);font-weight:bold;margin:15px 0 10px}
+.routine-item{background:rgba(255,255,255,.04);border-right:4px solid var(--gold-solid);
+padding:12px;border-radius:10px;margin-bottom:10px}
 
-.scan-line{
- position:absolute;
- top:0;
- left:0;
- width:100%;
- height:4px;
- background:var(--gold-solid);
- display:none;
- animation:scan 2s infinite linear;
-}
-
-@keyframes scan{
- 0%{top:0}
- 100%{top:100%}
-}
-
-.gold-btn{
- background:var(--gold);
- border:none;
- color:#000;
- padding:14px;
- border-radius:50px;
- font-weight:900;
- width:100%;
- cursor:pointer;
- margin-top:10px;
-}
-
-select{
- width:100%;
- padding:10px;
- border-radius:10px;
- background:#111;
- color:#fff;
- border:1px solid #444;
- margin-bottom:10px;
-}
-
-.section-title{
- color:var(--gold-solid);
- font-weight:bold;
- margin:15px 0 10px;
-}
-
-.routine-item{
- background:rgba(255,255,255,.04);
- border-right:4px solid var(--gold-solid);
- padding:12px;
- border-radius:10px;
- margin-bottom:10px;
-}
-
-.score{
- width:110px;
- height:110px;
- border-radius:50%;
- border:3px solid var(--gold-solid);
- display:flex;
- align-items:center;
- justify-content:center;
- margin:0 auto 15px;
- font-size:1.8rem;
- color:var(--gold-solid);
-}
+.score{width:110px;height:110px;border-radius:50%;border:3px solid var(--gold-solid);
+display:flex;align-items:center;justify-content:center;margin:0 auto 15px;
+font-size:1.8rem;color:var(--gold-solid)}
+.price{font-size:1.3rem;color:#00ffcc;text-align:center;margin-top:10px}
 </style>
 </head>
 
@@ -129,20 +49,17 @@ select{
 
 <div class="container">
 
-<!-- الفحص -->
+<!-- التحميل -->
 <div class="card" id="scanCard">
-<div style="position:relative">
-<video id="video" autoplay playsinline></video>
-<canvas id="canvas" style="display:none"></canvas>
-<div class="scan-line" id="scanLine"></div>
-</div>
-<p>المحرك جاهز للفحص المجهري ✅</p>
-<button class="gold-btn" id="startBtn">ابدأ التحليل 🔬</button>
+<input type="file" id="uploadInput" accept="image/*">
+<p>قم بتحميل صورة واضحة للوجه 📷</p>
+<button class="gold-btn" onclick="startAnalysis()">ابدأ التحليل 🔬</button>
 </div>
 
 <!-- الأسئلة -->
 <div class="card" id="questions" style="display:none">
-<div class="section-title">تأكيد تشخيص ذكي 🔍</div>
+
+<div class="section-title">تأكيد التشخيص</div>
 
 <label>التصبغات</label>
 <select id="pigmentSelect">
@@ -168,6 +85,16 @@ select{
 <option value="3">شديدة</option>
 </select>
 
+<label>مستوى الروتين</label>
+<select id="planLevel">
+<option value="eco">اقتصادي</option>
+<option value="elite" selected>Elite</option>
+<option value="ultra">Ultra</option>
+</select>
+
+<label><input type="checkbox" id="glowPack"> باقة نضارة ✨</label>
+<label><input type="checkbox" id="brightPack"> باقة تفتيح 🤍</label>
+
 <button class="gold-btn" onclick="generateReport()">عرض التقرير 👑</button>
 </div>
 
@@ -176,44 +103,17 @@ select{
 <div class="score" id="scoreBox">0%</div>
 <div id="clinicalSummary"></div>
 <div id="routineOutput"></div>
-<button class="gold-btn" onclick="location.reload()">إعادة الفحص 📸</button>
+<div class="price" id="priceBox"></div>
+<button class="gold-btn" onclick="location.reload()">إعادة الفحص</button>
 </div>
 
 </div>
 
 <script>
 
-const video=document.getElementById("video");
-const canvas=document.getElementById("canvas");
-const startBtn=document.getElementById("startBtn");
-const scanLine=document.getElementById("scanLine");
-
 let detected={};
 
-navigator.mediaDevices.getUserMedia({video:true})
-.then(s=>video.srcObject=s);
-
-startBtn.onclick=function(){
-
-canvas.width=video.videoWidth;
-canvas.height=video.videoHeight;
-canvas.getContext("2d").drawImage(video,0,0);
-
-video.style.display="none";
-canvas.style.display="block";
-scanLine.style.display="block";
-
-simulateDetection();
-
-setTimeout(()=>{
-document.getElementById("scanCard").style.display="none";
-document.getElementById("questions").style.display="block";
-scanLine.style.display="none";
-},2000);
-
-};
-
-function simulateDetection(){
+function startAnalysis(){
 detected.skinType=["دهنية","جافة","مختلطة"][Math.floor(Math.random()*3)];
 detected.pigmentation=Math.floor(Math.random()*4);
 detected.acne=Math.floor(Math.random()*4);
@@ -222,6 +122,9 @@ detected.dark=Math.floor(Math.random()*4);
 pigmentSelect.value=detected.pigmentation;
 acneSelect.value=detected.acne;
 darkSelect.value=detected.dark;
+
+document.getElementById("scanCard").style.display="none";
+document.getElementById("questions").style.display="block";
 }
 
 function generateReport(){
@@ -229,97 +132,89 @@ function generateReport(){
 let p=parseInt(pigmentSelect.value);
 let a=parseInt(acneSelect.value);
 let d=parseInt(darkSelect.value);
+let plan=document.getElementById("planLevel").value;
+let glow=document.getElementById("glowPack").checked;
+let bright=document.getElementById("brightPack").checked;
 
 document.getElementById("questions").style.display="none";
 document.getElementById("result").style.display="block";
 
 let score=90-(p*3+a*4+d*2);
 if(score<50) score=50;
-document.getElementById("scoreBox").innerText=score+"%";
+scoreBox.innerText=score+"%";
 
-let summary=`<div class="section-title">🔬 نتيجة التحليل السريري</div>
-<p>نوع البشرة: <b>${detected.skinType}</b></p><ul>`;
+let summary=`<div class="section-title">نتيجة التحليل</div>
+<p>نوع البشرة: <b>${detected.skinType}</b></p>`;
+clinicalSummary.innerHTML=summary;
 
-if(p>0) summary+=`<li>تصبغات بدرجة ${p}</li>`;
-if(a>0) summary+=`<li>حبوب بدرجة ${a}</li>`;
-if(d>0) summary+=`<li>هالات بدرجة ${d}</li>`;
-
-summary+=`</ul><p>إعادة التقييم بعد 30 يوم من الالتزام بالخطة.</p>`;
-
-document.getElementById("clinicalSummary").innerHTML=summary;
-
-buildRoutine(p,a,d);
+buildRoutine(p,a,d,plan,glow,bright);
+calculatePrice(plan,glow,bright);
 }
 
-function buildRoutine(p,a,d){
+function buildRoutine(p,a,d,plan,glow,bright){
 
-let priorities=[
- {type:"acne",level:a,weight:a*4},
- {type:"pigment",level:p,weight:p*3},
- {type:"dark",level:d,weight:d*2}
-];
-
-priorities.sort((x,y)=>y.weight-x.weight);
-
-let routine=`<div class="section-title">🧴 الروتين العلاجي حسب الأولوية الطبية</div>`;
+let routine=`<div class="section-title">الروتين المختار (${plan.toUpperCase()})</div>`;
 
 routine+=`<div class="routine-item">
-<b>الأساسيات اليومية:</b><br>
-• غسول مناسب للبشرة ${detected.skinType}<br>
-• مرطب علاجي متوازن<br>
-• واقي شمس SPF50 صباحاً (إلزامي)
+غسول مناسب + مرطب + واقي شمس
 </div>`;
 
-priorities.forEach((problem,index)=>{
-
-if(problem.level===0) return;
-
-let freq="";
-if(problem.level==1) freq="3 مرات أسبوعياً";
-if(problem.level==2) freq="يوم بعد يوم";
-if(problem.level==3) freq="يومياً مع متابعة دقيقة";
-
-let label=index===0?"🔴 أولوية قصوى":
-           index===1?"🟠 أولوية ثانية":
-           "🟡 أولوية داعمة";
-
-if(problem.type==="acne"){
+if(a>0){
 routine+=`<div class="routine-item">
-<b>${label}: علاج الحبوب</b><br>
-Niacinamide 10% + Salicylic Acid 2%<br>
-التكرار: ${freq}<br>
-${problem.level===3?"تنبيه: تجنب أي أحماض أو ريتينول إضافي.":""}
+علاج الحبوب:
+${plan==="eco"?"Niacinamide":
+plan==="elite"?"Niacinamide + Salicylic":
+"Niacinamide + Salicylic + Zinc"}
 </div>`;
 }
 
-if(problem.type==="pigment"){
+if(p>0){
 routine+=`<div class="routine-item">
-<b>${label}: علاج التصبغات</b><br>
-Alpha Arbutin 2% + Vitamin C<br>
-التكرار: ${freq}<br>
-${problem.level===3?"تنبيه: الالتزام الصارم بواقي الشمس.":""}
+علاج التصبغات:
+${plan==="eco"?"Vitamin C":
+plan==="elite"?"Arbutin + Vitamin C":
+"Arbutin + Tranexamic + Vitamin C"}
 </div>`;
 }
 
-if(problem.type==="dark"){
+if(d>0){
 routine+=`<div class="routine-item">
-<b>${label}: علاج الهالات</b><br>
-Caffeine صباحاً + Retinol خفيف ليلاً<br>
-التكرار: ${freq}
+علاج الهالات:
+${plan==="eco"?"Caffeine":
+plan==="elite"?"Caffeine + Retinol":
+"Caffeine + Retinol + Peptides"}
 </div>`;
 }
 
-});
-
+if(glow){
 routine+=`<div class="routine-item">
-<b>💎 تعزيز النتائج:</b><br>
-• Hyaluronic Acid صباحاً<br>
-• ماسك مغذي أسبوعياً
+✨ باقة النضارة: Vitamin C + Hyaluronic + ماسك إشراقة
 </div>`;
+}
 
-document.getElementById("routineOutput").innerHTML=routine;
+if(bright){
+routine+=`<div class="routine-item">
+🤍 باقة التفتيح: Arbutin إضافي + تقشير أسبوعي
+</div>`;
+}
+
+routineOutput.innerHTML=routine;
+}
+
+function calculatePrice(plan,glow,bright){
+
+let base=0;
+if(plan==="eco") base=199;
+if(plan==="elite") base=349;
+if(plan==="ultra") base=499;
+
+if(glow) base+=79;
+if(bright) base+=99;
+
+priceBox.innerText="السعر الإجمالي: "+base+" ريال";
 }
 
 </script>
+
 </body>
 </html>
