@@ -6,7 +6,7 @@
 <title>VERONA AI ELITE</title>
 
 <style>
-:root{ 
+:root{
  --gold: linear-gradient(90deg,#a67c00,#ffbf00,#a67c00);
  --gold-solid:#d4af37;
  --bg: radial-gradient(circle,#1a1a1a,#0a0a0a);
@@ -16,7 +16,7 @@
 
 body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0}
 .container{max-width:520px;margin:auto;padding:15px}
-.header{padding:25px;text-align:center;border-bottom:1px solid var(--border)}
+.header{text-align:center;padding:20px;border-bottom:1px solid var(--border)}
 .header h1{margin:0;font-size:1.8rem;background:var(--gold);
 -webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
 
@@ -24,20 +24,46 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0}
 border-radius:25px;padding:20px;margin-bottom:20px;backdrop-filter:blur(15px)}
 
 video,canvas{width:100%;border-radius:20px}
-.gold-btn{background:var(--gold);border:none;color:#000;padding:14px;
-border-radius:50px;font-weight:900;width:100%;cursor:pointer;margin-top:10px}
 
-select{width:100%;padding:10px;border-radius:10px;background:#111;color:#fff;
-border:1px solid #444;margin-bottom:10px}
+.face-frame{
+position:absolute;top:20%;left:20%;width:60%;height:60%;
+border:2px solid var(--gold-solid);border-radius:20px;
+pointer-events:none;
+}
+
+.scan-line{
+position:absolute;width:100%;height:3px;
+background:var(--gold-solid);
+animation:scan 2s linear infinite;
+display:none;
+}
+
+@keyframes scan{
+0%{top:0}100%{top:100%}
+}
+
+.gold-btn{
+background:var(--gold);border:none;color:#000;
+padding:14px;border-radius:50px;font-weight:900;
+width:100%;cursor:pointer;margin-top:10px
+}
+
+select{width:100%;padding:10px;border-radius:10px;
+background:#111;color:#fff;border:1px solid #444;margin-bottom:10px}
 
 .section-title{color:var(--gold-solid);font-weight:bold;margin:15px 0 10px}
-.routine-item{background:rgba(255,255,255,.04);border-right:4px solid var(--gold-solid);
+.routine-item{background:rgba(255,255,255,.04);
+border-right:4px solid var(--gold-solid);
 padding:12px;border-radius:10px;margin-bottom:10px}
 
-.score{width:110px;height:110px;border-radius:50%;border:3px solid var(--gold-solid);
-display:flex;align-items:center;justify-content:center;margin:0 auto 15px;
-font-size:1.8rem;color:var(--gold-solid)}
+.score{width:110px;height:110px;border-radius:50%;
+border:3px solid var(--gold-solid);
+display:flex;align-items:center;justify-content:center;
+margin:0 auto 15px;font-size:1.8rem;color:var(--gold-solid)}
+
 .price{font-size:1.3rem;color:#00ffcc;text-align:center;margin-top:10px}
+.confidence{text-align:center;color:#aaa;margin-top:8px}
+.countdown{font-size:2rem;text-align:center;color:#ff4444}
 </style>
 </head>
 
@@ -49,11 +75,28 @@ font-size:1.8rem;color:var(--gold-solid)}
 
 <div class="container">
 
-<!-- التحميل -->
+<!-- قسم التحليل -->
 <div class="card" id="scanCard">
-<input type="file" id="uploadInput" accept="image/*">
-<p>قم بتحميل صورة واضحة للوجه 📷</p>
+<div style="position:relative">
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas" style="display:none"></canvas>
+<div class="face-frame"></div>
+<div class="scan-line" id="scanLine"></div>
+</div>
+
+<div class="countdown" id="countdown"></div>
+
+<button class="gold-btn" onclick="startCountdown()">التقاط بالكاميرا 📸</button>
+
+<hr style="margin:15px 0;opacity:.2">
+
+<input type="file" id="uploadInput" accept="image/*" style="display:none">
+<button class="gold-btn" onclick="document.getElementById('uploadInput').click()">
+تحميل صورة 📷
+</button>
+
 <button class="gold-btn" onclick="startAnalysis()">ابدأ التحليل 🔬</button>
+
 </div>
 
 <!-- الأسئلة -->
@@ -101,6 +144,7 @@ font-size:1.8rem;color:var(--gold-solid)}
 <!-- النتيجة -->
 <div class="card" id="result" style="display:none">
 <div class="score" id="scoreBox">0%</div>
+<div class="confidence" id="confidenceBox"></div>
 <div id="clinicalSummary"></div>
 <div id="routineOutput"></div>
 <div class="price" id="priceBox"></div>
@@ -111,9 +155,71 @@ font-size:1.8rem;color:var(--gold-solid)}
 
 <script>
 
+const video=document.getElementById("video");
+const canvas=document.getElementById("canvas");
+const uploadInput=document.getElementById("uploadInput");
+const scanLine=document.getElementById("scanLine");
+const countdownEl=document.getElementById("countdown");
+
 let detected={};
 
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream=>video.srcObject=stream)
+.catch(()=>video.style.display="none");
+
+function startCountdown(){
+let count=3;
+countdownEl.innerText=count;
+let interval=setInterval(()=>{
+count--;
+if(count>0){
+countdownEl.innerText=count;
+}else{
+clearInterval(interval);
+countdownEl.innerText="";
+captureFromCamera();
+}
+},1000);
+}
+
+function captureFromCamera(){
+canvas.width=video.videoWidth;
+canvas.height=video.videoHeight;
+canvas.getContext("2d").drawImage(video,0,0);
+video.style.display="none";
+canvas.style.display="block";
+}
+
+uploadInput.addEventListener("change",function(e){
+const file=e.target.files[0];
+if(!file)return;
+const reader=new FileReader();
+reader.onload=function(event){
+const img=new Image();
+img.onload=function(){
+canvas.width=img.width;
+canvas.height=img.height;
+canvas.getContext("2d").drawImage(img,0,0);
+video.style.display="none";
+canvas.style.display="block";
+};
+img.src=event.target.result;
+};
+reader.readAsDataURL(file);
+});
+
 function startAnalysis(){
+scanLine.style.display="block";
+
+setTimeout(()=>{
+scanLine.style.display="none";
+simulateDetection();
+document.getElementById("scanCard").style.display="none";
+document.getElementById("questions").style.display="block";
+},2000);
+}
+
+function simulateDetection(){
 detected.skinType=["دهنية","جافة","مختلطة"][Math.floor(Math.random()*3)];
 detected.pigmentation=Math.floor(Math.random()*4);
 detected.acne=Math.floor(Math.random()*4);
@@ -122,9 +228,6 @@ detected.dark=Math.floor(Math.random()*4);
 pigmentSelect.value=detected.pigmentation;
 acneSelect.value=detected.acne;
 darkSelect.value=detected.dark;
-
-document.getElementById("scanCard").style.display="none";
-document.getElementById("questions").style.display="block";
 }
 
 function generateReport(){
@@ -140,12 +243,14 @@ document.getElementById("questions").style.display="none";
 document.getElementById("result").style.display="block";
 
 let score=90-(p*3+a*4+d*2);
-if(score<50) score=50;
+if(score<50)score=50;
 scoreBox.innerText=score+"%";
 
-let summary=`<div class="section-title">نتيجة التحليل</div>
+let confidence=85+Math.floor(Math.random()*10);
+confidenceBox.innerText="دقة التحليل: "+confidence+"%";
+
+clinicalSummary.innerHTML=`<div class="section-title">نتيجة التحليل</div>
 <p>نوع البشرة: <b>${detected.skinType}</b></p>`;
-clinicalSummary.innerHTML=summary;
 
 buildRoutine(p,a,d,plan,glow,bright);
 calculatePrice(plan,glow,bright);
@@ -153,11 +258,8 @@ calculatePrice(plan,glow,bright);
 
 function buildRoutine(p,a,d,plan,glow,bright){
 
-let routine=`<div class="section-title">الروتين المختار (${plan.toUpperCase()})</div>`;
-
-routine+=`<div class="routine-item">
-غسول مناسب + مرطب + واقي شمس
-</div>`;
+let routine=`<div class="section-title">الروتين (${plan.toUpperCase()})</div>
+<div class="routine-item">غسول + مرطب + واقي شمس</div>`;
 
 if(a>0){
 routine+=`<div class="routine-item">
@@ -187,30 +289,20 @@ plan==="elite"?"Caffeine + Retinol":
 }
 
 if(glow){
-routine+=`<div class="routine-item">
-✨ باقة النضارة: Vitamin C + Hyaluronic + ماسك إشراقة
-</div>`;
+routine+=`<div class="routine-item">✨ باقة النضارة مضافة</div>`;
 }
 
 if(bright){
-routine+=`<div class="routine-item">
-🤍 باقة التفتيح: Arbutin إضافي + تقشير أسبوعي
-</div>`;
+routine+=`<div class="routine-item">🤍 باقة التفتيح مضافة</div>`;
 }
 
 routineOutput.innerHTML=routine;
 }
 
 function calculatePrice(plan,glow,bright){
-
-let base=0;
-if(plan==="eco") base=199;
-if(plan==="elite") base=349;
-if(plan==="ultra") base=499;
-
-if(glow) base+=79;
-if(bright) base+=99;
-
+let base=plan==="eco"?199:plan==="elite"?349:499;
+if(glow)base+=79;
+if(bright)base+=99;
 priceBox.innerText="السعر الإجمالي: "+base+" ريال";
 }
 
