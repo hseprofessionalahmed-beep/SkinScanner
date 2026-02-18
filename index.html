@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI ELITE - المطور</title>
+<title>VERONA AI ELITE - الروتين المتطور</title>
 
 <style>
 :root{
@@ -54,7 +54,7 @@ background:#111;color:#fff;border:1px solid #444;margin-bottom:10px}
 .section-title{color:var(--gold-solid);font-weight:bold;margin:15px 0 10px;border-bottom:1px solid #333;padding-bottom:5px}
 .routine-item{background:rgba(255,255,255,.04);
 border-right:4px solid var(--gold-solid);
-padding:12px;border-radius:10px;margin-bottom:10px}
+padding:12px;border-radius:10px;margin-bottom:10px; text-align: right;}
 
 .score{width:110px;height:110px;border-radius:50%;
 border:3px solid var(--gold-solid);
@@ -65,8 +65,8 @@ margin:0 auto 15px;font-size:1.8rem;color:var(--gold-solid);box-shadow:0 0 20px 
 .confidence{text-align:center;color:#aaa;margin-top:8px;font-size:0.8rem}
 .countdown{font-size:2.5rem;text-align:center;color:#ff4444;font-weight:bold}
 
-.alert-box{background:rgba(255,68,68,0.1);border:1px dashed #ff4444;padding:12px;border-radius:10px;margin:10px 0;font-size:0.9rem}
-.lifestyle-box{background:rgba(212,175,55,0.1);padding:12px;border-radius:10px;margin:15px 0;font-size:0.85rem}
+.alert-box{background:rgba(255,68,68,0.1);border:1px dashed #ff4444;padding:12px;border-radius:10px;margin:10px 0;font-size:0.9rem; text-align: right;}
+.lifestyle-box{background:rgba(212,175,55,0.1);padding:12px;border-radius:10px;margin:15px 0;font-size:0.85rem; text-align: right;}
 .disclaimer{font-size:0.7rem;color:#777;text-align:center;margin-top:20px;line-height:1.4}
 </style>
 </head>
@@ -103,7 +103,7 @@ margin:0 auto 15px;font-size:1.8rem;color:var(--gold-solid);box-shadow:0 0 20px 
 
 <div class="card" id="questions" style="display:none">
 <div class="section-title">تأكيد التشخيص</div>
-<p style="font-size:0.8rem;color:#aaa">يرجى مراجعة البيانات المكتشفة وتعديلها إذا لزم الأمر:</p>
+<p style="font-size:0.8rem;color:#aaa; text-align: right;">يرجى مراجعة البيانات المكتشفة وتعديلها:</p>
 
 <label>التصبغات</label>
 <select id="pigmentSelect">
@@ -136,9 +136,9 @@ margin:0 auto 15px;font-size:1.8rem;color:var(--gold-solid);box-shadow:0 0 20px 
 <option value="ultra">Ultra (نتائج قصوى + نضارة)</option>
 </select>
 
-<div style="background:#222;padding:10px;border-radius:10px;margin:10px 0">
-<label style="display:block;margin-bottom:5px"><input type="checkbox" id="glowPack"> إضافة باقة النضارة (Glow) ✨</label>
-<label style="display:block"><input type="checkbox" id="brightPack"> إضافة باقة التفتيح (Bright) 🤍</label>
+<div style="background:#222;padding:10px;border-radius:10px;margin:10px 0; text-align: right;">
+<label style="display:block;margin-bottom:5px"><input type="checkbox" id="glowPack"> إضافة باقة النضارة ✨</label>
+<label style="display:block"><input type="checkbox" id="brightPack"> إضافة باقة التفتيح 🤍</label>
 </div>
 
 <button class="gold-btn" onclick="generateReport()">عرض التقرير الملكي 👑</button>
@@ -148,7 +148,7 @@ margin:0 auto 15px;font-size:1.8rem;color:var(--gold-solid);box-shadow:0 0 20px 
 <div class="score" id="scoreBox">0%</div>
 <div class="confidence" id="confidenceBox"></div>
 
-<div id="clinicalSummary"></div>
+<div id="clinicalSummary" style="text-align: right;"></div>
 
 <div class="lifestyle-box">
 <b>💡 تعليمات Verona الذهبية:</b><br>
@@ -162,7 +162,7 @@ margin:0 auto 15px;font-size:1.8rem;color:var(--gold-solid);box-shadow:0 0 20px 
 <div class="price" id="priceBox"></div>
 
 <div class="disclaimer">
-تنبيه: هذا التطبيق استرشادي يعتمد على الذكاء الاصطناعي لتحليل الصور. في حال وجود أمراض جلدية مزمنة، أكزيما، أو حساسية مفرطة، يجب استشارة طبيب جلدية مختص قبل استخدام المنتجات.
+تنبيه: هذا التطبيق استرشادي يعتمد على الذكاء الاصطناعي. في حال وجود أمراض جلدية مزمنة، يجب استشارة طبيب جلدية مختص قبل استخدام المنتجات.
 </div>
 
 <button class="gold-btn" onclick="location.reload()" style="margin-top:20px;background:#333;color:#fff">إعادة الفحص 📸</button>
@@ -265,7 +265,7 @@ let summaryHTML = `<div class="section-title">التشخيص المكتشف</div
 <p>نوع البشرة: <b>${detected.skinType}</b></p>`;
 
 if(detected.skinType === "جافة"){
-summaryHTML += `<div class="alert-box">⚠️ <b>بروتوكول البشرة الجافة:</b> بشرتك تفتقر للزيوت الطبيعية. يجب استخدام كريم ترطيب غني يومياً لمدة 14 يوماً قبل البدء بأي سيرومات تقشير.</div>`;
+summaryHTML += `<div class="alert-box">⚠️ <b>بروتوكول البشرة الجافة:</b> بشرتك تفتقر للزيوت الطبيعية. يجب الالتزام بالترطيب المكثف لمدة أسبوعين قبل البدء بأي سيرومات علاجية.</div>`;
 }
 
 document.getElementById("clinicalSummary").innerHTML = summaryHTML;
@@ -274,30 +274,62 @@ buildRoutine(p,a,d,plan,glow,bright);
 calculatePrice(plan,glow,bright);
 }
 
-function buildRoutine(p,a,d,plan,glow,bright){
-let cleanser = (detected.skinType === "دهنية") ? "غسول ستارفيل اكتيف" : "غسول ميلانو جينتل";
-let sunscreen = "واقي شمس كولاجرا (أساسي)";
+function buildRoutine(p, a, d, plan, glow, bright){
+  let routine = `<div class="section-title">الروتين المخصص (${plan.toUpperCase()})</div>`;
 
-let routine=`<div class="section-title">الروتين المخصص (${plan.toUpperCase()})</div>
-<div class="routine-item"><b>الأساسيات:</b> ${cleanser} + مرطب + ${sunscreen}</div>`;
+  // الأساسيات اليومية
+  let cleanser = (detected.skinType === "دهنية") 
+    ? "غسول ستارفيل اكتيف للبشرة الدهنية (Niacinamide 2%, Salicylic Acid 1%)" 
+    : "غسول ميلانو جينتل للبشرة الحساسة (Aloe Vera, Panthenol)";
+  let moisturizer = (detected.skinType === "جافة") 
+    ? "مرطب ميلانو هيدريشن (Ceramides + Hyaluronic Acid)" 
+    : "مرطب ستارفيل بالفيتامينات (Vitamin E + Niacinamide)";
+  let sunscreen = "واقي شمس كولاجرا SPF50 (Zinc Oxide + Titanium Dioxide)";
 
-if(a>0){
-routine+=`<div class="routine-item"><b>علاج الحبوب:</b> ${plan==="eco"?"Niacinamide":plan==="elite"?"Niacinamide + Salicylic Acid":"Niacinamide + Salicylic + Zinc"}</div>`;
-}
+  routine += `<div class="routine-item"><b>الأساسيات اليومية:</b><br>${cleanser}<br>${moisturizer}<br>${sunscreen}</div>`;
 
-if(p>0 || bright){
-routine+=`<div class="routine-item"><b>التفتيح والتصبغات:</b> ${plan==="eco"?"Vitamin C":plan==="elite"?"Arbutin + Vitamin C":"Arbutin + Tranexamic + Vitamin C"}</div>`;
-}
+  // علاج الحبوب
+  if(a>0){
+    let acneProduct = plan==="eco" 
+      ? "Niacinamide 10% كريم موضعي" 
+      : plan==="elite" 
+        ? "سيروم نياسيناميد 10% + Salicylic Acid 2% (Starfeel Acne Serum)" 
+        : "سيروم نياسيناميد + Salicylic + Zinc (Ultra Acne Booster)";
+    let freq = a===1 ? "3 مرات أسبوعياً" : a===2 ? "يوم بعد يوم" : "يومياً مع متابعة";
+    routine += `<div class="routine-item"><b>علاج الحبوب:</b><br>${acneProduct}<br><b>التكرار:</b> ${freq}</div>`;
+  }
 
-if(d>0){
-routine+=`<div class="routine-item"><b>عناية الهالات:</b> ${plan==="eco"?"Caffeine Eye Cream":plan==="elite"?"Caffeine + Retinol":"Caffeine + Retinol + Peptides"}</div>`;
-}
+  // علاج التصبغات
+  if(p>0 || bright){
+    let pigmentProduct = plan==="eco" 
+      ? "سيروم Vitamin C 15% (Melano Free)" 
+      : plan==="elite" 
+        ? "سيروم Alpha Arbutin 2% + Vitamin C (Melano Elite)" 
+        : "سيروم Arbutin + Tranexamic + Vitamin C (Ultra Brightening)";
+    routine += `<div class="routine-item"><b>التفتيح والتصبغات:</b><br>${pigmentProduct}<br><b>المواد الفعالة:</b> Alpha Arbutin, Vitamin C, Tranexamic Acid</div>`;
+  }
 
-if(glow){
-routine+=`<div class="routine-item"><b>باقة النضارة:</b> سيروم الهيالورونيك أسيد + ماسك الذهب</div>`;
-}
+  // علاج الهالات
+  if(d>0){
+    let darkProduct = plan==="eco" 
+      ? "كريم العين بالكافيين (Caffeine Eye Cream)" 
+      : plan==="elite" 
+        ? "كريم العين بالكافيين + Retinol (Starfeel Dark Circle Serum)" 
+        : "كريم العين بالكافيين + Retinol + Peptides (Ultra Eye Care)";
+    routine += `<div class="routine-item"><b>عناية الهالات:</b><br>${darkProduct}<br><b>التكرار:</b> ليلاً</div>`;
+  }
 
-document.getElementById("routineOutput").innerHTML=routine;
+  // باقة النضارة
+  if(glow){
+    routine += `<div class="routine-item"><b>✨ باقة النضارة:</b><br>سيروم الهيالورونيك أسيد (Hyaluronic Serum) + ماسك الذهب (Gold Face Mask)</div>`;
+  }
+
+  // باقة التفتيح
+  if(bright){
+    routine += `<div class="routine-item"><b>🤍 باقة التفتيح:</b><br>سيروم فيتامين C + Alpha Arbutin + ماسك تفتيح (Brightening Pack)</div>`;
+  }
+
+  document.getElementById("routineOutput").innerHTML = routine;
 }
 
 function calculatePrice(plan,glow,bright){
