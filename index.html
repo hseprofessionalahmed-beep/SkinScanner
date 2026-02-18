@@ -1,54 +1,170 @@
-<!DOCTYPE html><html lang="ar">
+<!DOCTYPE html>
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>VERONA AI Skin Analyzer</title>
+<title>VERONA AI - تجربة واتساب</title>
 <style>
-:root {
-  --gold: #FFD700;
-}
-body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:20px; }
-#video, #canvas { width: 100%; max-width:400px; border-radius:10px; display:block; margin:auto; }
-.analysis-mode { filter: grayscale(1) contrast(1.2) brightness(0.8); transition: all 1s ease; }
-.scan-line { position: absolute; top:0; left:0; width:100%; height:4px; background: var(--gold); box-shadow:0 0 15px var(--gold); z-index:15; display:none; animation: scan-move 2s linear; }
-@keyframes scan-move { 0%{top:0;} 100%{top:100%;} }
-.routine-container { display:flex; justify-content:space-around; margin-top:20px; }
-.routine-card { background:#fff; padding:15px; border-radius:10px; width:30%; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-button { padding:10px; border:none; border-radius:5px; background:var(--gold); color:#000; cursor:pointer; margin-top:10px; width:100%; }
-#resetBtn { background:#333; color:#fff; }
+  body { font-family: Arial; text-align:center; background:#f5f5f5; }
+  #videoContainer { position:relative; display:inline-block; }
+  video, canvas { width:320px; height:240px; border-radius:10px; }
+  #scanLine {
+    position:absolute; top:0; left:0; width:100%; height:4px;
+    background:gold; box-shadow:0 0 15px gold;
+    display:none; z-index:10; animation: scan-move 2s linear;
+  }
+  @keyframes scan-move { 0%{top:0;} 100%{top:100%;} }
+  .analysis-mode { filter: grayscale(1) contrast(1.2) brightness(0.8); transition:all 1s ease; }
+  button { margin:10px; padding:10px 15px; font-size:16px; cursor:pointer; }
+  #packages { display:flex; justify-content:center; margin-top:20px; gap:10px; }
+  .package-card { background:#fff; padding:10px; border-radius:10px; width:150px; box-shadow:0 0 5px #aaa; }
+  .package-card button { margin-top:10px; }
 </style>
 </head>
 <body>
-<h2 style="text-align:center;">VERONA AI Skin Analyzer</h2>
-<p id="status" style="text-align:center;">المحرك جاهز للفحص ✅</p>
-<video id="video" autoplay playsinline></video>
-<canvas id="canvas" style="display:none;"></canvas>
-<div class="scan-line" id="scanLine"></div>
-<div style="text-align:center; margin-top:10px;">
-  <button id="analyzeBtn">بدء التحليل 🔬</button>
-  <button id="resetBtn" style="display:none;" onclick="resetAnalysis()">إعادة التقاط 📸</button>
+
+<h2>VERONA AI - تجربة واتساب</h2>
+<p id="status">المحرك جاهز للفحص ✅</p>
+
+<div id="videoContainer">
+  <video id="video" autoplay muted></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <div id="scanLine"></div>
 </div>
-<div id="routineArea"></div>
+
+<br>
+<button id="scanBtn">ابدأ التحليل</button>
+<button id="resetBtn" style="display:none;">إعادة الفحص 📸</button>
+
+<div id="packages" style="display:none;"></div>
+
 <script>
-let video = document.getElementById('video');
-let canvas = document.getElementById('canvas');
-let scanLine = document.getElementById('scanLine');
-let analyzeBtn = document.getElementById('analyzeBtn');
-let resetBtn = document.getElementById('resetBtn');
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scanLine = document.getElementById('scanLine');
+const status = document.getElementById('status');
+const resetBtn = document.getElementById('resetBtn');
+const packagesDiv = document.getElementById('packages');
+
 let lastResults = null;
 let analysisData = {};
-let detectedIssues = {};// تشغيل الكاميرا navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{video.srcObject=stream;});
+let detectedIssues = {pigment:false, halations:false, acne:false};
+let skinScore = 0;
 
-analyzeBtn.onclick = function(){ analyzeFace(); };
+// تفعيل الكاميرا
+navigator.mediaDevices.getUserMedia({ video:true }).then(stream => {
+  video.srcObject = stream;
+}).catch(err => alert("يرجى السماح بالكاميرا: " + err));
 
-function analyzeFace(){ const ctx = canvas.getContext('2d'); canvas.width = video.videoWidth; canvas.height = video.videoHeight; ctx.drawImage(video,0,0,canvas.width,canvas.height); video.style.display='none'; canvas.style.display='block'; scanLine.style.display='block'; canvas.classList.add('analysis-mode'); document.getElementById('status').innerText='🔬 جاري المسح المجهري لطبقات الجلد...';
+// دالة التحليل
+function analyzeFace() {
+  canvas.width = video.videoWidth || 320;
+  canvas.height = video.videoHeight || 240;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  video.style.display = 'none';
+  canvas.style.display = 'block';
+  scanLine.style.display = 'block';
+  canvas.classList.add('analysis-mode');
+  status.innerText = "🔬 جاري المسح المجهري لطبقات الجلد...";
 
-setTimeout(()=>{ scanLine.style.display='none'; canvas.classList.remove('analysis-mode'); // محاكاة التحليل detectedIssues = { pigment:true, halations:true, acne:false }; analysisData.skinType = 'مختلطة / عادية'; let score = Math.floor(Math.random()*40+60); // رسم Heatmap ctx.fillStyle="rgba(255,215,0,0.4)"; for(let i=0;i<5;i++){ let x=Math.random()*canvas.width; let y=Math.random()canvas.height; ctx.beginPath(); ctx.arc(x,y,20,0,Math.PI2); ctx.fill(); } showRoutines(score); resetBtn.style.display='inline-block'; document.getElementById('status').innerText='✅ تم التحليل بنجاح'; },2000); }
+  lastResults = ctx.getImageData(0,0,canvas.width,canvas.height);
 
-function showRoutines(score){ let routineArea = document.getElementById('routineArea'); routineArea.innerHTML=''; const routines=[ { type:'اقتصادي', note:'متاحة للتسليم الفوري.', products:'غسول ستارفيل، سيروم فيتامين C، واقي شمس ستارفيل'}, { type:'سوبر', note:'الأكثر طلباً هذا الأسبوع 🔥.', products:'غسول فاست برايت، سيروم كولاجرا، واقي شمس كولاجرا'}, { type:'ألترا', note:'تتضمن استشارة مجانية لمتابعة النتائج.', products:'Nano Treat 24K Gold، سيروم الكافيار، واقي الشمس كولاجرا'} ]; let container=document.createElement('div'); container.className='routine-container'; routines.forEach(r=>{ let card=document.createElement('div'); card.className='routine-card'; card.innerHTML=<h4>${r.type}</h4><p>${r.products}</p><p>${r.note}</p><button onclick="sendWA('${r.type}',${score})">حجز الباقة عبر واتساب ✅</button>; container.appendChild(card); }); routineArea.appendChild(container); }
+  setTimeout(()=>{
+    scanLine.style.display='none';
+    canvas.classList.remove('analysis-mode');
 
-function sendWA(type,score){ const skinType=analysisData.skinType||'قيد التحليل'; const issues=[]; if(detectedIssues.pigment) issues.push('تصبغات'); if(detectedIssues.halations) issues.push('هالات سوداء'); if(detectedIssues.acne) issues.push('حب شباب/مسام'); const message = *تقرير VERONA AI PRO لمحل تحليل البشرة*%0A---------------------------%0A• *نتيجة الفحص:* ${score}%25%0A• *نوع البشرة:* ${skinType}%0A• *المشاكل المكتشفة:* ${issues.join(' - ') || 'بشرة صافية'}%0A• *الباقة المختارة:* ${type}%0A---------------------------%0Aأرغب في تأكيد الحجز وبدء الروتين المخصص.%0A*ملاحظة:* تم إنشاء هذا التقرير بواسطة تقنية VERONA AI للهواتف الذكية.; window.open(https://wa.me/201063994139?text=${message},'_blank'); }
+    // رسم نقاط توهج ذهبية على مناطق افتراضية للعيوب
+    ctx.fillStyle="rgba(255,215,0,0.4)";
+    for(let i=0;i<5;i++){
+      let x=Math.random()*canvas.width;
+      let y=Math.random()*canvas.height;
+      ctx.beginPath();
+      ctx.arc(x,y,20,0,Math.PI*2);
+      ctx.fill();
+    }
 
-function resetAnalysis(){ video.style.display='block'; canvas.style.display='none'; document.getElementById('routineArea').innerHTML=''; document.getElementById('status').innerText='المحرك جاهز للفحص ✅'; resetBtn.style.display='none'; } </script>
+    // نوع البشرة ديناميكياً
+    let brightness=0;
+    for(let i=0;i<lastResults.data.length;i+=40){
+      brightness += (lastResults.data[i]+lastResults.data[i+1]+lastResults.data[i+2])/3;
+    }
+    let avgB = brightness/(lastResults.data.length/40);
+    if(avgB>180) analysisData.skinType='دهنية (لمعان عالٍ)';
+    else if(avgB<110) analysisData.skinType='جافة (شاحبة)';
+    else analysisData.skinType='مختلطة / عادية';
+
+    // مشاكل عشوائية كمثال
+    detectedIssues.pigment = Math.random()>0.5;
+    detectedIssues.halations = Math.random()>0.4;
+    detectedIssues.acne = Math.random()>0.6;
+    skinScore = Math.floor(Math.random()*21)+80; // 80% - 100%
+
+    status.innerText = `✅ التحليل مكتمل. نوع البشرة: ${analysisData.skinType}`;
+    resetBtn.style.display='inline-block';
+
+    showPackages();
+  },2000);
+}
+
+// عرض الباقات بعد التحليل
+function showPackages() {
+  packagesDiv.innerHTML='';
+  packagesDiv.style.display='flex';
+  const packages = [
+    {type:'اقتصادي', note:'متاحة للتسليم الفوري.'},
+    {type:'سوبر', note:'الأكثر طلباً هذا الأسبوع 🔥.'},
+    {type:'ألترا', note:'تتضمن استشارة مجانية لمتابعة النتائج.'}
+  ];
+
+  packages.forEach(p=>{
+    const div = document.createElement('div');
+    div.className='package-card';
+    div.innerHTML=`<h4>${p.type}</h4><p>${p.note}</p>`;
+    const btn = document.createElement('button');
+    btn.innerText='اختيار هذه الباقة ✅';
+    btn.onclick = ()=> sendWA(p.type, p.note);
+    div.appendChild(btn);
+    packagesDiv.appendChild(div);
+  });
+}
+
+// إعادة الفحص
+function resetAnalysis() {
+  video.style.display='block';
+  canvas.style.display='none';
+  packagesDiv.style.display='none';
+  status.innerText='المحرك جاهز لفحص جديد ✅';
+  resetBtn.style.display='none';
+  lastResults=null;
+  detectedIssues={pigment:false,halations:false,acne:false};
+}
+
+// إرسال واتساب مع الباقة المختارة
+function sendWA(selectedPackage, note){
+  const issues = [];
+  if(detectedIssues.pigment) issues.push("تصبغات");
+  if(detectedIssues.halations) issues.push("هالات سوداء");
+  if(detectedIssues.acne) issues.push("حب شباب/مسام");
+
+  let message = `*تقرير VERONA AI PRO*%0A---------------------------%0A`;
+  message += `• *نتيجة الفحص:* ${skinScore}%25%0A`;
+  message += `• *نوع البشرة:* ${analysisData.skinType}%0A`;
+  message += `• *المشاكل المكتشفة:* ${issues.join(' - ') || 'بشرة صافية'}%0A`;
+  message += `• *الباقة المختارة:* ${selectedPackage} (${note})%0A`;
+  message += `---------------------------%0A`;
+  message += `أرغب في تأكيد الحجز وبدء الروتين المخصص.%0A`;
+  message += `*ملاحظة:* تم إنشاء هذا التقرير بواسطة تقنية VERONA AI للهواتف الذكية.`;
+
+  window.open(`https://wa.me/201063994139?text=${message}`,'_blank');
+}
+
+document.getElementById('scanBtn').addEventListener('click',()=>{
+  if(!video.srcObject) return alert("الكاميرا غير متوفرة!");
+  analyzeFace();
+});
+resetBtn.addEventListener('click',resetAnalysis);
+
+</script>
 
 </body>
 </html>
