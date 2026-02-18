@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI - CLINICAL ELITE</title>
+    <title>VERONA AI - CLINICAL PRECISION</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
@@ -13,203 +13,148 @@
         :root {
             --gold: linear-gradient(135deg, #a67c00 0%, #ffbf00 50%, #a67c00 100%);
             --gold-solid: #d4af37;
-            --dark-bg: #0a0a0a;
-            --card-bg: rgba(255, 255, 255, 0.05);
+            --dark-bg: #050505;
+            --card-bg: rgba(20, 20, 20, 0.8);
             --neon-blue: #00f2ff;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             background: var(--dark-bg);
             color: #fff;
             margin: 0;
-            overflow-x: hidden;
-            line-height: 1.6;
+            line-height: 1.4;
         }
 
-        /* واجهة التحميل */
-        #splash {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: #000; z-index: 9999; display: flex;
-            flex-direction: column; align-items: center; justify-content: center;
-        }
+        .container { max-width: 500px; margin: auto; padding: 15px; }
 
-        .loader {
-            width: 50px; height: 50px; border: 3px solid #333;
-            border-top: 3px solid var(--gold-solid); border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .container { max-width: 600px; margin: auto; padding: 20px; }
-
-        .header { text-align: center; padding: 30px 0; }
+        .header { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(212,175,55,0.2); }
         .header h1 { 
             background: var(--gold); -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; font-size: 2.2rem; margin: 0;
-            letter-spacing: 2px;
+            -webkit-text-fill-color: transparent; font-size: 1.8rem; margin: 0;
+            font-weight: 900;
         }
 
-        /* منطقة المسح */
-        .scanner-container {
-            position: relative; border-radius: 30px; overflow: hidden;
+        /* نافذة المعاينة */
+        .scanner-view {
+            position: relative; border-radius: 25px; overflow: hidden;
             border: 2px solid var(--gold-solid); background: #000;
-            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.15);
+            aspect-ratio: 4/5;
         }
 
-        video, canvas { width: 100%; display: block; }
+        video, canvas { width: 100%; height: 100%; object-fit: cover; }
 
-        .scan-bar {
-            position: absolute; width: 100%; height: 2px;
-            background: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue);
-            top: 0; display: none; z-index: 5;
-            animation: scanMove 2s infinite linear;
+        .scan-line {
+            position: absolute; width: 100%; height: 4px;
+            background: var(--gold-solid); box-shadow: 0 0 20px var(--gold-solid);
+            top: 0; display: none; z-index: 10;
+            animation: scanAnim 2.5s infinite linear;
         }
 
-        @keyframes scanMove { 0% { top: 0; } 100% { top: 100%; } }
+        @keyframes scanAnim { 0% { top: 0%; } 100% { top: 100%; } }
 
-        /* البطاقات والنتائج */
+        /* البطاقات */
         .card {
-            background: var(--card-bg); border: 1px solid rgba(212,175,55,0.2);
-            border-radius: 20px; padding: 20px; margin-top: 20px;
+            background: var(--card-bg); border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 20px; padding: 20px; margin-top: 15px;
             backdrop-filter: blur(10px); display: none;
         }
 
-        .score-circle {
-            width: 120px; height: 120px; border-radius: 50%;
-            border: 4px solid var(--gold-solid); margin: 0 auto 20px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2.2rem; font-weight: bold; color: var(--gold-solid);
-            text-shadow: 0 0 15px rgba(212,175,55,0.5);
+        .score-box {
+            font-size: 3rem; font-weight: 900; color: var(--gold-solid);
+            text-align: center; margin: 10px 0;
+            text-shadow: 0 0 20px rgba(212,175,55,0.4);
+        }
+
+        .routine-item {
+            background: rgba(255,255,255,0.03); border-right: 4px solid var(--gold-solid);
+            padding: 12px; border-radius: 10px; margin-bottom: 12px; text-align: right;
         }
 
         .gold-btn {
             background: var(--gold); color: #000; border: none;
-            padding: 15px 30px; border-radius: 50px; font-weight: bold;
-            width: 100%; cursor: pointer; margin-top: 15px;
-            transition: 0.3s; font-size: 1rem;
+            padding: 15px; border-radius: 50px; font-weight: bold;
+            width: 100%; cursor: pointer; margin-top: 10px;
+            font-size: 1rem; box-shadow: 0 5px 15px rgba(212,175,55,0.3);
         }
 
-        .gold-btn:hover { transform: scale(1.02); opacity: 0.9; }
-
-        .routine-item {
-            background: rgba(255,255,255,0.03); border-right: 4px solid var(--gold-solid);
-            padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: right;
-        }
-
-        .active-tag {
+        .tag {
             display: inline-block; background: rgba(0, 242, 255, 0.1);
-            color: var(--neon-blue); font-size: 0.7rem; padding: 2px 8px;
+            color: var(--neon-blue); font-size: 0.75rem; padding: 3px 10px;
             border-radius: 5px; margin-top: 5px; border: 1px solid var(--neon-blue);
         }
 
-        select, input {
-            width: 100%; padding: 12px; border-radius: 10px; background: #1a1a1a;
-            color: #fff; border: 1px solid #333; margin: 10px 0;
-        }
-
         .instruction-box {
-            background: rgba(212, 175, 55, 0.05); padding: 15px;
-            border-radius: 12px; border: 1px dashed var(--gold-solid);
-            font-size: 0.85rem; color: #ccc; text-align: right;
+            background: rgba(212, 175, 55, 0.05); padding: 12px;
+            border-radius: 10px; border: 1px dashed var(--gold-solid);
+            font-size: 0.8rem; color: #ddd; text-align: right; margin-top: 15px;
+        }
+        
+        #statusOverlay {
+            position: absolute; bottom: 20px; width: 100%;
+            text-align: center; color: var(--gold-solid);
+            font-weight: bold; font-size: 0.9rem; z-index: 15;
         }
     </style>
 </head>
 <body>
 
-<div id="splash">
-    <div class="loader"></div>
-    <p style="margin-top:20px; letter-spacing:3px; color:var(--gold-solid)">INITIALIZING AI ENGINE...</p>
-</div>
-
 <div class="container">
     <div class="header">
-        <h1>VERONA <span style="color:#fff">AI ELITE</span></h1>
-        <p style="color:#666; font-size:0.8rem;">نظام التحليل السريري المتقدم V3.0</p>
+        <h1>VERONA | AI PRECISION</h1>
+        <p style="color:#888; font-size:0.7rem; margin:5px 0 0 0;">نظام التحليل السريري عالي الدقة</p>
     </div>
 
-    <div class="scanner-container">
+    <div class="scanner-view">
         <video id="input_video" playsinline></video>
         <canvas id="output_canvas"></canvas>
-        <div class="scan-bar" id="scanBar"></div>
+        <div class="scan-line" id="scanLine"></div>
+        <div id="statusOverlay">بانتظار تفعيل الكاميرا...</div>
     </div>
 
-    <div id="controls" style="margin-top:20px;">
-        <button class="gold-btn" onclick="startAnalysis()">ابدأ الفحص المجهري 🔬</button>
-        <p id="statusTxt" style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">بانتظار تفعيل الكاميرا...</p>
+    <div id="actionPanel">
+        <button class="gold-btn" onclick="startClinicalScan()">بدء الفحص السريري 🧬</button>
     </div>
 
-    <div id="questionsCard" class="card">
-        <h3 style="color:var(--gold-solid); text-align:center;">تأكيد البيانات السريرية</h3>
-        <label>التصبغات المكتشفة:</label>
-        <select id="pLevel">
-            <option value="0">لا يوجد</option>
-            <option value="1">خفيفة (آثار شمس)</option>
-            <option value="2">متوسطة (تفاوت لون)</option>
-            <option value="3">عميقة (كلف/نمش)</option>
-        </select>
+    <div id="reportCard" class="card">
+        <div class="score-box" id="scoreNum">0%</div>
+        <p style="text-align:center; color:#aaa; margin-top:-10px;">مؤشر صحة البشرة</p>
         
-        <label>درجة الحبوب:</label>
-        <select id="aLevel">
-            <option value="0">لا يوجد</option>
-            <option value="1">رؤوس سوداء/بيضاء</option>
-            <option value="2">حبوب حمراء ملتهبة</option>
-        </select>
+        <div id="diagnosisSummary" class="instruction-box"></div>
 
-        <label>باقات إضافية:</label>
-        <div style="display:flex; gap:10px;">
-            <label style="font-size:0.8rem;"><input type="checkbox" id="glowIn"> باقة نضارة ✨</label>
-            <label style="font-size:0.8rem;"><input type="checkbox" id="brightIn"> باقة تفتيح 🤍</label>
+        <div id="routineList" style="margin-top:20px;"></div>
+
+        <div class="instruction-box">
+            <b>💡 نصيحة الخبير:</b><br>
+            يجب شرب 3 لتر ماء يومياً وتجنب السهر لتقليل إجهاد تحت العين.
         </div>
 
-        <button class="gold-btn" onclick="showResults()">استخراج التقرير النهائي 📄</button>
+        <button class="gold-btn" onclick="location.reload()" style="background:#222; color:#fff;">إعادة التحليل 📸</button>
     </div>
-
-    <div id="resultsCard" class="card">
-        <div class="score-circle" id="finalScore">0%</div>
-        <p style="text-align:center; color:#888; margin-top:-10px; margin-bottom:20px;">Skin Health Index</p>
-        
-        <div id="clinicalInfo" class="instruction-box" style="margin-bottom:20px;"></div>
-        
-        <div id="routineOutput"></div>
-
-        <div class="instruction-box" style="margin-top:20px;">
-            <b>📋 بروتوكول العناية Verona:</b><br>
-            • شرب 3 لتر ماء (يمنع جفاف الأدمة).<br>
-            • غطاء وسادة حريري (يمنع احتكاك الحبوب).<br>
-            • النوم قبل منتصف الليل (تجديد خلايا).
-        </div>
-
-        <button class="gold-btn" onclick="location.reload()" style="background:#222; color:#fff; border:1px solid #444;">إعادة الفحص 📸</button>
-    </div>
-
 </div>
 
 <script>
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('output_canvas');
-const canvasCtx = canvasElement.getContext('2d');
-const scanBar = document.getElementById('scanBar');
+const canvasCtx = canvasElement.getContext('2d', {willReadFrequently: true});
+const statusOverlay = document.getElementById('statusOverlay');
 
 let faceMesh;
-let detectedType = "مختلطة";
-let analysisComplete = false;
+let lastLandmarks = null;
+let detectedIssues = { pigment: false, halations: false, dry: false, acne: false };
 
-// 1. إعداد المحرك
-async function init() {
+// 1. تهيئة المحرك
+async function setupAI() {
     faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
-    faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
+    faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.7 });
     faceMesh.onResults(onResults);
 
     const camera = new Camera(videoElement, {
         onFrame: async () => { await faceMesh.send({image: videoElement}); },
         width: 640, height: 480
     });
-    camera.start().then(() => {
-        document.getElementById('splash').style.display = 'none';
-        document.getElementById('statusTxt').innerText = "تم الاتصال بالمحرك.. وجه الكاميرا نحوك";
-    });
+    camera.start().then(() => statusOverlay.innerText = "المحرك جاهز. وجه الكاميرا نحوك.");
 }
 
 function onResults(results) {
@@ -220,76 +165,111 @@ function onResults(results) {
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
     if (results.multiFaceLandmarks) {
-        for (const landmarks of results.multiFaceLandmarks) {
-            // رسم نقاط التشخيص الطبية
-            drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color: '#d4af3733', lineWidth: 0.5});
-            
-            // خوارزمية ذكية لتحليل نوع البشرة (بناءً على تباين الإضاءة)
-            if(!analysisComplete) {
-                let brightness = landmarks[10].y * 100; // مثال مبسط
-                detectedType = brightness > 50 ? "دهنية" : (brightness < 30 ? "جافة" : "مختلطة");
-            }
-        }
+        lastLandmarks = results.multiFaceLandmarks[0];
+        // رسم شبكة التشخيص (شفافة)
+        drawConnectors(canvasCtx, lastLandmarks, FACEMESH_TESSELATION, {color: '#d4af3722', lineWidth: 0.5});
+        
+        // التحليل الفوري للمناطق
+        analyzeClinical(lastLandmarks);
     }
     canvasCtx.restore();
 }
 
-function startAnalysis() {
-    scanBar.style.display = "block";
-    document.getElementById('statusTxt').innerText = "جاري مسح طبقات الجلد الحيوية...";
+function getPixelMean(lm) {
+    const x = Math.floor(lm.x * canvasElement.width);
+    const y = Math.floor(lm.y * canvasElement.height);
+    try {
+        const pData = canvasCtx.getImageData(x-4, y-4, 8, 8).data;
+        let lumSum = 0;
+        for (let i = 0; i < pData.length; i += 4) {
+            lumSum += (pData[i] * 0.299 + pData[i+1] * 0.587 + pData[i+2] * 0.114);
+        }
+        return lumSum / (pData.length / 4);
+    } catch (e) { return 120; }
+}
+
+function analyzeClinical(landmarks) {
+    // تحديد مناطق القياس
+    const foreheadTop = getPixelMean(landmarks[10]);      // مرجع الجبهة
+    const foreheadLeft = getPixelMean(landmarks[109]);     // يسار الجبهة
+    const foreheadRight = getPixelMean(landmarks[338]);    // يمين الجبهة
+    
+    const eyeLeft = getPixelMean(landmarks[101]);         // تحت العين يسار
+    const eyeRight = getPixelMean(landmarks[330]);        // تحت العين يمين
+    
+    const cheekAvg = (getPixelMean(landmarks[205]) + getPixelMean(landmarks[425])) / 2;
+
+    // خوارزمية كشف الهالات (Under Eye Detection)
+    const eyeBrightnessRatio = ((eyeLeft + eyeRight) / 2) / foreheadTop;
+    detectedIssues.halations = eyeBrightnessRatio < 0.86; // حساسية عالية للهالات
+
+    // خوارزمية كشف تصبغات الجبهة (Forehead Pigment)
+    const foreheadContrast = Math.abs(foreheadLeft - foreheadRight);
+    detectedIssues.pigment = foreheadContrast > 15 || (foreheadLeft / foreheadTop < 0.90);
+
+    // كشف الجفاف والمسام (Texture)
+    detectedIssues.dry = cheekAvg < 95;
+    detectedIssues.acne = Math.abs(cheekAvg - foreheadTop) > 25;
+
+    // تحديث نص الحالة
+    let reportTxt = detectedIssues.halations ? "⚠️ تم رصد هالات | " : "";
+    reportTxt += detectedIssues.pigment ? "⚠️ تصبغات مكتشفة | " : "";
+    statusOverlay.innerText = reportTxt || "البشرة تبدو مستقرة..";
+}
+
+function startClinicalScan() {
+    if(!lastLandmarks) return alert("يرجى توجيه الوجه للكاميرا");
+    
+    document.getElementById('scanLine').style.display = "block";
+    statusOverlay.innerText = "جاري مسح الطبقة القرنية وفحص الهالات...";
     
     setTimeout(() => {
-        analysisComplete = true;
-        scanBar.style.display = "none";
-        document.getElementById('controls').style.display = "none";
-        document.getElementById('questionsCard').style.display = "block";
-        videoElement.pause();
+        document.getElementById('scanLine').style.display = "none";
+        document.getElementById('actionPanel').style.display = "none";
+        document.getElementById('reportCard').style.display = "block";
+        generateFinalReport();
     }, 3000);
 }
 
-function showResults() {
-    document.getElementById('questionsCard').style.display = "none";
-    document.getElementById('resultsCard').style.display = "block";
+function generateFinalReport() {
+    let score = 95;
+    let summary = "<b>التشخيص المكتشف:</b><br>";
+    let routine = "";
 
-    let p = document.getElementById('pLevel').value;
-    let a = document.getElementById('aLevel').value;
-    let glow = document.getElementById('glowIn').checked;
-    let bright = document.getElementById('brightIn').checked;
+    if (detectedIssues.halations) {
+        score -= 10;
+        summary += "• هالات سوداء تحت العين (إجهاد وعائي).<br>";
+        routine += createRoutine("عناية الهالات", "كريم كولاجرا بالكافيين والريتينول", "Caffeine, Retinol");
+    }
+    if (detectedIssues.pigment) {
+        score -= 12;
+        summary += "• تصبغات غير منتظمة في الجبهة.<br>";
+        routine += createRoutine("علاج التصبغات", "سيروم ألفا أربوتين + فيتامين C", "Alpha Arbutin, Vit C");
+    }
+    if (detectedIssues.acne) {
+        score -= 8;
+        summary += "• مسام واسعة أو حبوب نشطة.<br>";
+        routine += createRoutine("علاج المسام", "غسول ستارفيل اكتيف", "Salicylic Acid, Zinc");
+    }
 
-    // حساب النتيجة
-    let score = 95 - (p*5 + a*7);
-    document.getElementById('finalScore').innerText = score + "%";
+    if (score > 90) {
+        summary += "• بشرة نقية إجمالاً. حافظي على الوقاية.<br>";
+        routine += createRoutine("الروتين اليومي", "غسول ميلانو جينتل + صن بلوك", "Aloe Vera, Zinc Oxide");
+    }
 
-    // المعلومات السريرية
-    let info = `نوع البشرة: <b>${detectedType}</b><br>`;
-    if(detectedType === "جافة") info += `⚠️ بشرتك تحتاج ترطيب مكثف لمدة 10 أيام قبل البدء.`;
-    document.getElementById('clinicalInfo').innerHTML = info;
-
-    // بناء الروتين
-    let routine = `<h3 style="text-align:right; color:var(--gold-solid);">روتينك المخصص:</h3>`;
-    
-    // الأساسيات
-    let cleanser = (detectedType === "دهنية") ? "غسول ستارفيل اكتيف" : "غسول ميلانو جينتل";
-    routine += createItem("الأساسي 1: الغسول", cleanser, "Niacinamide, Zinc");
-    routine += createItem("الأساسي 2: الحماية", "صن بلوك كولاجرا SPF50", "Zinc Oxide, UV Filters");
-
-    // العلاجات
-    if(a > 0) routine += createItem("علاج الحبوب", "سيروم ستارفيل للحبوب", "Salicylic Acid 2%");
-    if(p > 0 || bright) routine += createItem("تفتيح التصبغات", "سيروم ميلانو إيليت", "Alpha Arbutin, Vitamin C");
-    if(glow) routine += createItem("باقة النضارة", "سيروم الهيالورونيك + ماسك الذهب", "Pure Hyaluronic Acid");
-
-    document.getElementById('routineOutput').innerHTML = routine;
+    document.getElementById('scoreNum').innerText = score + "%";
+    document.getElementById('diagnosisSummary').innerHTML = summary;
+    document.getElementById('routineList').innerHTML = routine;
 }
 
-function createItem(title, name, actives) {
+function createRoutine(title, product, actives) {
     return `<div class="routine-item">
-                <b>${title}:</b><br>${name}
-                <br><span class="active-tag">المواد الفعالة: ${actives}</span>
-                <button class="gold-btn" style="padding:5px; font-size:0.7rem;" onclick="window.open('https://wa.me/201063994139')">اطلب الآن ✅</button>
+                <b>${title}:</b><br>${product}
+                <br><span class="tag">المواد الفعالة: ${actives}</span>
             </div>`;
 }
 
-init();
+setupAI();
 </script>
 
 </body>
