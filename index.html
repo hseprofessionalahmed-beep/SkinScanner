@@ -3,63 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | CLINICAL SYSTEM</title>
+    <title>VERONA AI | FINAL STABLE V5</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
     <style>
-        :root { --gold: #d4af37; --bg: #050505; --glass: rgba(255,255,255,0.05); }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; text-align: center; }
+        :root { --gold: #d4af37; --bg: #050505; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; text-align: center; overflow-x: hidden; }
         .container { max-width: 500px; margin: auto; padding: 15px; }
-        .preview-box { position: relative; border-radius: 25px; overflow: hidden; border: 2px solid var(--gold); background: #000; aspect-ratio: 4/5; box-shadow: 0 0 30px rgba(212,175,55,0.2); }
-        video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; }
-        #upImg { display: none; }
-        .scan-line { position: absolute; width: 100%; height: 4px; background: var(--gold); top: 0; display: none; animation: scan 2s infinite linear; z-index: 10; }
+        
+        .preview-box { position: relative; border-radius: 25px; overflow: hidden; border: 2px solid var(--gold); background: #000; aspect-ratio: 4/5; margin-bottom: 15px; }
+        video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+        #upImg { display: none; z-index: 5; }
+        canvas { z-index: 10; pointer-events: none; }
+        
+        .scan-line { position: absolute; width: 100%; height: 4px; background: var(--gold); top: 0; display: none; animation: scan 2s infinite linear; z-index: 15; }
         @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer; }
-        .card { background: var(--glass); border: 1px solid rgba(212,175,55,0.3); border-radius: 20px; padding: 20px; margin-top: 15px; display: none; text-align: right; backdrop-filter: blur(10px); }
+
+        .btn-group { display: flex; flex-direction: column; gap: 10px; }
+        .row-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+        .btn:hover { transform: scale(1.02); opacity: 0.9; }
+        .btn-black { background: #222; color: #fff; border: 1px solid #444; }
+
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); border-radius: 20px; padding: 20px; margin-top: 15px; display: none; text-align: right; backdrop-filter: blur(10px); }
         .routine-item { background: rgba(0,0,0,0.4); padding: 15px; border-right: 4px solid var(--gold); border-radius: 8px; margin-bottom: 12px; }
-        .status-badge { color: #00f2ff; font-weight: bold; font-size: 0.9rem; }
-        #liveStatus { position: absolute; bottom: 15px; width: 100%; z-index: 20; text-shadow: 0 2px 4px #000; }
+        #liveStatus { position: absolute; bottom: 15px; width: 100%; color: #00f2ff; font-weight: bold; z-index: 20; text-shadow: 0 2px 4px #000; pointer-events: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold)">VERONA AI CLINICAL V4</h2>
+    <h2 style="color:var(--gold); margin-bottom:20px;">VERONA AI | التحليل السريري</h2>
 
     <div class="preview-box">
         <video id="video" playsinline></video>
         <img id="upImg">
         <canvas id="canvas"></canvas>
         <div class="scan-line" id="sLine"></div>
-        <div id="liveStatus" class="status-badge">بانتظار المصدر...</div>
+        <div id="liveStatus">بانتظار الصورة أو الكاميرا...</div>
     </div>
 
-    <div class="btn-grid" id="controls">
-        <button class="btn" onclick="startCam()">الكاميرا 📸</button>
-        <label class="btn" style="background:#222; color:#fff;">أضف صورة 📁 <input type="file" hidden onchange="handleFile(event)"></label>
+    <div class="btn-group" id="controls">
+        <div class="row-btns">
+            <button class="btn btn-black" onclick="startCam()">فتح الكاميرا 📸</button>
+            <label class="btn btn-black" style="display:flex; align-items:center; justify-content:center;">
+                أضف صورة 📁 <input type="file" hidden onchange="handleFile(event)">
+            </label>
+        </div>
+        <button id="runBtn" class="btn" onclick="processAnalysis()">بدء تحليل الجلد الآن 🔬</button>
     </div>
-
-    <button id="runBtn" class="btn" style="width:100%; margin-top:10px; display:none;" onclick="processAnalysis()">تحليل النتائج الآن 🔬</button>
 
     <div id="reportCard" class="card">
         <div id="scoreDisplay" style="font-size:3rem; text-align:center; color:var(--gold); font-weight:900;">100%</div>
-        <div id="skinTypeBox" style="text-align:center; color:#00f2ff; margin-bottom:15px; font-weight:bold;">نوع البشرة: جاري التحديد...</div>
+        <div id="skinTypeBox" style="text-align:center; color:#00f2ff; margin-bottom:15px; font-weight:bold;"></div>
         
-        <div id="diagnosisBox"></div>
-        <div id="routineBox"></div>
+        <div id="diagBox"></div>
+        <div id="routBox"></div>
 
-        <div class="routine-item" style="border-color:#fff; background:rgba(212,175,55,0.1);">
-            <b style="color:var(--gold)">⚠️ تعليمات وتوجيهات Verona:</b><br>
+        <div class="routine-item" style="border-color:#fff; background:rgba(212,175,55,0.1); margin-top:20px;">
+            <b style="color:var(--gold)">📋 تعليمات خبير Verona:</b><br>
             <small>
-                • شرب 8 أكواب ماء يومياً لتحسين مرونة الجلد.<br>
-                • استخدام واقي شمس Verona يومياً كل ساعتين.<br>
-                • تجنب لمس الحبوب باليد نهائياً لمنع الندبات.
+                • شرب الماء بكثرة هو مفتاح مرونة الأدمة.<br>
+                • لا تستخدمي منشفة خشنة على مناطق الحبوب.<br>
+                • الالتزام بالروتين لمدة 21 يوماً لرؤية النتائج.
             </small>
         </div>
-
-        <button class="btn" onclick="location.reload()" style="width:100%; background:#333; color:#fff;">فحص جديد 🔄</button>
+        <button class="btn btn-black" style="width:100%; margin-top:15px;" onclick="location.reload()">فحص جديد 🔄</button>
     </div>
 </div>
 
@@ -68,48 +79,45 @@
     const upImg = document.getElementById('upImg');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', {willReadFrequently: true});
-    let faceMesh, lastLM, currentSkinType = "مختلطة";
-    let analysis = { acne: false, pig: false, dark: false, dry: false };
+    const liveStatus = document.getElementById('liveStatus');
+    
+    let faceMesh, lastResults = null;
+    let analysis = { acne: false, pig: false, dark: false, dry: false, skinType: "مختلطة" };
 
     async function init() {
         faceMesh = new FaceMesh({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
         faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
         faceMesh.onResults(results => {
+            lastResults = results;
             canvas.width = (video.style.display !== 'none') ? video.videoWidth : upImg.naturalWidth;
             canvas.height = (video.style.display !== 'none') ? video.videoHeight : upImg.naturalHeight;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+            
             if (results.multiFaceLandmarks) {
-                lastLM = results.multiFaceLandmarks[0];
-                drawConnectors(ctx, lastLM, FACEMESH_TESSELATION, {color: '#d4af3722'});
-                runLiveLogic(lastLM);
-                document.getElementById('runBtn').style.display = 'block';
+                runLogic(results.multiFaceLandmarks[0]);
             }
         });
     }
 
-    function runLiveLogic(lm) {
+    function runLogic(lm) {
         const forehead = getL(lm[10]);
         const cheek = getL(lm[205]);
         const eye = getL(lm[101]);
 
-        // 1. تحديد نوع البشرة
-        if (forehead.v > 180) currentSkinType = "دهنية";
-        else if (forehead.v < 110) currentSkinType = "جافة";
-        else currentSkinType = "مختلطة";
+        // تحديد النوع
+        if (forehead.v > 180) analysis.skinType = "دهنية";
+        else if (forehead.v < 110) analysis.skinType = "جافة";
+        else analysis.skinType = "مختلطة";
 
-        // 2. كشف المشاكل
+        // التحليل
         analysis.dark = (eye.v / forehead.v) < 0.86;
         analysis.pig = (cheek.v / forehead.v) < 0.88;
-        analysis.acne = (cheek.r > cheek.g * 1.18); // كشف الاحمرار (الحبوب)
+        analysis.acne = (cheek.r > cheek.g * 1.18); 
         analysis.dry = (forehead.v < 115);
 
-        let status = `بشرة ${currentSkinType} | `;
-        if (analysis.acne) status += "⚠️ حبوب ملتهبة ";
-        if (analysis.pig) status += "⚠️ تصبغات ";
-        if (analysis.dark) status += "⚠️ هالات ";
-        if (!analysis.acne && !analysis.pig && !analysis.dark) status = "✅ البشرة نقية جداً";
-        
-        document.getElementById('liveStatus').innerText = status;
+        liveStatus.innerText = `بشرة ${analysis.skinType} | تم رصد الملامح بنجاح ✅`;
     }
 
     function getL(p) {
@@ -124,47 +132,49 @@
         setTimeout(() => {
             document.getElementById('sLine').style.display = 'none';
             document.getElementById('controls').style.display = 'none';
-            document.getElementById('runBtn').style.display = 'none';
-            showReport();
-        }, 2000);
+            showFinalReport();
+        }, 2500);
     }
 
-    function showReport() {
+    function showFinalReport() {
         document.getElementById('reportCard').style.display = 'block';
-        document.getElementById('skinTypeBox').innerText = "نوع البشرة المكتشف: " + currentSkinType;
+        document.getElementById('skinTypeBox').innerText = "نوع البشرة المكتشف: " + analysis.skinType;
         
         let score = 100;
         let diag = "<b>التشخيص المجهري:</b><br>";
         let rout = "";
 
-        // حالة الطفل (بشرة نقية)
+        // فحص حالة الطفل أو البشرة الصافية
         if (!analysis.acne && !analysis.pig && !analysis.dark && !analysis.dry) {
-            diag += "• مظهر صحي تماماً، غياب كامل للشوائب.<br>";
-            rout += addItem("الحماية اليومية", "Verona Kids Sunscreen", "Zinc Oxide (حماية فيزيائية)");
-            rout += addItem("الترطيب", "Verona Gentle Lotion", "Panthenol (ترطيب لطيف)");
+            diag += "• حالة الجلد: مثالية ونقية.<br>";
+            rout += addItem("الحماية", "Verona Kids Protection", "حماية فيزيائية");
+            rout += addItem("الترطيب", "Verona Soft Cream", "Panthenol");
         } else {
-            if (analysis.acne) { score -= 15; diag += "• حبوب ملتهبة (نشطة).<br>"; rout += addItem("علاج الحبوب", "Verona Acni-Clear Serum", "Salicylic Acid 2%"); }
-            if (analysis.pig) { score -= 12; diag += "• تفاوت في الميلانين (تصبغات).<br>"; rout += addItem("التفتيح", "Verona Melano-Fade Serum", "Alpha Arbutin + Vit C"); }
-            if (analysis.dark) { score -= 8; diag += "• هالات سوداء وعائية.<br>"; rout += addItem("عناية العين", "Verona Eye-Lift Cream", "Caffeine + Peptides"); }
+            if (analysis.acne) { score -= 15; diag += "• حبوب حمراء ملتهبة نشطة.<br>"; rout += addItem("علاج الحبوب", "Verona Acni-Clear Serum", "Salicylic Acid"); }
+            if (analysis.pig) { score -= 12; diag += "• تصبغات بنية متفاوتة.<br>"; rout += addItem("التفتيح", "Verona Melano-Fade Serum", "Alpha Arbutin"); }
+            if (analysis.dark) { score -= 8; diag += "• هالات سوداء تحت العين.<br>"; rout += addItem("عناية العين", "Verona Eye-Lift Cream", "Caffeine"); }
             
-            // باقة الترطيب الإلزامية للبشرة الجافة
-            if (currentSkinType === "جافة" || analysis.dry) {
-                diag += "• جفاف حاد في الطبقة السطحية.<br>";
-                rout += addItem("مرطب إلزامي 💧", "Verona Hydro-Boost Cream", "Hyaluronic Acid + Ceramides");
+            if (analysis.skinType === "جافة" || analysis.dry) {
+                diag += "• جفاف حاد وفقدان للترطيب.<br>";
+                rout += addItem("الترطيب الإلزامي 💧", "Verona Hydro-Boost", "Hyaluronic Acid");
             }
         }
 
         document.getElementById('scoreDisplay').innerText = score + "%";
-        document.getElementById('diagnosisBox').innerHTML = diag;
-        document.getElementById('routineBox').innerHTML = rout;
+        document.getElementById('diagBox').innerHTML = diag;
+        document.getElementById('routBox').innerHTML = rout;
     }
 
-    function addItem(t, n, a) { return `<div class="routine-item"><b>${t}:</b><br>${n}<br><small style="color:#00f2ff">المادة الفعالة: ${a}</small></div>`; }
+    function addItem(t, n, a) { return `<div class="routine-item"><b>${t}:</b><br>${n}<br><small style="color:#00f2ff">المادة: ${a}</small></div>`; }
 
     function startCam() { upImg.style.display='none'; video.style.display='block'; new Camera(video, {onFrame: async () => await faceMesh.send({image: video}), width: 640, height: 480}).start(); }
+    
     function handleFile(e) {
         const r = new FileReader();
-        r.onload = (f) => { upImg.src = f.target.result; upImg.style.display='block'; video.style.display='none'; upImg.onload = async () => await faceMesh.send({image: upImg}); };
+        r.onload = (f) => {
+            upImg.src = f.target.result; upImg.style.display='block'; video.style.display='none';
+            upImg.onload = async () => await faceMesh.send({image: upImg});
+        };
         r.readAsDataURL(e.target.files[0]);
     }
 
