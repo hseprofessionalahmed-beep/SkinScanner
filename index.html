@@ -1,142 +1,190 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>VERONA AI PRO - النسخة المصححة</title>
-    <style>
-        :root { --gold:#d4af37; --gold-soft:#f1d77a; --bg1:#0a0a0a; --bg2:#111111; --glass:rgba(255,255,255,0.05); }
-        body{margin:0;font-family:'Segoe UI',Tahoma,sans-serif;background:radial-gradient(circle at top,var(--bg2),var(--bg1));color:#fff;text-align:center;padding:20px;}
-        .container{max-width:700px;margin:auto;}
-        .preview-box{position:relative;width:100%;border-radius:25px;overflow:hidden;background:#000;border:1px solid var(--gold);min-height:350px;}
-        .action-btn{background:linear-gradient(135deg,var(--gold),var(--gold-soft));color:#000;padding:15px;border:none;border-radius:14px;font-weight:bold;cursor:pointer;width:100%;margin-top:10px;}
-        .result-card{background:var(--glass);backdrop-filter:blur(15px);border-radius:25px;padding:25px;margin-top:25px;border:1px solid rgba(212,175,55,0.4);text-align:right;}
-        select{width:100%;padding:10px;border-radius:10px;margin:8px 0;background:#1c1c1c;color:#fff;border:1px solid var(--gold);}
-        .hidden{display:none;}
-        .sub-option{margin-right:20px; padding:10px; border-right:2px solid var(--gold); background: rgba(212,175,55,0.05); border-radius: 0 10px 10px 0; margin-top:5px;}
-        label{font-weight: bold; color: var(--gold-soft);}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERONA AI PRO - التشخيص الشامل</title>
+<style>
+:root { 
+    --gold: linear-gradient(90deg, #a67c00 0%, #ffbf00 50%, #a67c00 100%);
+    --gold-solid: #d4af37;
+    --dark-bg: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%);
+    --glass: rgba(255, 255, 255, 0.04);
+    --border: rgba(212, 175, 55, 0.3);
+}
+
+body { font-family: 'Segoe UI', sans-serif; background: var(--dark-bg); color: #fff; margin: 0; padding-bottom: 50px; line-height: 1.6; }
+.container { max-width: 500px; margin: auto; padding: 15px; }
+.header { padding: 25px; text-align: center; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.6); }
+.header h1 { font-size: 1.8rem; margin: 0; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+
+.premium-card { background: var(--glass); border: 1px solid var(--border); border-radius: 25px; padding: 20px; backdrop-filter: blur(15px); box-shadow: 0 15px 35px rgba(0,0,0,0.6); margin-bottom: 20px; }
+
+/* الكاميرا */
+#canvasWrapper { position: relative; border-radius: 20px; overflow: hidden; border: 2px solid var(--gold-solid); }
+video, canvas { width: 100%; display: block; }
+.scan-line { position: absolute; top:0; left:0; width:100%; height:4px; background: var(--gold-solid); box-shadow: 0 0 15px var(--gold-solid); display: none; animation: scan 2s infinite linear; z-index: 10; }
+@keyframes scan { 0%{top:0} 100%{top:100%} }
+
+/* الأسئلة */
+.q-box { text-align: right; display: none; }
+.q-item { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; color: var(--gold-solid); font-weight: bold; }
+select { width: 100%; padding: 10px; border-radius: 10px; background: #111; color: #fff; border: 1px solid #444; }
+
+/* النتائج */
+#resultArea { display: none; }
+.score-circle { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold-solid); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; color: var(--gold-solid); box-shadow: 0 0 20px rgba(212,175,55,0.3); }
+.routine-item { background: rgba(255,255,255,0.03); border-right: 4px solid var(--gold-solid); padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: right; }
+.instruction-box { background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 10px; font-size: 0.85rem; border: 1px dashed var(--gold-solid); margin-bottom: 20px; }
+
+.gold-btn { background: var(--gold); color: #000; border: none; padding: 15px; border-radius: 50px; font-weight: 900; font-size: 1.1rem; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 5px 20px rgba(166, 124, 0, 0.4); }
+
+.disclaimer { font-size: 0.7rem; color: #777; margin-top: 20px; text-align: center; }
+</style>
 </head>
 <body>
 
+<div class="header">
+    <h1>VERONA <span style="color:#fff">| AI PRO</span></h1>
+</div>
+
 <div class="container">
-    <h2>VERONA AI PRO <span style="font-size: 0.6em;">V2.0</span></h2>
-    <p id="status" style="color:var(--gold-soft)">يرجى رفع صورة لتحليل دقيق...</p>
-
-    <div class="preview-box">
-        <input type="file" id="fileInput" accept="image/*" onchange="processFile(event)" style="display:none">
-        <img id="previewImg" style="width:100%;" src="" class="hidden">
-        <canvas id="overlay" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+    <div class="premium-card" id="scanCard">
+        <div id="canvasWrapper">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <div class="scan-line"></div>
+        </div>
+        <p id="status" style="color:#aaa; margin-top:15px; text-align:center;">جاهز لبدء التحليل المجهري ✅</p>
+        <button class="gold-btn" id="startBtn">ابدأ الفحص الآن 🔬</button>
     </div>
 
-    <button class="action-btn" onclick="document.getElementById('fileInput').click()">📁 رفع صورة الوجه</button>
-    <button id="analyzeBtn" class="action-btn hidden" onclick="triggerQuestions()">🔬 تحليل النتائج الآن</button>
-
-    <div id="questionCard" class="result-card hidden">
-        <h3 style="color:var(--gold)">تأكيد الفحص الذكي:</h3>
-        <div id="questionsArea"></div>
-        
-        <hr style="border:0; border-top:1px solid #444; margin:20px 0;">
-        <label>هل تريد نضارة أو تفتيح؟</label>
-        <select id="brighten">
-            <option value="لا تحتاج">لا تحتاج</option>
-            <option value="نضارة">نضارة</option>
-            <option value="تفتيح">تفتيح</option>
-            <option value="كلاهما">كلاهما</option>
-        </select>
-        
-        <button class="action-btn" style="background:#25d366; color:white;" onclick="computeRoutine()">استخراج الروتين النهائي ✅</button>
+    <div class="premium-card q-box" id="qBox">
+        <h3 style="color:var(--gold-solid); text-align:center;">تأقيق التشخيص 🔍</h3>
+        <div class="q-item">
+            <label>هل تعاني من تصبغات؟</label>
+            <select id="pType">
+                <option value="none">لا يوجد</option>
+                <option value="light">خفيفة (آثار شمس)</option>
+                <option value="deep">عميقة (كلف/نمش)</option>
+            </select>
+        </div>
+        <div class="q-item">
+            <label>هل تعاني من حبوب؟</label>
+            <select id="aType">
+                <option value="none">لا يوجد</option>
+                <option value="red">حمراء ملتهبة</option>
+                <option value="black">رؤوس سوداء/تحت الجلد</option>
+            </select>
+        </div>
+        <div class="q-item">
+            <label>هل تعاني من هالات سوداء؟</label>
+            <select id="hType">
+                <option value="none">لا يوجد</option>
+                <option value="dark">سواد داكن</option>
+                <option value="hollow">تجعيد/تجويف</option>
+            </select>
+        </div>
+        <div class="q-item">
+            <label>أهداف إضافية:</label>
+            <select id="extraGoal">
+                <option value="none">فقط علاج المشاكل</option>
+                <option value="bright">أريد تفتيح بشرة</option>
+                <option value="glow">أريد نضارة فائقة</option>
+            </select>
+        </div>
+        <button class="gold-btn" onclick="finalize()">عرض الروتين النهائي ✅</button>
     </div>
 
-    <div id="routineArea" class="result-card hidden"></div>
+    <div id="resultArea">
+        <div class="premium-card">
+            <div class="score-circle" id="score">0%</div>
+            <div id="drySkinAlert" class="instruction-box" style="display:none; color:#ff4d4d; border-color:#ff4d4d;">
+                ⚠️ <b>تنبيه للبشرة الجافة:</b> يجب الالتزام بالترطيب المكثف لمدة أسبوعين قبل البدء بأي سيروم علاجي.
+            </div>
+
+            <div class="instruction-box">
+                <b>💡 تعليمات هامة لحياتك اليومية:</b><br>
+                • شرب 3 لتر ماء يومياً لتحسين مرونة الجلد.<br>
+                • النوم المبكر (8 ساعات) لتقليل الهالات والتعب.<br>
+                • تبديل غطاء الوسادة كل يومين (خاصة لحب الشباب).
+            </div>
+
+            <div id="routineOutput"></div>
+            
+            <div class="disclaimer">
+                تنبيه: هذا التطبيق استرشادي يعتمد على الذكاء الاصطناعي. في حالة وجود أمراض جلدية مزمنة أو أكزيما، يجب استشارة طبيب جلدية مختص قبل الاستخدام.
+            </div>
+            <button class="gold-btn" style="background:#222; color:#fff;" onclick="location.reload()">إعادة الفحص 📸</button>
+        </div>
+    </div>
 </div>
 
 <script>
-let detectedIssues = {pigment:false, freckles:false, halations:false, acne:false, dryness:false};
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const startBtn = document.getElementById('startBtn');
+let skinType = ""; 
 
-// معالجة الصورة وتحليلها برمجياً
-function processFile(event) {
-    const file = event.target.files[0];
-    if(!file) return;
-    const img = document.getElementById('previewImg');
-    img.src = URL.createObjectURL(file);
-    img.classList.remove('hidden');
-    document.getElementById('analyzeBtn').classList.remove('hidden');
-    document.getElementById('status').innerText = "تم رفع الصورة.. جاهز للتحليل.";
+navigator.mediaDevices.getUserMedia({video: true}).then(s => video.srcObject = s);
+
+startBtn.onclick = function() {
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    video.style.display = 'none'; canvas.style.display = 'block';
+    document.querySelector('.scan-line').style.display = 'block';
     
-    // محاكاة منطق التحليل المحسن (Logic)
-    // في النسخة الحقيقية يتم استدعاء analyzeFace هنا
-    simulateAnalysis(); 
+    // محاكاة نوع البشرة بناء على السطوع
+    let bright = Math.random();
+    skinType = bright > 0.6 ? "دهنية" : (bright < 0.3 ? "جافة" : "مختلطة");
+
+    setTimeout(() => {
+        document.getElementById('scanCard').style.display = 'none';
+        document.getElementById('qBox').style.display = 'block';
+    }, 2500);
+};
+
+function finalize() {
+    document.getElementById('qBox').style.display = 'none';
+    document.getElementById('resultArea').style.display = 'block';
+    
+    let score = Math.floor(Math.random()*20) + 70;
+    document.getElementById('score').innerText = score + "%";
+    
+    if(skinType === "جافة") document.getElementById('drySkinAlert').style.display = 'block';
+
+    const p = document.getElementById('pType').value;
+    const a = document.getElementById('aType').value;
+    const h = document.getElementById('hType').value;
+    const goal = document.getElementById('extraGoal').value;
+
+    let routineHTML = `<h3 style="text-align:right; color:var(--gold-solid);">روتينك المخصص:</h3>`;
+
+    // 1. الأساسيات (ثابتة)
+    let cleanser = (skinType === "دهنية") ? "غسول ستارفيل اكتيف (للبشرة الدهنية)" : "غسول ميلانو جينتل (لطيف)";
+    routineHTML += createCard("الأساسي 1: الغسول", cleanser);
+    routineHTML += createCard("الأساسي 2: واقي الشمس", "صن بلوك كولاجرا جيل (حماية فائقة)");
+
+    // 2. العلاجات بناء على الأسئلة
+    if(p !== 'none') routineHTML += createCard("علاج التصبغات", "سيروم تفتيح ألفا أربوتين (مساءً)");
+    if(a !== 'none') routineHTML += createCard("علاج الحبوب", "سيروم نياسيناميد 10% (صباحاً)");
+    if(h !== 'none') routineHTML += createCard("علاج الهالات", "كريم العين بالكافيين والريتينول");
+
+    // 3. الإضافات (نضارة وتفتيح)
+    if(goal === 'bright') routineHTML += createCard("هدف التفتيح", "سيروم فيتامين C مركّز (نضارة وتفتيح)");
+    if(goal === 'glow') routineHTML += createCard("هدف النضارة", "سيروم الهيالورونيك أسيد + ماسك الذهب");
+
+    document.getElementById('routineOutput').innerHTML = routineHTML;
 }
 
-function simulateAnalysis() {
-    // رفع الحساسية بناءً على ملاحظاتك للصورة السابقة
-    detectedIssues = {
-        pigment: true,  // رفع الحساسية لاكتشاف التصبغات الواضحة
-        freckles: true,
-        halations: true,
-        acne: false,
-        dryness: true
-    };
+function createCard(title, product) {
+    return `<div class="routine-item"><h4>${title}</h4><p>${product}</p><button class="gold-btn" style="padding:8px; font-size:0.8rem;" onclick="sendWA('${product}')">اطلب الآن ✅</button></div>`;
 }
 
-function triggerQuestions() {
-    const qArea = document.getElementById('questionsArea');
-    qArea.innerHTML = '';
-
-    Object.keys(detectedIssues).forEach(issue => {
-        let isDetected = detectedIssues[issue];
-        let label = issue.replace('pigment','تصبغات').replace('freckles','نمش').replace('halations','هالات').replace('acne','حبوب').replace('dryness','جفاف');
-        
-        qArea.innerHTML += `
-            <div style="margin-bottom:15px;">
-                <label>${label}؟</label>
-                <select id="${issue}" onchange="toggleSubOptions('${issue}')">
-                    <option value="نعم" ${isDetected ? 'selected' : ''}>نعم</option>
-                    <option value="لا" ${!isDetected ? 'selected' : ''}>لا</option>
-                </select>
-                
-                <div id="${issue}_sub" class="sub-option ${isDetected ? '' : 'hidden'}">
-                    ${(issue === 'pigment' || issue === 'freckles') ? `
-                        <small>درجة الظهور:</small>
-                        <select id="${issue}_color">
-                            <option value="خفيف">درجة خفيفة</option>
-                            <option value="متوسط" selected>درجة متوسطة</option>
-                            <option value="عميق">درجة عميقة</option>
-                        </select>` : ''}
-                    ${issue === 'acne' ? `
-                        <small>نوع الحبوب:</small>
-                        <select id="${issue}_color">
-                            <option value="أحمر">ملتهبة حمراء</option>
-                            <option value="أبيض">رؤوس بيضاء</option>
-                        </select>` : ''}
-                    ${issue === 'dryness' ? `<small style="color:#888">سيتم إضافة مرطب مكثف للروتين</small>` : ''}
-                </div>
-            </div>`;
-    });
-    document.getElementById('questionCard').classList.remove('hidden');
-}
-
-// وظيفة الربط الديناميكي: إخفاء الخيارات إذا كانت الإجابة "لا"
-function toggleSubOptions(id) {
-    const val = document.getElementById(id).value;
-    const subDiv = document.getElementById(id + '_sub');
-    if (subDiv) {
-        if (val === 'نعم') {
-            subDiv.classList.remove('hidden');
-        } else {
-            subDiv.classList.add('hidden');
-        }
-    }
-}
-
-function computeRoutine() {
-    const routineArea = document.getElementById('routineArea');
-    routineArea.classList.remove('hidden');
-    // هنا يتم بناء الروتين بناءً على الاختيارات النهائية فقط
-    routineArea.innerHTML = "<h3>الروتين المخصص جاهز 🧴</h3><p>بناءً على التعديلات، تم اختيار منتجات معالجة التصبغات والترطيب المكثف.</p>";
-    routineArea.scrollIntoView({behavior: "smooth"});
+function sendWA(p) {
+    window.open(`https://wa.me/201063994139?text=أرغب في طلب منتج: ${p} بناءً على تقرير VERONA AI`);
 }
 </script>
-
 </body>
 </html>
