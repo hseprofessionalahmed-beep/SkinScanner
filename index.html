@@ -3,175 +3,183 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI PRO - النسخة النهائية</title>
+<title>VERONA AI PRO - النسخة الملكية</title>
 <style>
-:root { --gold: #d4af37; --black: #0a0a0a; --glass: rgba(255,255,255,0.05); }
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--black); color: #fff; margin:0; text-align: center; overflow-x: hidden; }
+:root { 
+    --gold: linear-gradient(90deg, #a67c00 0%, #ffbf00 50%, #a67c00 100%);
+    --gold-solid: #d4af37;
+    --dark-bg: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%);
+    --glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(212, 175, 55, 0.3);
+}
 
-/* الهيدر الفاخر */
-.header { padding: 20px; border-bottom: 1px solid var(--gold); background: linear-gradient(to bottom, #111, #000); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-h1 { color: var(--gold); margin: 0; font-size: 1.6rem; letter-spacing: 2px; }
+body { 
+    font-family: 'Segoe UI', sans-serif; 
+    background: var(--dark-bg); 
+    color: #fff; margin: 0; padding: 0; 
+}
 
-/* منطقة الفحص */
-#canvasWrapper { position:relative; width: 90%; max-width: 400px; margin: 20px auto; border: 2px solid var(--gold); border-radius: 20px; overflow: hidden; box-shadow: 0 0 25px rgba(212,175,55,0.2); }
+/* الهيدر المحترف */
+.header { 
+    padding: 30px; border-bottom: 1px solid var(--border); 
+    text-align: center; background: rgba(0,0,0,0.5);
+}
+.header h1 { 
+    font-size: 2rem; margin: 0; background: var(--gold);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: 3px; font-weight: 900;
+}
+
+/* حاويات التصميم (الكروت) */
+.main-grid {
+    display: grid; grid-template-columns: 1fr; gap: 20px; padding: 20px;
+    max-width: 500px; margin: auto;
+}
+
+.premium-card {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 25px; padding: 20px; backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* الكاميرا بشكل الصورة */
+#canvasWrapper { 
+    position: relative; border-radius: 20px; overflow: hidden;
+    border: 2px solid var(--gold-solid);
+}
 video, canvas { width: 100%; display: block; }
-.scan-line { position:absolute; top:0; left:0; width:100%; height:4px; background: var(--gold); box-shadow:0 0 20px var(--gold); display:none; animation: scan-move 2s linear; z-index:10; }
-@keyframes scan-move { 0%{top:0;} 100%{top:100%;} }
-.analysis-mode { filter: grayscale(1) contrast(1.4) brightness(0.8); transition: 1s; }
 
-/* المقارنة (قبل وبعد) */
-#comparisonArea { display: none; margin: 20px auto; width: 90%; max-width: 450px; }
-.comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.comp-img { border: 1px solid #333; border-radius: 10px; overflow: hidden; position: relative; }
-.comp-label { position: absolute; bottom: 0; background: rgba(0,0,0,0.7); width: 100%; font-size: 0.7rem; padding: 2px 0; color: var(--gold); }
+/* عداد الـ Score المضيء */
+.score-display {
+    border: 2px solid var(--gold-solid); border-radius: 15px;
+    padding: 20px; margin: 20px 0; background: rgba(0,0,0,0.3);
+}
+.score-display h2 { margin: 0; font-size: 3rem; color: var(--gold-solid); text-shadow: 0 0 20px var(--gold-solid); }
 
-/* الأسئلة والنتائج */
-#questionnaire, #resultArea { display: none; padding: 20px; background: var(--glass); margin: 20px auto; width: 85%; max-width: 400px; border-radius: 15px; border: 1px solid #222; }
-.q-item { margin-bottom: 15px; text-align: right; }
-select { width: 100%; padding: 12px; border-radius: 8px; background: #111; color: #fff; border: 1px solid var(--gold); font-size: 0.9rem; }
+/* زر الذهب الفاخر */
+.gold-btn {
+    background: var(--gold); color: #000; border: none;
+    padding: 15px 40px; border-radius: 50px; font-weight: 900;
+    font-size: 1.1rem; cursor: pointer; transition: 0.4s;
+    width: 100%; box-shadow: 0 5px 15px rgba(166, 124, 0, 0.4);
+}
+.gold-btn:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(166, 124, 0, 0.6); }
 
-.score-box { font-size: 2.5rem; color: var(--gold); font-weight: bold; margin: 15px 0; text-shadow: 0 0 15px rgba(212,175,55,0.5); }
-.routine-card { background: #151515; padding: 15px; border-radius: 12px; border-right: 4px solid var(--gold); margin-bottom: 15px; text-align: right; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+/* سلايدر المقارنة */
+.comparison-slider {
+    position: relative; width: 100%; height: 250px; 
+    border-radius: 15px; overflow: hidden; border: 1px solid var(--border);
+}
+.compare-img { position: absolute; top:0; left:0; width:100%; height:100%; background-size: cover; }
+#afterImg { width: 50%; border-right: 2px solid var(--gold-solid); z-index: 2; }
 
-button { width: 90%; max-width: 400px; padding: 15px; border: none; border-radius: 12px; background: linear-gradient(90deg, #d4af37, #f1d77a); color: #000; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212,175,55,0.4); }
-.urgency { color: #ff4d4d; font-size: 0.8rem; margin-top: 10px; font-weight: bold; }
+/* تأثيرات الـ HUD */
+.scan-line {
+    position: absolute; top:0; left:0; width:100%; height:4px;
+    background: var(--gold-solid); box-shadow: 0 0 15px var(--gold-solid);
+    display: none; animation: scan 2s infinite linear; z-index: 10;
+}
+@keyframes scan { 0%{top:0} 100%{top:100%} }
 </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>VERONA <span style="color:#fff">AI PRO</span></h1>
-    <p id="status" style="color: #888; font-size: 0.8rem;">نظام التشخيص المجهري الذكي ✅</p>
+    <h1>VERONA <span style="color:#fff">| AI PRO</span></h1>
 </div>
 
-<div id="canvasWrapper">
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <div class="scan-line"></div>
-</div>
-
-<button id="startBtn">ابدأ الفحص المجهري 🔬</button>
-
-<div id="questionnaire">
-    <h3 style="color: var(--gold);">تأقيق التشخيص 🔍</h3>
-    <div id="questionsArea"></div>
-    <button onclick="finalizeAnalysis()">استخراج التقرير النهائي ✅</button>
-</div>
-
-<div id="resultArea">
-    <p style="margin:0; color:#aaa;">Skin Health Score</p>
-    <div id="scoreDisplay" class="score-box">0%</div>
-    
-    <div id="comparisonArea">
-        <div class="comp-grid">
-            <div class="comp-img"><canvas id="beforeImg"></canvas><div class="comp-label">قبل (خريطة العيوب)</div></div>
-            <div class="comp-img"><canvas id="afterImg"></canvas><div class="comp-label">بعد (النتيجة المتوقعة)</div></div>
+<div class="main-grid">
+    <div class="premium-card">
+        <div id="canvasWrapper">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <div class="scan-line"></div>
         </div>
+        <p id="status" style="color:#888; margin-top:15px;">جاهز لبدء الفحص المجهري ✅</p>
     </div>
 
-    <div id="routineList"></div>
-    <p class="urgency">⚠️ هذا التقرير صالح لمدة 24 ساعة فقط.</p>
-    <button onclick="location.reload()" style="background:#222; color:#fff;">فحص جديد 📸</button>
+    <div class="premium-card" id="scoreCard" style="display:none;">
+        <p style="margin:0; color:var(--gold-solid);">Skin Score Display</p>
+        <div class="score-display">
+            <h2 id="finalScore">0%</h2>
+        </div>
+        <p style="font-size:0.8rem; color:#aaa;">صلاحية التقرير: 24 ساعة فقط</p>
+    </div>
+
+    <button class="gold-btn" id="startBtn">ابدأ التحليل (StartBtn)</button>
+
+    <div id="resultArea" style="display:none;">
+        <div class="premium-card">
+            <h4 style="color:var(--gold-solid);">مقارنة النتائج المتوقعة:</h4>
+            <div class="comparison-slider" id="slider">
+                <div id="beforeImg" class="compare-img"></div>
+                <div id="afterImg" class="compare-img"></div>
+            </div>
+            <p style="font-size:0.7rem; color:#666; margin-top:5px;">← اسحب لرؤية الفرق →</p>
+        </div>
+        
+        <button class="gold-btn" style="margin-top:20px;" onclick="sendWA()">حجز الباقة واتساب ✅</button>
+        <button id="resetBtn" style="background:none; border:none; color:#555; cursor:pointer; margin-top:10px;" onclick="location.reload()">ResetBtn</button>
+    </div>
 </div>
 
 <script>
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d', { willReadFrequently: true });
-const scanLine = document.querySelector('.scan-line');
-const status = document.getElementById('status');
-
-let finalScore = 0;
-let skinType = "";
-let detectedIssues = {};
+const startBtn = document.getElementById('startBtn');
+const scoreCard = document.getElementById('scoreCard');
+const resultArea = document.getElementById('resultArea');
 
 navigator.mediaDevices.getUserMedia({video: true}).then(s => video.srcObject = s);
 
-document.getElementById('startBtn').addEventListener('click', () => {
+startBtn.onclick = function() {
+    this.style.display = 'none';
+    const ctx = canvas.getContext('2d');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0);
     
     video.style.display = 'none';
     canvas.style.display = 'block';
-    scanLine.style.display = 'block';
-    canvas.classList.add('analysis-mode');
-    status.innerText = "🔬 جاري مسح طبقات الأدمة وتحليل الخلايا...";
+    document.querySelector('.scan-line').style.display = 'block';
+    
+    let score = 0;
+    let timer = setInterval(() => {
+        score += 2;
+        document.getElementById('status').innerText = `جاري المعالجة... ${score}%`;
+        if(score >= 100) {
+            clearInterval(timer);
+            showFinalResults();
+        }
+    }, 40);
+};
 
-    setTimeout(() => {
-        scanLine.style.display = 'none';
-        canvas.classList.remove('analysis-mode');
-        
-        // تحليل حقيقي للسطوع
-        const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
-        let b = 0; for(let i=0; i<data.length; i+=100) b += (data[i]+data[i+1]+data[i+2])/3;
-        let avg = b / (data.length/100);
-        skinType = avg > 155 ? "دهنية" : (avg < 110 ? "جافة" : "مختلطة");
-        finalScore = Math.floor(Math.random()*15) + 72;
+function showFinalResults() {
+    document.querySelector('.scan-line').style.display = 'none';
+    scoreCard.style.display = 'block';
+    resultArea.style.display = 'block';
+    
+    const s = Math.floor(Math.random() * 20) + 75;
+    document.getElementById('finalScore').innerText = s + "%";
 
-        detectedIssues = { pigment: Math.random()>0.4, acne: Math.random()>0.5, halations: Math.random()>0.4 };
-
-        status.innerText = "✅ اكتمل المسح. يرجى تأكيد البيانات التالية.";
-        document.getElementById('startBtn').style.display = 'none';
-        showQuestions();
-    }, 2500);
-});
-
-function showQuestions() {
-    const qArea = document.getElementById('questionsArea');
-    qArea.innerHTML = '';
-    if(detectedIssues.pigment) qArea.innerHTML += `<div class="q-item"><label>التصبغات:</label><select id="pLevel"><option>خفيفة</option><option selected>متوسطة</option><option>عميقة</option></select></div>`;
-    if(detectedIssues.acne) qArea.innerHTML += `<div class="q-item"><label>حب الشباب:</label><select id="aType"><option>رؤوس سوداء</option><option selected>حبوب حمراء</option></select></div>`;
-    qArea.innerHTML += `<div class="q-item"><label>حساسية الجلد:</label><select id="isSens"><option value="no">لا يوجد</option><option value="yes">نعم، بشرة حساسة</option></select></div>`;
-    document.getElementById('questionnaire').style.display = 'block';
+    // إعداد السلايدر (قبل وبعد)
+    const beforeImg = document.getElementById('beforeImg');
+    const afterImg = document.getElementById('afterImg');
+    const dataUrl = canvas.toDataURL();
+    
+    beforeImg.style.backgroundImage = `url(${dataUrl})`;
+    afterImg.style.backgroundImage = `url(${dataUrl})`;
+    // إضافة فلتر تحسين لصورة "بعد"
+    afterImg.style.filter = "brightness(1.1) contrast(1.1) saturate(1.2)";
 }
 
-function finalizeAnalysis() {
-    document.getElementById('questionnaire').style.display = 'none';
-    document.getElementById('resultArea').style.display = 'block';
-    document.getElementById('comparisonArea').style.display = 'block';
-    document.getElementById('scoreDisplay').innerText = finalScore + "%";
-
-    // رسم الصور المقارنة
-    const beforeCanvas = document.getElementById('beforeImg');
-    const afterCanvas = document.getElementById('afterImg');
-    beforeCanvas.width = afterCanvas.width = 200;
-    beforeCanvas.height = afterCanvas.height = 200;
-    
-    const bCtx = beforeCanvas.getContext('2d');
-    const aCtx = afterCanvas.getContext('2d');
-    
-    // صورة "قبل" (خريطة ذهبية)
-    bCtx.filter = 'grayscale(1) contrast(1.2)';
-    bCtx.drawImage(canvas, 0,0,200,200);
-    bCtx.fillStyle = "rgba(212, 175, 55, 0.5)";
-    for(let i=0; i<5; i++) { bCtx.beginPath(); bCtx.arc(Math.random()*200, Math.random()*200, 15, 0, 7); bCtx.fill(); }
-
-    // صورة "بعد" (تنعيم افتراضي)
-    aCtx.filter = 'brightness(1.1) contrast(0.9) blur(0.5px)';
-    aCtx.drawImage(canvas, 0,0,200,200);
-
-    const isSensitive = document.getElementById('isSens').value === 'yes';
-    const area = document.getElementById('routineList');
-    
-    let cleanser = isSensitive ? "غسول سنسي كير اللطيف" : "غسول ستارفيل اكتيف";
-    let serum = skinType === "دهنية" ? "سيروم نياسيناميد 10%" : "سيروم الهيالورونيك";
-
-    area.innerHTML = `
-        <div class="routine-card">
-            <h4 style="color:var(--gold); margin:0 0 10px 0;">الخطة العلاجية المقترحة</h4>
-            <p style="font-size:0.9rem;">• نوع البشرة: <b>${skinType}</b></p>
-            <p style="font-size:0.85rem;">1- ${cleanser}<br>2- ${serum}<br>3- واقي شمس كولاجرا</p>
-            <button onclick="sendWA('${skinType}', '${cleanser}')">حجز الباقة واتساب ✅</button>
-        </div>
-    `;
-}
-
-function sendWA(type, product) {
-    const msg = `*طلب روتين مخصص (VERONA AI)*%0A---------------------------%0A✅ *درجة البشرة:* ${finalScore}%25%0A🔬 *النوع:* ${type}%0A📦 *المنتج المقترح:* ${product}%0A---------------------------%0Aأرغب في تأكيد الحجز ومتابعة الخطة.`;
-    window.open(`https://wa.me/201063994139?text=${msg}`);
-}
+// إضافة حركة بسيطة للسلايدر بالماوس
+document.getElementById('slider').onmousemove = function(e) {
+    const rect = this.getBoundingClientRect();
+    const x = e.pageX - rect.left;
+    document.getElementById('afterImg').style.width = x + "px";
+};
 </script>
+
 </body>
 </html>
