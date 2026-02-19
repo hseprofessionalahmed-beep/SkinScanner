@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | CLINICAL ELITE V6</title>
+    <title>VERONA AI | FINAL V7</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
@@ -11,7 +11,7 @@
         :root { --gold: #d4af37; --bg: #050505; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; text-align: center; }
         .container { max-width: 500px; margin: auto; padding: 15px; }
-        .preview-box { position: relative; border-radius: 25px; overflow: hidden; border: 2px solid var(--gold); background: #000; aspect-ratio: 4/5; margin-bottom: 15px; box-shadow: 0 0 30px rgba(212,175,55,0.2); }
+        .preview-box { position: relative; border-radius: 25px; overflow: hidden; border: 2px solid var(--gold); background: #000; aspect-ratio: 4/5; margin-bottom: 15px; }
         video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         #upImg { display: none; z-index: 5; }
         canvas { z-index: 10; pointer-events: none; }
@@ -26,14 +26,14 @@
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold)">VERONA AI | النظام السريري المطور</h2>
+    <h2 style="color:var(--gold)">VERONA AI | التشخيص النهائي</h2>
 
     <div class="preview-box">
         <video id="video" playsinline></video>
         <img id="upImg">
         <canvas id="canvas"></canvas>
         <div class="scan-line" id="sLine"></div>
-        <div id="liveStatus">جاري تهيئة النظام...</div>
+        <div id="liveStatus">بانتظار الصورة...</div>
     </div>
 
     <div id="controls">
@@ -43,7 +43,7 @@
                 صورة 📁 <input type="file" hidden onchange="handleFile(event)">
             </label>
         </div>
-        <button class="btn" id="runBtn" onclick="processAnalysis()">بدء التحليل العميق 🔬</button>
+        <button class="btn" onclick="processAnalysis()">بدء التحليل 🔬</button>
     </div>
 
     <div id="reportCard" class="card">
@@ -73,7 +73,6 @@
             ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
             if (results.multiFaceLandmarks) runLogic(results.multiFaceLandmarks[0]);
         });
-        liveStatus.innerText = "النظام جاهز للتحليل ✅";
     }
 
     function runLogic(lm) {
@@ -81,26 +80,32 @@
         const cheek = getPx(lm[205]);
         const eye = getPx(lm[101]);
 
-        // تحديد نوع البشرة
-        if (forehead.v > 190) analysis.skinType = "دهنية";
-        else if (forehead.v < 115) analysis.skinType = "جافة";
+        // 1. تحديد نوع البشرة
+        if (forehead.v > 200) analysis.skinType = "دهنية جداً";
+        else if (forehead.v < 110) analysis.skinType = "جافة";
         else analysis.skinType = "مختلطة";
 
-        // منطق التفريق اللوني الاحترافي
-        // 1. كشف الحبوب (يجب أن يكون اللون الأحمر صافياً ومهيمناً)
-        analysis.acne = (cheek.r > cheek.g * 1.3) && (cheek.r > cheek.b * 1.3);
+        // 2. تحليل الحبوب (بناءً على التباين الأحمر مع محيطه - وليس اللون الأحمر فقط)
+        // الحبوب تتطلب أن يكون الخد أحمر بكثير مقارنة بالجبهة (Contrast check)
+        analysis.acne = (cheek.r > forehead.r * 1.25) && (cheek.r > cheek.g * 1.3);
 
-        // 2. كشف التصبغات والنمش (اللون البني يكون فيه الأحمر والأخضر متقاربين وأغمق من الجبهة)
-        const isBrownish = (cheek.r > cheek.g) && (Math.abs(cheek.r - cheek.g) < 40);
-        analysis.pig = isBrownish && (cheek.v < forehead.v * 0.85);
+        // 3. تحليل التصبغات (مناطق بنية داكنة مقارنة بالجبهة)
+        analysis.pig = (cheek.v < forehead.v * 0.78) && !analysis.acne;
 
-        // 3. كشف الهالات
+        // 4. تحليل الهالات (تجنب اعتبارها حبوب - نقيس السطوع فقط)
         analysis.dark = (eye.v < forehead.v * 0.82);
 
+        // حالة خاصة للطفل (بشرة متجانسة جداً)
+        const uniformity = Math.abs(forehead.v - cheek.v);
+        if (uniformity < 15 && !analysis.dark) {
+            analysis.acne = false; analysis.pig = false;
+        }
+
         let msg = `بشرة ${analysis.skinType} | `;
-        if (analysis.acne) msg += "⚠️ حبوب ملتهبة ";
-        else if (analysis.pig) msg += "⚠️ تصبغات/نمش ";
-        else msg += "✅ مظهر نقي ";
+        if (analysis.acne) msg += "⚠️ رصد حبوب ";
+        if (analysis.pig) msg += "⚠️ رصد تصبغات ";
+        if (analysis.dark) msg += "⚠️ رصد هالات ";
+        if (!analysis.acne && !analysis.pig && !analysis.dark) msg = "✅ البشرة نقية وصحية";
         
         liveStatus.innerText = msg;
     }
@@ -127,16 +132,15 @@
         let s = 100, dTxt = "", rTxt = "";
 
         if (!analysis.acne && !analysis.pig && !analysis.dark) {
-            dTxt = "• حالة الجلد: صافية ومستقرة تماماً.<br>";
-            rTxt += addR("الوقاية", "Verona Protective Cream", "حماية واسعة المدى");
+            dTxt = "• حالة الجلد: مثالية، متوهجة وخالية من الشوائب.<br>";
+            rTxt += addR("الحفاظ على النضارة", "Verona Daily Glow", "Hyaluronic Acid");
         } else {
             if (analysis.acne) { s-=15; dTxt += "• تم رصد التهاب نشط (حبوب حمراء).<br>"; rTxt += addR("علاج الحبوب", "Verona Acni-Clear", "Salicylic Acid"); }
-            if (analysis.pig) { s-=12; dTxt += "• تم رصد تصبغات/نمش بني.<br>"; rTxt += addR("تفتيح البقع", "Verona Melano-Fade", "Alpha Arbutin"); }
-            if (analysis.dark) { s-=8; dTxt += "• تم رصد هالات وعائية.<br>"; rTxt += addR("عناية العين", "Verona Eye-Lift", "Caffeine"); }
+            if (analysis.pig) { s-=12; dTxt += "• تم رصد تصبغات عميقة/كلف.<br>"; rTxt += addR("علاج التصبغات", "Verona Melano-Fade", "Alpha Arbutin"); }
+            if (analysis.dark) { s-=10; dTxt += "• تم رصد هالات تحت العين.<br>"; rTxt += addR("محيط العين", "Verona Eye-Lift Cream", "Caffeine"); }
             
-            if (analysis.skinType === "جافة") {
-                dTxt += "• تنبيه: نقص في المحتوى المائي للأدمة.<br>";
-                rTxt += addR("ترطيب إلزامي 💧", "Verona Hydro-Boost", "Hyaluronic Acid");
+            if (analysis.skinType.includes("جافة")) {
+                rTxt += addR("ترطيب مكثف 💧", "Verona Hydro-Boost", "Ceramides");
             }
         }
         document.getElementById('score').innerText = s + "%";
