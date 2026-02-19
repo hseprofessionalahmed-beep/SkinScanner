@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | V13 PRO</title>
+    <title>VERONA AI | CLINICAL V14</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
@@ -25,7 +25,7 @@
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold)">VERONA AI | المختبر الذكي V13</h2>
+    <h2 style="color:var(--gold)">VERONA AI | المعايرة اللونية V14</h2>
 
     <div class="preview-box">
         <video id="video" playsinline></video>
@@ -41,19 +41,19 @@
                 صورة 📁 <input type="file" hidden onchange="handleFile(event)">
             </label>
         </div>
-        <button class="btn" onclick="openQuestions()">تحليل البشرة والروتين 🔬</button>
+        <button class="btn" onclick="openQuestions()">بدء التشخيص والروتين 🔬</button>
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="text-align:center; color:var(--gold)">تأكيد ملاحظات الـ AI</h3>
+        <h3 style="text-align:center; color:var(--gold)">تأكيد ملاحظات الطبيب الذكي</h3>
         
         <label>1. هل توجد حبوب ملتهبة؟</label>
-        <select id="qAcne"><option value="no">لا يوجد</option><option value="yes">نعم، توجد حبوب</option></select>
+        <select id="qAcne"><option value="no">لا يوجد</option><option value="yes">نعم، توجد حبوب حمراء</option></select>
 
-        <label>2. هل توجد تصبغات أو كلف؟</label>
-        <select id="qPig"><option value="no">لا يوجد</option><option value="yes">نعم، توجد بقع</option></select>
+        <label>2. هل توجد تصبغات أو كلف داكن؟</label>
+        <select id="qPig"><option value="no">لا يوجد</option><option value="yes">نعم، توجد بقع داكنة</option></select>
 
-        <label>3. اختر فئة الروتين السعرية:</label>
+        <label>3. اختر ميزانية الروتين:</label>
         <select id="qBudget">
             <option value="low">اقتصادي</option>
             <option value="mid" selected>متوسط</option>
@@ -65,7 +65,8 @@
 
     <div id="reportCard" class="card">
         <div id="scoreDisplay" style="font-size:3.5rem; text-align:center; color:var(--gold); font-weight:900;">100%</div>
-        <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:15px;"></div>
+        <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:10px;"></div>
+        <div id="diagText" style="margin-bottom:15px; font-size:0.9rem;"></div>
         <div id="routineList"></div>
         <button class="btn btn-whatsapp" onclick="sendToWhatsApp()">طلب الروتين عبر واتساب 💬</button>
         <button class="btn" style="background:#333; color:#fff;" onclick="location.reload()">فحص جديد 🔄</button>
@@ -88,32 +89,33 @@
             canvas.width = (video.style.display !== 'none') ? video.videoWidth : upImg.naturalWidth;
             canvas.height = (video.style.display !== 'none') ? video.videoHeight : upImg.naturalHeight;
             ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-            if (results.multiFaceLandmarks) runAdvancedAI(results.multiFaceLandmarks[0]);
+            if (results.multiFaceLandmarks) runClinicalAI(results.multiFaceLandmarks[0]);
         });
     }
 
-    function runAdvancedAI(lm) {
+    function runClinicalAI(lm) {
         const forehead = getPx(lm[10]);
         const cheek = getPx(lm[205]);
-        const cheekSample2 = getPx(lm[206]); // عينة مجاورة لاكتشاف التباين
+        const cheek2 = getPx(lm[206]);
 
-        // نوع البشرة
-        if (forehead.v > 190) aiAnalysis.skinType = "دهنية";
-        else if (forehead.v < 115) aiAnalysis.skinType = "جافة";
+        // 1. نوع البشرة
+        if (forehead.v > 195) aiAnalysis.skinType = "دهنية";
+        else if (forehead.v < 110) aiAnalysis.skinType = "جافة";
         else aiAnalysis.skinType = "مختلطة";
 
-        // اكتشاف التصبغات عن طريق التباين (Contrast) والسطوع (Brightness)
-        const variance = Math.abs(cheek.v - cheekSample2.v);
-        if (cheek.v < forehead.v * 0.88 || variance > 7) {
+        // 2. منطق الحبوب (الرجل): الحبوب الحمراء الملتهبة R يكون عالياً جداً مقارنة بالجبهة
+        aiAnalysis.acne = (cheek.r > forehead.r * 1.25);
+
+        // 3. منطق التصبغات (السيدة): البقع الداكنة والمتباينة
+        const variance = Math.abs(cheek.v - cheek2.v);
+        // الشرط: أن تكون المنطقة أغمق من الجبهة + وجود تباين (بقع)
+        if (cheek.v < forehead.v * 0.86 && variance > 8) {
             aiAnalysis.pig = true;
         } else {
-            aiAnalysis.pig = false;
+            aiAnalysis.pig = false; // الطفل سيقع هنا لأن بشرته فاتحة (v عالية) حتى لو كانت وردية
         }
 
-        // اكتشاف الحبوب (قوة اللون الأحمر)
-        aiAnalysis.acne = (cheek.r > forehead.r * 1.2);
-
-        document.getElementById('liveStatus').innerText = `تم تحليل الملامح بدقة V13 ✅`;
+        document.getElementById('liveStatus').innerText = `تحليل إكلينيكي V14 جاهز ✅`;
     }
 
     function getPx(p) {
@@ -126,8 +128,6 @@
     function openQuestions() {
         document.getElementById('controls').style.display = 'none';
         document.getElementById('questionsCard').style.display = 'block';
-        
-        // إجابات افتراضية ذكية
         document.getElementById('qAcne').value = aiAnalysis.acne ? "yes" : "no";
         document.getElementById('qPig').value = aiAnalysis.pig ? "yes" : "no";
     }
@@ -146,6 +146,11 @@
         document.getElementById('scoreDisplay').innerText = score + "%";
         document.getElementById('skinTypeDisplay').innerText = "بشرة " + aiAnalysis.skinType;
 
+        let dTxt = "<b>نتائج الفحص الذكي:</b><br>";
+        dTxt += acne ? "• تم رصد حبوب حمراء نشطة.<br>" : "• لا توجد حبوب ملتهبة.<br>";
+        dTxt += pig ? "• تم رصد بقع وتصبغات داكنة.<br>" : "• البشرة صافية من التصبغات.<br>";
+        document.getElementById('diagText').innerHTML = dTxt;
+
         buildRoutine(acne, pig, budget);
     }
 
@@ -155,20 +160,20 @@
 
         if(budget === 'low') {
             addP("الغسول", "ستارفيل وايتنينج", "تفتيح اقتصادي");
-            if(pig) addP("تفتيح", "ديرويس كريم", "أربوتين + كوجيك");
-            if(acne) addP("علاج حبوب", "أرجنتو كلير", "شجرة الشاي");
+            if(pig) addP("كريم التفتيح", "ديرويس (Derwise)", "أربوتين");
+            if(acne) addP("علاج الحبوب", "أرجنتو كلير", "مضاد بكتيري");
             addP("واقي شمس", "إيفا SPF50", "حماية أساسية");
         } else if(budget === 'mid') {
             addP("الغسول", "نانوتريت", "ساليسيليك + نياسيناميد");
-            if(pig) addP("تفتيح", "Natavis Serum", "أربوتين + فيروليك");
-            if(acne) addP("علاج حبوب", "سيباكلار اكتيف", "تجفيف الحبوب");
+            if(pig) addP("سيروم التفتيح", "Natavis Serum", "أربوتين + فيروليك");
+            if(acne) addP("سيروم الحبوب", "سيباكلار اكتيف", "تجفيف سريع");
             addP("واقي شمس", "ستارفيل جل تبييض", "حماية وتفتيح");
         } else {
-            addP("الغسول", "دير منظف", "فيتامين E ومسامات");
-            if(pig) addP("تفتيح مكثف", "XQ Pharma Serum", "التركيبة الثلاثية");
+            addP("الغسول", "دير غسول (Der)", "فيتامين E ومسامات");
+            if(pig) addP("سيروم احترافي", "XQ Pharma Serum", "التركيبة الثلاثية");
             if(acne) addP("علاج فاخر", "فيشي نورماديرم", "تقليل الالتهاب");
-            addP("نضارة", "Nano Treat 24K Gold", "ذهب وكولاجين");
-            addP("واقي شمس", "كولاجرا جل تفتيح", "حماية تفتيح SPF50");
+            addP("نضارة ملكية", "Nano Treat 24K Gold", "ذهب وكولاجين");
+            addP("واقي شمس", "كولاجرا جل تفتيح", "حماية SPF50");
         }
     }
 
@@ -179,7 +184,7 @@
 
     function sendToWhatsApp() {
         const phone = "201063994139";
-        let msg = `Verona AI Report:\n📊 النتيجة: ${document.getElementById('scoreDisplay').innerText}\n👤 البشرة: ${aiAnalysis.skinType}\n📦 الطلب:\n`;
+        let msg = `Verona AI Clincal Report:\n📊 النتيجة: ${document.getElementById('scoreDisplay').innerText}\n👤 البشرة: ${aiAnalysis.skinType}\n📦 الروتين:\n`;
         finalSelection.forEach(p => msg += `• ${p}\n`);
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
     }
