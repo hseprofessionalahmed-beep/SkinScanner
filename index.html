@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | V16 PRO</title>
+    <title>VERONA AI | V16 + DARK CIRCLES</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
@@ -25,7 +25,7 @@
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold)">VERONA AI | المعايرة الدقيقة V16</h2>
+    <h2 style="color:var(--gold)">VERONA AI | نظام الهالات V16</h2>
 
     <div class="preview-box">
         <video id="video" playsinline></video>
@@ -41,7 +41,7 @@
                 صورة 📁 <input type="file" hidden onchange="handleFile(event)">
             </label>
         </div>
-        <button class="btn" onclick="openQuestions()">بدء التحليل 🔬</button>
+        <button class="btn" onclick="openQuestions()">بدء التحليل والأسئلة 🔬</button>
     </div>
 
     <div id="questionsCard" class="card">
@@ -53,14 +53,22 @@
         <label>2. هل توجد تصبغات أو كلف داكن؟</label>
         <select id="qPig"><option value="no">لا يوجد</option><option value="yes">نعم، بقع داكنة</option></select>
 
-        <label>3. ميزانية الروتين:</label>
+        <label>3. الهالات السوداء (إن وجدت)، ما هو لونها؟</label>
+        <select id="qCircles">
+            <option value="none">لا توجد هالات</option>
+            <option value="brown">بني (تصبغات)</option>
+            <option value="blue">أزرق/أرجواني (إجهاد وأوعية دموية)</option>
+            <option value="black">أسود (تجويف وظل)</option>
+        </select>
+
+        <label>4. ميزانية الروتين:</label>
         <select id="qBudget">
             <option value="low">اقتصادي</option>
             <option value="mid" selected>متوسط</option>
             <option value="high">فاخر</option>
         </select>
 
-        <button class="btn" onclick="generateFinalReport()">عرض النتيجة ✨</button>
+        <button class="btn" onclick="generateFinalReport()">عرض النتيجة النهائية ✨</button>
     </div>
 
     <div id="reportCard" class="card">
@@ -68,7 +76,7 @@
         <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:10px;"></div>
         <div id="diagText" style="margin-bottom:15px; font-size:0.9rem;"></div>
         <div id="routineList"></div>
-        <button class="btn btn-whatsapp" onclick="sendToWhatsApp()">اطلب الروتين (واتساب) 💬</button>
+        <button class="btn btn-whatsapp" onclick="sendToWhatsApp()">طلب الروتين عبر واتساب 💬</button>
         <button class="btn" style="background:#333; color:#fff;" onclick="location.reload()">فحص جديد 🔄</button>
     </div>
 </div>
@@ -79,7 +87,7 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', {willReadFrequently: true});
     
-    let faceMesh, aiAnalysis = { acne: false, pig: false, skinType: 'مختلطة' };
+    let faceMesh, aiAnalysis = { acne: false, pig: false, circles: false, skinType: 'مختلطة' };
     let finalSelection = [];
 
     async function init() {
@@ -97,39 +105,34 @@
         const forehead = getPx(lm[10]);
         const cheek = getPx(lm[205]);
         const cheekAdj = getPx(lm[206]);
+        const underEye = getPx(lm[230]); // نقطة تحت العين
 
         // 1. نوع البشرة
         if (forehead.v > 205) aiAnalysis.skinType = "دهنية";
         else if (forehead.v < 115) aiAnalysis.skinType = "جافة";
         else aiAnalysis.skinType = "مختلطة";
 
-        // 2. كاشف الحبوب (معاير ضد الحمرة الطبيعية)
+        // 2. الحبوب
         const redVsGlow = cheek.r - cheek.g;
-        if (redVsGlow > 35 && cheek.r > forehead.r * 1.25) {
-            aiAnalysis.acne = true;
-        } else {
-            aiAnalysis.acne = false;
-        }
+        aiAnalysis.acne = (redVsGlow > 35 && cheek.r > forehead.r * 1.25);
 
-        // 3. كاشف التصبغات (معاير ضد الحبوب)
+        // 3. التصبغات
         const brightnessDrop = cheek.v / forehead.v;
         const texturalVar = Math.abs(cheek.v - cheekAdj.v);
-
         if (brightnessDrop < 0.85 || (texturalVar > 12 && brightnessDrop < 0.92)) {
             aiAnalysis.pig = true;
-            // تصحيح: إذا كانت المنطقة داكنة جداً فهي تصبغ وليست حبة
             if (brightnessDrop < 0.82) aiAnalysis.acne = false;
         } else {
             aiAnalysis.pig = false;
         }
 
-        // 4. حماية البشرة الفاتحة (الطفل)
-        if (cheek.v > 190) {
-            aiAnalysis.acne = false;
-            aiAnalysis.pig = false;
-        }
+        // 4. الهالات (تلقائياً إذا كانت منطقة العين أغمق من الجبهة)
+        aiAnalysis.circles = (underEye.v < forehead.v * 0.80);
 
-        document.getElementById('liveStatus').innerText = `تمت المعايرة السريرية V16 ✅`;
+        // 5. حماية الطفل
+        if (cheek.v > 190) { aiAnalysis.acne = false; aiAnalysis.pig = false; aiAnalysis.circles = false; }
+
+        document.getElementById('liveStatus').innerText = `تمت المعايرة السريرية V16+ ✅`;
     }
 
     function getPx(p) {
@@ -144,16 +147,19 @@
         document.getElementById('questionsCard').style.display = 'block';
         document.getElementById('qAcne').value = aiAnalysis.acne ? "yes" : "no";
         document.getElementById('qPig').value = aiAnalysis.pig ? "yes" : "no";
+        if(aiAnalysis.circles) document.getElementById('qCircles').value = "brown"; // افتراض أولى
     }
 
     function generateFinalReport() {
         const acne = document.getElementById('qAcne').value === 'yes';
         const pig = document.getElementById('qPig').value === 'yes';
+        const circleType = document.getElementById('qCircles').value;
         const budget = document.getElementById('qBudget').value;
 
         let score = 100;
-        if(acne) score -= 25;
-        if(pig) score -= 30;
+        if(acne) score -= 20;
+        if(pig) score -= 25;
+        if(circleType !== 'none') score -= 15;
 
         document.getElementById('questionsCard').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
@@ -163,12 +169,13 @@
         let dTxt = "<b>التشخيص المكتشف:</b><br>";
         dTxt += acne ? "• حبوب ملتهبة نشطة.<br>" : "• لا توجد حبوب ملتهبة.<br>";
         dTxt += pig ? "• تصبغات داكنة/بقع.<br>" : "• لا توجد تصبغات.<br>";
+        if(circleType !== 'none') dTxt += "• هالات سوداء نوع (" + circleType + ").<br>";
         document.getElementById('diagText').innerHTML = dTxt;
 
-        buildRoutine(acne, pig, budget);
+        buildRoutine(acne, pig, circleType, budget);
     }
 
-    function buildRoutine(acne, pig, budget) {
+    function buildRoutine(acne, pig, circleType, budget) {
         const list = document.getElementById('routineList');
         list.innerHTML = ""; finalSelection = [];
 
@@ -176,16 +183,19 @@
             addP("الغسول", "ستارفيل وايتنينج", "تفتيح اقتصادي");
             if(pig) addP("التفتيح", "ديرويس كريم", "كوجيك أسيد");
             if(acne) addP("علاج حبوب", "أرجنتو كلير", "مضاد بكتيري");
+            if(circleType !== 'none') addP("الهالات", "إيفا آي كونتور", "ترطيب وتفتيح");
             addP("واقي شمس", "إيفا SPF50", "حماية يومية");
         } else if(budget === 'mid') {
             addP("الغسول", "نانوتريت", "ساليسيليك + نياسيناميد");
             if(pig) addP("التفتيح", "Natavis Serum", "أربوتين + فيروليك");
             if(acne) addP("سيروم حبوب", "سيباكلار اكتيف", "تجفيف سريع");
+            if(circleType !== 'none') addP("الهالات", "ستارفيل آي كونتور", "كافيين وتفتيح");
             addP("واقي شمس", "ستارفيل جل تبييض", "حماية وتفتيح");
         } else {
             addP("الغسول", "دير منظف (Der)", "منظف مسام فاخر");
             if(pig) addP("تفتيح مكثف", "XQ Pharma Serum", "التركيبة الثلاثية");
-            if(acne) addP("علاج فاخر", "فيشي نورماديرم", "للبشرة المعرضة للحبوب");
+            if(acne) addP("علاج فاخر", "فيشي نورماديرم", "الالتهاب والمسام");
+            if(circleType !== 'none') addP("علاج هالات", "لاروش بوزيه بيجمنتكلار", "علاج الهالات البنية");
             addP("نضارة", "Nano Treat 24K Gold", "ذهب وكولاجين");
             addP("واقي شمس", "كولاجرا جل تفتيح", "حماية تفتيح فائقة");
         }
@@ -198,7 +208,7 @@
 
     function sendToWhatsApp() {
         const phone = "201063994139";
-        let msg = `طلب من Verona AI V16:\n📊 السكور: ${document.getElementById('scoreDisplay').innerText}\n👤 البشرة: ${aiAnalysis.skinType}\n📦 الروتين:\n`;
+        let msg = `Verona AI V16+ Report:\n📊 السكور: ${document.getElementById('scoreDisplay').innerText}\n👤 البشرة: ${aiAnalysis.skinType}\n📦 الروتين:\n`;
         finalSelection.forEach(p => msg += `• ${p}\n`);
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
     }
