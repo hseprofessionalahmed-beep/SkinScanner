@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | FINAL V7</title>
+    <title>VERONA AI | V8 PRO SYSTEM</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-
     <style>
         :root { --gold: #d4af37; --bg: #050505; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; text-align: center; }
@@ -15,25 +14,23 @@
         video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         #upImg { display: none; z-index: 5; }
         canvas { z-index: 10; pointer-events: none; }
-        .scan-line { position: absolute; width: 100%; height: 4px; background: var(--gold); top: 0; display: none; animation: scan 2s infinite linear; z-index: 15; }
-        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
         .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
         .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); border-radius: 20px; padding: 20px; margin-top: 15px; display: none; text-align: right; backdrop-filter: blur(10px); }
         .routine-item { background: rgba(0,0,0,0.4); padding: 15px; border-right: 4px solid var(--gold); border-radius: 8px; margin-bottom: 12px; }
         #liveStatus { position: absolute; bottom: 15px; width: 100%; color: #00f2ff; font-weight: bold; z-index: 20; text-shadow: 0 2px 4px #000; }
+        select, .check-group { width: 100%; padding: 10px; border-radius: 8px; background: #1a1a1a; color: #fff; border: 1px solid #444; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold)">VERONA AI | التشخيص النهائي</h2>
+    <h2 style="color:var(--gold)">VERONA AI | التحليل السريري الذكي</h2>
 
     <div class="preview-box">
         <video id="video" playsinline></video>
         <img id="upImg">
         <canvas id="canvas"></canvas>
-        <div class="scan-line" id="sLine"></div>
-        <div id="liveStatus">بانتظار الصورة...</div>
+        <div id="liveStatus">جاري فحص الملامح...</div>
     </div>
 
     <div id="controls">
@@ -43,7 +40,38 @@
                 صورة 📁 <input type="file" hidden onchange="handleFile(event)">
             </label>
         </div>
-        <button class="btn" onclick="processAnalysis()">بدء التحليل 🔬</button>
+        <button class="btn" onclick="openQuestions()">بدء التحليل والتشخيص 🔬</button>
+    </div>
+
+    <div id="questionsCard" class="card">
+        <h3 style="color:var(--gold); text-align:center;">تأكيد ملاحظات الطبيب الذكي</h3>
+        <p style="font-size:0.85rem; color:#aaa;">بناءً على صورتك، يرجى تأكيد التالي لضمان دقة الروتين:</p>
+        
+        <label>1. هل توجد حبوب حمراء أو ملتهبة؟</label>
+        <select id="qAcne">
+            <option value="none">لا يوجد</option>
+            <option value="red">نعم، حبوب حمراء نشطة</option>
+            <option value="scars">آثار حبوب فقط</option>
+        </select>
+
+        <label>2. هل تلاحظين تصبغات أو كلف داكن؟</label>
+        <select id="qPig">
+            <option value="none">لا يوجد</option>
+            <option value="heavy">نعم، تصبغات شديدة/كلف</option>
+            <option value="spots">بقع متفرقة/نمش</option>
+        </select>
+
+        <label>3. الهالات السوداء:</label>
+        <select id="qDark">
+            <option value="none">لا يوجد</option>
+            <option value="yes">نعم، توجد هالات</option>
+        </select>
+
+        <div class="check-group">
+            <input type="checkbox" id="wantsGlow"> إضافة باقة النضارة والتفتيح ✨
+        </div>
+
+        <button class="btn" onclick="generateFinalReport()">عرض الروتين النهائي 👑</button>
     </div>
 
     <div id="reportCard" class="card">
@@ -60,9 +88,8 @@
     const upImg = document.getElementById('upImg');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', {willReadFrequently: true});
-    const liveStatus = document.getElementById('liveStatus');
     
-    let faceMesh, analysis = { acne: false, pig: false, dark: false, skinType: "مختلطة" };
+    let faceMesh, lastAnalysis = { acne: 'none', pig: 'none', dark: 'none', skinType: 'مختلطة' };
 
     async function init() {
         faceMesh = new FaceMesh({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
@@ -71,79 +98,69 @@
             canvas.width = (video.style.display !== 'none') ? video.videoWidth : upImg.naturalWidth;
             canvas.height = (video.style.display !== 'none') ? video.videoHeight : upImg.naturalHeight;
             ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-            if (results.multiFaceLandmarks) runLogic(results.multiFaceLandmarks[0]);
+            if (results.multiFaceLandmarks) analyzeLive(results.multiFaceLandmarks[0]);
         });
     }
 
-    function runLogic(lm) {
+    function analyzeLive(lm) {
         const forehead = getPx(lm[10]);
         const cheek = getPx(lm[205]);
         const eye = getPx(lm[101]);
 
-        // 1. تحديد نوع البشرة
-        if (forehead.v > 200) analysis.skinType = "دهنية جداً";
-        else if (forehead.v < 110) analysis.skinType = "جافة";
-        else analysis.skinType = "مختلطة";
+        if (forehead.v > 190) lastAnalysis.skinType = "دهنية";
+        else if (forehead.v < 115) lastAnalysis.skinType = "جافة";
+        else lastAnalysis.skinType = "مختلطة";
 
-        // 2. تحليل الحبوب (بناءً على التباين الأحمر مع محيطه - وليس اللون الأحمر فقط)
-        // الحبوب تتطلب أن يكون الخد أحمر بكثير مقارنة بالجبهة (Contrast check)
-        analysis.acne = (cheek.r > forehead.r * 1.25) && (cheek.r > cheek.g * 1.3);
+        // كشف ذكي أولي
+        if (cheek.r > forehead.r * 1.2) lastAnalysis.acne = 'red';
+        if (cheek.v < forehead.v * 0.82) lastAnalysis.pig = 'heavy';
+        if (eye.v < forehead.v * 0.85) lastAnalysis.dark = 'yes';
 
-        // 3. تحليل التصبغات (مناطق بنية داكنة مقارنة بالجبهة)
-        analysis.pig = (cheek.v < forehead.v * 0.78) && !analysis.acne;
-
-        // 4. تحليل الهالات (تجنب اعتبارها حبوب - نقيس السطوع فقط)
-        analysis.dark = (eye.v < forehead.v * 0.82);
-
-        // حالة خاصة للطفل (بشرة متجانسة جداً)
-        const uniformity = Math.abs(forehead.v - cheek.v);
-        if (uniformity < 15 && !analysis.dark) {
-            analysis.acne = false; analysis.pig = false;
-        }
-
-        let msg = `بشرة ${analysis.skinType} | `;
-        if (analysis.acne) msg += "⚠️ رصد حبوب ";
-        if (analysis.pig) msg += "⚠️ رصد تصبغات ";
-        if (analysis.dark) msg += "⚠️ رصد هالات ";
-        if (!analysis.acne && !analysis.pig && !analysis.dark) msg = "✅ البشرة نقية وصحية";
-        
-        liveStatus.innerText = msg;
+        document.getElementById('liveStatus').innerText = `تم رصد الملامح | بشرة ${lastAnalysis.skinType} ✅`;
     }
 
     function getPx(p) {
         const x = Math.floor(p.x * canvas.width);
         const y = Math.floor(p.y * canvas.height);
         const d = ctx.getImageData(x, y, 1, 1).data;
-        return { r: d[0], g: d[1], b: d[2], v: (d[0]+d[1]+d[2])/3 };
+        return { r: d[0], v: (d[0]+d[1]+d[2])/3 };
     }
 
-    function processAnalysis() {
-        document.getElementById('sLine').style.display = 'block';
-        setTimeout(() => {
-            document.getElementById('sLine').style.display = 'none';
-            document.getElementById('controls').style.display = 'none';
-            showFinal();
-        }, 2000);
+    function openQuestions() {
+        document.getElementById('controls').style.display = 'none';
+        document.getElementById('questionsCard').style.display = 'block';
+        
+        // تعبئة تلقائية بناءً على تحليل الـ AI الأولي
+        document.getElementById('qAcne').value = lastAnalysis.acne;
+        document.getElementById('qPig').value = lastAnalysis.pig;
+        document.getElementById('qDark').value = lastAnalysis.dark;
     }
 
-    function showFinal() {
+    function generateFinalReport() {
+        const acne = document.getElementById('qAcne').value;
+        const pig = document.getElementById('qPig').value;
+        const dark = document.getElementById('qDark').value;
+        const wantsGlow = document.getElementById('wantsGlow').checked;
+
+        document.getElementById('questionsCard').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
-        document.getElementById('skinType').innerText = "نوع البشرة: " + analysis.skinType;
-        let s = 100, dTxt = "", rTxt = "";
+        
+        let score = 100, dTxt = "", rTxt = "";
 
-        if (!analysis.acne && !analysis.pig && !analysis.dark) {
-            dTxt = "• حالة الجلد: مثالية، متوهجة وخالية من الشوائب.<br>";
-            rTxt += addR("الحفاظ على النضارة", "Verona Daily Glow", "Hyaluronic Acid");
+        if (acne === 'none' && pig === 'none' && dark === 'none') {
+            dTxt = "• حالة الجلد: نقية وصحية.<br>";
+            rTxt += addR("الترطيب اليومي", "Verona Soft Lotion", "Panthenol");
         } else {
-            if (analysis.acne) { s-=15; dTxt += "• تم رصد التهاب نشط (حبوب حمراء).<br>"; rTxt += addR("علاج الحبوب", "Verona Acni-Clear", "Salicylic Acid"); }
-            if (analysis.pig) { s-=12; dTxt += "• تم رصد تصبغات عميقة/كلف.<br>"; rTxt += addR("علاج التصبغات", "Verona Melano-Fade", "Alpha Arbutin"); }
-            if (analysis.dark) { s-=10; dTxt += "• تم رصد هالات تحت العين.<br>"; rTxt += addR("محيط العين", "Verona Eye-Lift Cream", "Caffeine"); }
-            
-            if (analysis.skinType.includes("جافة")) {
-                rTxt += addR("ترطيب مكثف 💧", "Verona Hydro-Boost", "Ceramides");
-            }
+            if (acne !== 'none') { score -= 15; dTxt += "• حبوب ملتهبة/نشطة.<br>"; rTxt += addR("علاج الحبوب", "Verona Acni-Clear", "Salicylic Acid"); }
+            if (pig !== 'none') { score -= 20; dTxt += "• تصبغات داكنة/كلف شديد.<br>"; rTxt += addR("تفتيح البقع", "Verona Melano-Fade", "Alpha Arbutin + Vit C"); }
+            if (dark !== 'none') { score -= 8; dTxt += "• هالات سوداء.<br>"; rTxt += addR("عناية العين", "Verona Eye-Lift", "Caffeine"); }
         }
-        document.getElementById('score').innerText = s + "%";
+
+        if (wantsGlow) rTxt += addR("باقة النضارة ✨", "Verona Glow Serum", "Hyaluronic Acid");
+        if (lastAnalysis.skinType === "جافة") rTxt += addR("ترطيب إلزامي 💧", "Verona Hydro-Boost", "Ceramides");
+
+        document.getElementById('score').innerText = score + "%";
+        document.getElementById('skinType').innerText = "نوع البشرة: " + lastAnalysis.skinType;
         document.getElementById('diag').innerHTML = dTxt;
         document.getElementById('rout').innerHTML = rTxt;
     }
