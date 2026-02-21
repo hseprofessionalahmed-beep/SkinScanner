@@ -2,127 +2,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verona Ai - Smart Skin Analyzer</title>
+<title>Verona Ai Final</title>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 <style>
-body{font-family:Arial; background:#fafafa; text-align:center; padding:20px}
-button{padding:10px 18px; margin:5px; border:none; border-radius:8px; cursor:pointer}
+body{font-family:Arial;background:#f5f5f5;text-align:center;padding:20px}
+button{padding:10px 18px;margin:5px;border:none;border-radius:8px;cursor:pointer}
 .primary{background:#111;color:#fff}
-.secondary{background:#eee}
-.card{background:#fff;padding:15px;margin:15px auto;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.08);max-width:600px;text-align:right}
-.section-title{font-weight:bold;margin-top:10px}
+.card{background:#fff;padding:15px;margin:15px auto;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.08);max-width:700px;text-align:right}
+.section{font-weight:bold;margin-top:10px}
 video,canvas,img{max-width:100%;border-radius:12px;margin-top:10px}
-.badge{display:inline-block;padding:5px 10px;border-radius:20px;background:#f1f1f1;margin:3px;font-size:12px}
+.badge{display:inline-block;padding:5px 10px;border-radius:20px;background:#eee;margin:3px;font-size:12px}
 </style>
 </head>
-<body><h2>Verona Ai - المحرك الذكي لتحليل البشرة</h2><input type="file" id="upload" accept="image/*" hidden>
-<button class="primary" onclick="document.getElementById('upload').click()">أضف صورة</button>
-<button class="secondary" onclick="startCamera()">بدء الكاميرا</button>
-<button class="secondary" onclick="capture()">التقاط صورة</button><br>
+<body><h2>Verona Ai - النسخة النهائية</h2><input type="file" id="upload" accept="image/*" hidden>
+<button class="primary" onclick="upload.click()">أضف صورة</button>
+<button onclick="startCamera()">فتح الكاميرا</button>
+<button onclick="capture()">التقاط</button><br>
 <video id="video" autoplay playsinline style="display:none"></video>
-<canvas id="canvas" style="display:none"></canvas>
-<img id="preview" /><div id="analysis" class="card" style="display:none"></div><div id="goalSection" style="display:none">
-<h3>اختر هدفك:</h3>
-<button class="secondary" onclick="setGoal('glow')">نضارة</button>
-<button class="secondary" onclick="setGoal('bright')">تفتيح</button>
-<button class="secondary" onclick="setGoal('both')">نضارة + تفتيح</button>
-</div><div id="packages" style="display:none"></div><div id="generalTips" class="card" style="display:none">
-<h3>تعليمات عامة مهمة</h3>
-<ul style="text-align:right">
-<li>استخدم واقي الشمس يوميًا حتى داخل المنزل.</li>
-<li>اشرب 2 لتر ماء يوميًا.</li>
-<li>رطب بشرتك مرتين يوميًا.</li>
-<li>نم 7-8 ساعات يوميًا.</li>
-<li>لا تخلط أكثر من مادة فعالة قوية في نفس الوقت.</li>
+<canvas id="canvas"></canvas>
+<img id="preview" /><div id="result" class="card" style="display:none"></div>
+<div id="packages" style="display:none"></div>
+<div id="tips" class="card" style="display:none">
+<h3>تعليمات عامة</h3>
+<ul>
+<li>واقي الشمس يوميًا SPF50.</li>
+<li>ترطيب صباحًا ومساءً.</li>
+<li>عدم خلط الريتينول مع فيتامين C في نفس الروتين.</li>
+<li>شرب ماء كافي يوميًا.</li>
 </ul>
 </div><script>
-let stream;
-let selectedGoal = "both";
+let video=document.getElementById("video");
+let canvas=document.getElementById("canvas");
+let ctx=canvas.getContext("2d");
+let faceMesh=new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true});
+faceMesh.onResults(onResults);
 
 function startCamera(){
-navigator.mediaDevices.getUserMedia({video:true})
-.then(s=>{
-stream=s;
-document.getElementById("video").style.display="block";
-document.getElementById("video").srcObject=s;
+navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
+video.srcObject=stream;
+video.style.display="block";
 });
 }
 
 function capture(){
-let video=document.getElementById("video");
-let canvas=document.getElementById("canvas");
 canvas.width=video.videoWidth;
 canvas.height=video.videoHeight;
-canvas.getContext("2d").drawImage(video,0,0);
-let imgData=canvas.toDataURL("image/png");
-document.getElementById("preview").src=imgData;
-analyze();
+ctx.drawImage(video,0,0);
+faceMesh.send({image:canvas});
 }
 
-document.getElementById("upload").addEventListener("change",function(e){
+upload.onchange=e=>{
 let reader=new FileReader();
 reader.onload=function(){
-document.getElementById("preview").src=reader.result;
-analyze();
+preview.src=reader.result;
+preview.onload=()=>{
+canvas.width=preview.width;
+canvas.height=preview.height;
+ctx.drawImage(preview,0,0);
+faceMesh.send({image:canvas});
+}
 }
 reader.readAsDataURL(e.target.files[0]);
-});
-
-function analyze(){
-let issues=["حبوب","تصبغات","هالات"];
-let resultHTML="<h3>نتيجة التحليل:</h3>";
-issues.forEach(issue=>{
-let detected=Math.random()>0.5;
-if(detected){
-let level=["خفيفة","متوسطة","عميقة"][Math.floor(Math.random()*3)];
-resultHTML+=`<div class='badge'>${issue} - ${level}</div>`;
-}
-});
-
-document.getElementById("analysis").innerHTML=resultHTML;
-document.getElementById("analysis").style.display="block";
-document.getElementById("goalSection").style.display="block";
-document.getElementById("packages").style.display="none";
-document.getElementById("generalTips").style.display="none";
 }
 
-function setGoal(goal){
-selectedGoal=goal;
+function onResults(results){
+ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
+if(results.multiFaceLandmarks.length>0){
+for(const landmarks of results.multiFaceLandmarks){
+drawConnectors(ctx,landmarks,FaceMesh.FACEMESH_TESSELATION,{color:'#00FF00',lineWidth:0.5});
+}
+analyzeImage();
+}
+}
+
+function analyzeImage(){
+let imgData=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+let total=0;
+for(let i=0;i<imgData.length;i+=4){
+total+=(imgData[i]+imgData[i+1]+imgData[i+2])/3;
+}
+let brightness=total/(imgData.length/4);
+
+let acne=brightness<110?"متوسطة":"خفيفة";
+let pigmentation=brightness<100?"عميقة":"خفيفة";
+
+result.innerHTML=`<h3>نتيجة التحليل</h3>
+<div class='badge'>درجة الإضاءة: ${brightness.toFixed(0)}</div>
+<div class='badge'>حبوب: ${acne}</div>
+<div class='badge'>تصبغات: ${pigmentation}</div>`;
+result.style.display="block";
 showPackages();
 }
 
-function routineItem(name,active,why,benefit){
+function product(name,active,why,benefit,price,link){
 return `<p><strong>${name}</strong><br>
 المادة الفعالة: ${active}<br>
 لماذا يستخدم: ${why}<br>
-الفائدة: ${benefit}</p>`;
+الفائدة: ${benefit}<br>
+السعر: ${price} جنيه<br>
+<a href='${link}' target='_blank'>رابط الشراء</a></p>`;
 }
 
 function showPackages(){
-let html="";
-
-html+=createPackage("الباقة الاقتصادية",150);
-html+=createPackage("الباقة المتوسطة",300);
-html+=createPackage("الباقة الطبية",600);
-
-
-document.getElementById("packages").innerHTML=html;
-document.getElementById("packages").style.display="block";
-document.getElementById("generalTips").style.display="block";
-}
-
-function createPackage(title,price){
-return `<div class='card'>
-<h3>${title} - ${price} جنيه</h3>
-<div class='section-title'>روتين صباحي</div>
-${routineItem("غسول","Salicylic Acid","تنظيف المسام","تقليل الحبوب")}
-${routineItem("سيروم","Vitamin C","تفتيح وتوحيد لون","إشراقة ونضارة")}
-${routineItem("واقي شمس","SPF 50","حماية من التصبغات","منع اسمرار البشرة")}
-
-<div class='section-title'>روتين مسائي</div>
-${routineItem("غسول","Gentle Cleanser","إزالة الشوائب","تهيئة البشرة للعلاج")}
-${routineItem("سيروم","Niacinamide","تقليل دهون وتصغير مسام","تحسين ملمس البشرة")}
-${routineItem("مرطب","Hyaluronic Acid","ترطيب عميق","منع الجفاف")}
+packages.innerHTML=`
+<div class='card'>
+<h3>الباقة الاقتصادية</h3>
+<div class='section'>صباحًا</div>
+${product("غسول Garnier","Salicylic Acid","تنظيف المسام","تقليل الحبوب",120,"#")}
+${product("سيروم Eva","Vitamin C","تفتيح","إشراقة",150,"#")}
+<div class='section'>مساءً</div>
+${product("سيروم The Ordinary","Niacinamide","تقليل الدهون","تحسين الملمس",350,"#")}
+${product("مرطب Nivea","Hyaluronic Acid","ترطيب","منع الجفاف",90,"#")}
 </div>`;
+packages.style.display="block";
+tips.style.display="block";
 }
 
 </script></body>
