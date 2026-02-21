@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | FACE MESH PRO</title>
+    <title>VERONA AI | PRO FACE MESH</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
@@ -11,129 +11,112 @@
         :root { --gold: #d4af37; --bg: #050505; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 10px; text-align: right; }
         .container { max-width: 500px; margin: auto; }
-        .info-box { background: rgba(212, 175, 55, 0.1); border-right: 4px solid var(--gold); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.8rem; }
-        .preview-box { position: relative; border-radius: 20px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; margin-bottom: 15px; background: #000; }
-        video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
-        #upImg { display: none; z-index: 5; }
+        .preview-box { position: relative; border-radius: 25px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; margin-bottom: 15px; background: #000; }
+        video, canvas { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
-        .card { background: #111; border: 1px solid #d4af3733; border-radius: 20px; padding: 20px; display: none; }
+        .card { background: #111; border: 1px solid #d4af3733; border-radius: 20px; padding: 15px; display: none; }
         .packages-wrapper { display: flex; gap: 12px; overflow-x: auto; padding: 10px 5px; scroll-snap-type: x mandatory; }
         .pkg-card { flex: 0 0 85%; background: #1a1a1a; border: 1px solid #333; border-radius: 18px; padding: 15px; scroll-snap-align: center; border-top: 4px solid var(--gold); }
-        .pkg-name { font-size: 1.1rem; font-weight: bold; color: var(--gold); text-align: center; margin-bottom: 15px; }
-        .product-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #222; font-size: 0.85rem; }
-        .prod-meta { font-size: 0.7rem; color: #00f2ff; display: block; }
-        .prod-price { color: #25d366; font-weight: bold; margin-right: 10px; }
-        .total-row { display: flex; justify-content: space-between; font-weight: bold; color: var(--gold); font-size: 1.1rem; margin-top: 15px; }
-        .checkbox-group { display: flex; align-items: center; gap: 12px; background: #222; padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #444; }
-        .checkbox-group input { width: 22px; height: 22px; accent-color: var(--gold); }
+        .product-line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #222; font-size: 0.85rem; }
+        .total-row { display: flex; justify-content: space-between; font-weight: bold; color: var(--gold); margin-top: 10px; }
+        .check-item { display: flex; align-items: center; gap: 10px; background: #222; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #444; }
         #liveStatus { position: absolute; bottom: 15px; width: 100%; color: #00f2ff; font-weight: bold; z-index: 20; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold); text-align:center;">VERONA AI | FACE MESH PRO</h2>
-
-    <div class="info-box">
-        <b>🤖 تقنية المسح البصري:</b><br>
-        • سيتم رسم شبكة ذكية لتحديد ملامح وجهك بدقة.<br>
-        • نستخدم نقاط Face Mesh لفحص (الجبهة، الخدين، منطقة العين).
-    </div>
+    <h2 style="color:var(--gold); text-align:center;">VERONA AI | V23 PRO</h2>
 
     <div class="preview-box">
         <video id="video" playsinline hidden></video>
-        <img id="upImg">
         <canvas id="canvas"></canvas>
-        <div id="liveStatus">بانتظار الكاميرا...</div>
+        <div id="liveStatus">بانتظار تفعيل الكاميرا...</div>
     </div>
 
     <div id="controls">
-        <button class="btn" onclick="startCam()">بدء المسح البصري 📸</button>
-        <button class="btn" style="background:#222; color:#fff;" onclick="openQuestions()">تحليل الروتين 🔬</button>
+        <button class="btn" onclick="startCam()">بدء المسح الذكي 📸</button>
+        <button class="btn" style="background:#222; color:#fff;" onclick="openQuestions()">تخصيص الروتين 🔬</button>
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">تخصيص الروتين</h3>
+        <h3 style="color:var(--gold); text-align:center;">تأكيد التحليل</h3>
         <label>حبوب ملتهبة؟</label>
         <select id="qAcne"><option value="no">لا</option><option value="yes">نعم</option></select>
-        <label>تصبغات وبقع؟</label>
+        <label>تصبغات؟</label>
         <select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
-        <label>الهالات السوداء:</label>
-        <select id="qCircles"><option value="none">لا يوجد</option><option value="brown">بني</option><option value="blue">أزرق</option></select>
-
-        <div class="checkbox-group">
-            <input type="checkbox" id="addGlow">
-            <label>أضف باقة النضارة (هيالورونيك) ✨</label>
-        </div>
-        <div class="checkbox-group">
-            <input type="checkbox" id="addWhite">
-            <label>أضف باقة التفتيح (فيتامين C) ⚪</label>
-        </div>
-
-        <button class="btn" onclick="generateFinalReport()">عرض النتائج 📊</button>
+        <label>هالات؟</label>
+        <select id="qCircles"><option value="none">لا يوجد</option><option value="brown">بني</option></select>
+        <div class="check-item"><input type="checkbox" id="addGlow"><label>باقة النضارة ✨</label></div>
+        <div class="check-item"><input type="checkbox" id="addWhite"><label>باقة التفتيح ⚪</label></div>
+        <button class="btn" onclick="generateFinalReport()">النتائج النهائية ✨</button>
     </div>
 
     <div id="reportCard" class="card">
-        <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:15px;"></div>
+        <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:10px;"></div>
         <div class="packages-wrapper" id="pkgContainer"></div>
-        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الروتين الكامل 💬</button>
-        <button class="btn" style="background:#333; color:#fff;" onclick="location.reload()">فحص جديد 🔄</button>
+        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الآن 💬</button>
     </div>
 </div>
 
 <script>
     const myPhone = "201063994139";
     const productDB = {
-        "ستارفيل وايتنينج": { p: 145, ing: "أربوتين + عرقسوس" },
-        "أرجنتو كلير": { p: 165, ing: "زيت شجرة الشاي" },
-        "فيشي نورماديرم": { p: 850, ing: "حمض الساليسيليك" },
-        "شان جيل": { p: 195, ing: "بانثينول + صبار" },
-        "لوريال هيالورونيك": { p: 395, ing: "1.5% Hyaluronic" },
-        "ديرماتيك جيل": { p: 260, ing: "Hyaluron + B5" },
-        "ناتافيس فيتامين C": { p: 485, ing: "Vit C + Ferulic" },
-        "لاروش بيجمنتكلار": { p: 1250, ing: "كافيين متطور" },
-        "ستارفيل آي كونتور": { p: 155, ing: "كافيين + ببتيدات" }
+        "ستارفيل وايتنينج": { p: 145, ing: "أربوتين" }, "أرجنتو كلير": { p: 165, ing: "شجرة الشاي" },
+        "فيشي نورماديرم": { p: 850, ing: "ساليسيليك" }, "شان جيل": { p: 195, ing: "بانثينول" },
+        "لوريال هيالورونيك": { p: 395, ing: "هيالورونيك" }, "ديرماتيك جيل": { p: 260, ing: "B5" },
+        "ناتافيس فيتامين C": { p: 485, ing: "فيتامين C" }, "لاروش بيجمنتكلار": { p: 1250, ing: "كافيين" },
+        "ستارفيل آي كونتور": { p: 155, ing: "كافيين" }
     };
 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', {willReadFrequently: true});
     let aiAnalysis = { acne: false, pig: false, circles: false, skinType: 'مختلطة' };
 
-    const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
-    faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
-    faceMesh.onResults(onResults);
-
-    function onResults(results) {
-        ctx.save();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const faceMesh = new FaceMesh({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+    faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.6 });
+    
+    faceMesh.onResults(results => {
+        // 1. رسم الصورة الأصلية أولاً وقراءتها قبل أي تعديل
         ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-        if (results.multiFaceLandmarks) {
-            for (const landmarks of results.multiFaceLandmarks) {
-                // رسم الشبكة العنكبوتية (للشكل الجمالي وتأكيد الفحص)
-                drawConnectors(ctx, landmarks, FACEMESH_TESSELATION, {color: '#d4af3730', lineWidth: 1});
-                
-                // تحليل النقطة 10 (الجبهة) و 205 (الخد)
-                const fore = landmarks[10];
-                aiAnalysis.skinType = fore.y < 0.3 ? "دهنية" : "مختلطة"; 
-                document.getElementById('liveStatus').innerText = "تم تحديد ملامح الوجه ✅";
-            }
+        
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+            const lm = results.multiFaceLandmarks[0];
+            
+            // 2. تحليل البيكسلات (محرك V17.4 الأصلي)
+            const fore = getPx(lm[10]);
+            const cheek = getPx(lm[205]);
+            const eye = getPx(lm[230]);
+            
+            aiAnalysis.skinType = (fore.v > 205) ? "دهنية" : (fore.v < 115 ? "جافة" : "مختلطة");
+            aiAnalysis.acne = (cheek.r - cheek.g > 35);
+            aiAnalysis.pig = (cheek.v / fore.v < 0.85);
+            aiAnalysis.circles = (eye.v < fore.v * 0.72);
+
+            // 3. الآن نرسم الشبكة (بعد التحليل لكي لا تخرب النتائج)
+            drawConnectors(ctx, lm, FACEMESH_TESSELATION, {color: '#d4af3740', lineWidth: 1});
+            document.getElementById('liveStatus').innerText = "تم الفحص بـ Face Mesh ✅";
         }
-        ctx.restore();
+    });
+
+    function getPx(p) {
+        const x = Math.floor(p.x * canvas.width); const y = Math.floor(p.y * canvas.height);
+        const d = ctx.getImageData(x, y, 1, 1).data;
+        return { r: d[0], g: d[1], v: (d[0]+d[1]+d[2])/3 };
     }
 
     function startCam() {
-        const camera = new Camera(video, {
-            onFrame: async () => { await faceMesh.send({image: video}); },
-            width: 640, height: 480
-        });
-        camera.start();
+        new Camera(video, {onFrame: async () => await faceMesh.send({image: video}), width: 640, height: 480}).start();
         canvas.width = 640; canvas.height = 480;
     }
 
     function openQuestions() {
         document.getElementById('controls').style.display = 'none';
         document.getElementById('questionsCard').style.display = 'block';
+        document.getElementById('qAcne').value = aiAnalysis.acne ? "yes" : "no";
+        document.getElementById('qPig').value = aiAnalysis.pig ? "yes" : "no";
+        document.getElementById('qCircles').value = aiAnalysis.circles ? "brown" : "none";
     }
 
     function generateFinalReport() {
@@ -145,18 +128,12 @@
 
         document.getElementById('questionsCard').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
-        document.getElementById('skinTypeDisplay').innerText = "تحليل Verona: بشرة " + aiAnalysis.skinType;
+        document.getElementById('skinTypeDisplay').innerText = "بشرة " + aiAnalysis.skinType;
 
         const container = document.getElementById('pkgContainer');
         container.innerHTML = "";
 
-        const levels = [
-            { id: 'low', name: 'الاقتصادية 🥉' },
-            { id: 'mid', name: 'سوبر برو 🥈' },
-            { id: 'high', name: 'ألترا فاخرة 🥇' }
-        ];
-
-        levels.forEach(lvl => {
+        [{id:'low', n:'اقتصادية'}, {id:'mid', n:'سوبر برو'}, {id:'high', n:'ألترا'}].forEach(lvl => {
             let list = [];
             list.push(lvl.id === 'high' ? "فيشي نورماديرم" : "ستارفيل وايتنينج");
             if(acne) list.push("أرجنتو كلير");
@@ -165,27 +142,20 @@
             if(addGlow) list.push(lvl.id === 'high' ? "لوريال هيالورونيك" : "ديرماتيك جيل");
             if(addWhite && !pig) list.push("ناتافيس فيتامين C");
             list.push("شان جيل");
-            renderPkg(lvl, [...new Set(list)]);
+            
+            let html = `<div class="pkg-card"><div class="pkg-name">${lvl.n}</div>`;
+            let total = 0;
+            [...new Set(list)].forEach(name => {
+                const d = productDB[name]; total += d.p;
+                html += `<div class="product-line"><span>${name}</span><b>${d.p} ج.م</b></div>`;
+            });
+            html += `<div class="total-row"><span>المجموع:</span><span>${total} ج.م</span></div></div>`;
+            container.innerHTML += html;
         });
-    }
-
-    function renderPkg(lvl, list) {
-        let total = 0;
-        let html = `<div class="pkg-card"><div class="pkg-name">${lvl.name}</div>`;
-        list.forEach(name => {
-            const d = productDB[name] || {p:0, ing: "طبي"};
-            total += d.p;
-            html += `<div class="product-line">
-                <div><b>${name}</b><span class="prod-meta">🧪 ${d.ing}</span></div>
-                <div class="prod-price">${d.p} ج.م</div>
-            </div>`;
-        });
-        html += `<div class="total-row"><span>الإجمالي:</span> <span>${total} ج.م</span></div></div>`;
-        document.getElementById('pkgContainer').innerHTML += html;
     }
 
     function sendToWhatsApp() {
-        window.open(`https://wa.me/${myPhone}?text=أهلاً Verona، قمت بالتحليل البصري وأريد طلب الروتين.`, '_blank');
+        window.open(`https://wa.me/${myPhone}?text=أريد طلب الروتين الذي تم ترشيحه لي.`, '_blank');
     }
 </script>
 </body>
