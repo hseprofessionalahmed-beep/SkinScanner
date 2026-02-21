@@ -3,54 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | REPAIRED V18.6</title>
+    <title>VERONA AI | ULTIMATE V19.0</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
         :root { --gold: #d4af37; --bg: #050505; --card: #111; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 10px; text-align: right; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 10px; text-align: right; overflow-x: hidden; }
         .container { max-width: 600px; margin: auto; }
         
-        .info-box { background: rgba(212, 175, 55, 0.1); border-right: 4px solid var(--gold); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; }
+        /* تعليمات التصوير */
+        .info-box { background: rgba(212, 175, 55, 0.1); border-right: 4px solid var(--gold); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.8rem; line-height: 1.4; }
+        
         .preview-box { position: relative; border-radius: 20px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; margin-bottom: 15px; background: #000; }
         video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         #upImg { display: none; z-index: 5; }
         
         .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
-        .card { background: var(--card); border: 1px solid #d4af3733; border-radius: 20px; padding: 20px; display: none; }
+        .card { background: var(--card); border: 1px solid #d4af3733; border-radius: 20px; padding: 15px; display: none; }
 
-        /* ستايل الباقات العرضية */
-        .packages-wrapper { display: flex; gap: 15px; overflow-x: auto; padding: 10px 5px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+        /* المستطيلات الجانبية */
+        .packages-wrapper { display: flex; gap: 12px; overflow-x: auto; padding: 10px 5px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
         .pkg-card { 
-            flex: 0 0 85%; background: #1a1a1a; border: 1px solid #333; border-radius: 20px; 
-            padding: 20px; scroll-snap-align: center; border-top: 5px solid var(--gold);
+            flex: 0 0 82%; background: #1a1a1a; border: 1px solid #333; border-radius: 18px; 
+            padding: 15px; scroll-snap-align: center; border-top: 4px solid var(--gold);
         }
-        .pkg-name { font-size: 1.3rem; font-weight: bold; color: var(--gold); text-align: center; margin-bottom: 15px; }
+        .pkg-name { font-size: 1.1rem; font-weight: bold; color: var(--gold); text-align: center; margin-bottom: 10px; }
         
-        .product-line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; }
-        .prod-title { font-size: 0.95rem; font-weight: bold; }
-        .prod-meta { font-size: 0.75rem; color: #00f2ff; display: block; }
-        .prod-price { color: #25d366; font-weight: bold; margin-right: 10px; }
+        .product-line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #222; font-size: 0.85rem; }
+        .prod-meta { font-size: 0.7rem; color: #00f2ff; display: block; }
+        .prod-price { color: #25d366; font-weight: bold; margin-right: 5px; white-space: nowrap; }
 
-        .pkg-summary { margin-top: 20px; padding-top: 15px; border-top: 2px solid #333; }
-        .total-row { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; color: var(--gold); }
-        .stat-line { font-size: 0.8rem; color: #aaa; display: block; margin-top: 5px; }
+        .pkg-summary { margin-top: 15px; padding-top: 10px; border-top: 1px solid #333; }
+        .total-row { display: flex; justify-content: space-between; font-weight: bold; color: var(--gold); }
+        .stat-line { font-size: 0.75rem; color: #aaa; display: block; margin-top: 3px; }
 
-        select { width: 100%; padding: 12px; border-radius: 8px; background: #222; color: #fff; border: 1px solid #444; margin-bottom: 12px; }
-        #liveStatus { position: absolute; bottom: 15px; width: 100%; color: #00f2ff; font-weight: bold; z-index: 20; text-align: center; }
-        .disclaimer { font-size: 0.7rem; color: #666; text-align: center; margin-top: 20px; padding: 10px; border-top: 1px solid #222; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; background: #222; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #444; }
+        .checkbox-group input { width: 20px; height: 20px; accent-color: var(--gold); }
+
+        #liveStatus { position: absolute; bottom: 15px; width: 100%; color: #00f2ff; font-weight: bold; z-index: 20; text-align: center; text-shadow: 0 2px 4px #000; }
+        .disclaimer { font-size: 0.65rem; color: #666; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold); text-align:center;">VERONA AI | ENGINE REPAIRED V18.6</h2>
+    <h2 style="color:var(--gold); text-align:center;">VERONA AI | MASTER V19</h2>
 
     <div class="info-box">
-        <b>📸 شروط الفحص الدقيق (V16.1 Logic):</b><br>
-        1. إضاءة واضحة (يفضل ضوء الشمس) لتشخيص التصبغات.<br>
-        2. وجه الكاميرا مباشرة دون ميلان لاكتشاف زوايا الهالات.<br>
-        3. تأكد من نظافة البشرة تماماً من أي كريمات.
+        <b>📸 شروط الفحص الدقيق:</b><br>
+        • إضاءة نهارية قوية (واجه النافذة).<br>
+        • بشرة نظيفة تماماً بدون مكياج.<br>
+        • المسافة 30 سم مع ثبات الهاتف.
     </div>
 
     <div class="preview-box">
@@ -67,63 +70,66 @@
                 صورة 📁 <input type="file" hidden onchange="handleFile(event)">
             </label>
         </div>
-        <button class="btn" onclick="openQuestions()">تحليل البشرة والروتين 🔬</button>
+        <button class="btn" onclick="openQuestions()">تحليل البشرة وبناء الروتين 🔬</button>
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">تأكيد النتائج الذكية</h3>
-        <label>1. هل تلاحظ حبوب ملتهبة؟</label>
+        <h3 style="color:var(--gold); text-align:center;">تخصيص الروتين العلاجي</h3>
+        
+        <label>هل توجد حبوب ملتهبة؟</label>
         <select id="qAcne"><option value="no">لا</option><option value="yes">نعم</option></select>
-        <label>2. هل تلاحظ تصبغات أو بقع؟</label>
+        
+        <label>هل توجد تصبغات وبقع؟</label>
         <select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
-        <label>3. لون الهالات تحت العين:</label>
-        <select id="qCircles">
-            <option value="none">لا يوجد</option>
-            <option value="brown">بني (تصبغات)</option>
-            <option value="blue">أزرق (إرهاق)</option>
-        </select>
-        <label>4. إضافة باقة تعزيز؟</label>
-        <select id="qGoal">
-            <option value="none">الروتين العلاجي فقط</option>
-            <option value="glow">باقة النضارة ✨</option>
-            <option value="whitening">باقة التفتيح ⚪</option>
-        </select>
-        <button class="btn" onclick="generateFinalReport()">عرض مقارنة الباقات ✨</button>
+        
+        <label>الهالات السوداء:</label>
+        <select id="qCircles"><option value="none">لا يوجد</option><option value="brown">بني</option><option value="blue">أزرق</option></select>
+
+        <hr style="border:0.5px solid #333; margin:15px 0;">
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="addGlow">
+            <label for="addGlow">أضف باقة النضارة (هيالورونيك) ✨</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="addWhite">
+            <label for="addWhite">أضف باقة التفتيح (فيتامين C) ⚪</label>
+        </div>
+
+        <button class="btn" onclick="generateFinalReport()">عرض مقارنة الباقات 📊</button>
     </div>
 
     <div id="reportCard" class="card">
         <div class="info-box" style="background:rgba(37, 211, 102, 0.05); border-color:#25d366;">
             <b>📋 تعليمات Verona للعناية:</b><br>
-            • شرب 3 لتر مياه يومياً ضرورة قصوى للنضارة.<br>
-            • النوم قبل 11 مساءً يعيد بناء الخلايا المتضررة.<br>
-            • <b>هام:</b> رطب بشرتك جيداً قبل البدء بالمقشرات بـ 48 ساعة.
+            • شرب 3 لتر مياه يومياً.<br>
+            • النوم قبل 11 مساءً.<br>
+            • ترطيب البشرة لمدة يومين قبل البدء بالعلاجات.
         </div>
+        <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:10px;"></div>
         
-        <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; font-size:1.1rem; margin-bottom:15px;"></div>
         <div class="packages-wrapper" id="pkgContainer"></div>
 
         <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الروتين الكامل 💬</button>
         <button class="btn" style="background:#333; color:#fff;" onclick="location.reload()">فحص جديد 🔄</button>
-
-        <div class="disclaimer">
-            التطبيق يستخدم معالجاً ذكياً مطوراً لعمل توصيات روتين البشرة وليس تطبيقاً طبياً.
-        </div>
+        <div class="disclaimer">التطبيق يستخدم معالج ذكي مطور لعمل توصيات الروتين وليس تطبيقاً طبياً.</div>
     </div>
 </div>
 
 <script>
     const myPhone = "201063994139";
     const productDB = {
-        "ستارفيل وايتنينج": { p: 145, ing: "أربوتين + عرقسوس", link: "https://amzn.to/4kIiMtC" },
-        "أرجنتو كلير": { p: 165, ing: "شجرة الشاي + E", link: "https://amzn.to/4aNwLtH" },
-        "فيشي نورماديرم": { p: 850, ing: "ساليسيليك أسيد", link: "https://amzn.to/3ORZvKm" },
-        "شان جيل": { p: 195, ing: "بانثينول + صبار", link: "https://amzn.to/4arUPn4" },
-        "لوريال هيالورونيك": { p: 390, ing: "1.5% هيالورونيك", link: "https://amzn.to/4aKX5om" },
-        "ديرماتيك جيل": { p: 260, ing: "B5 + هيالورونيك", link: "https://amzn.to/3OsdarB" },
-        "ناتافيس فيتامين C": { p: 480, ing: "فيتامين C + فيروليك", link: "https://amzn.to/4rvjltF" },
-        "لاروش بيجمنتكلار": { p: 1250, ing: "كافيين متطور", link: "https://amzn.to/3OuGhKM" },
-        "ستارفيل آي كونتور": { p: 155, ing: "كافيين + ببتيدات", link: "https://amzn.to/3ZS3qt4" },
-        "إيفا SPF50": { p: 130, ing: "حماية واسعة المدى", link: "https://amzn.to/4tNw7oK" }
+        "ستارفيل وايتنينج": { p: 145, ing: "أربوتين + عرقسوس" },
+        "أرجنتو كلير": { p: 165, ing: "شجرة الشاي" },
+        "فيشي نورماديرم": { p: 850, ing: "ساليسيليك أسيد" },
+        "شان جيل": { p: 195, ing: "بانثينول + صبار" },
+        "لوريال هيالورونيك": { p: 390, ing: "1.5% هيالورونيك" },
+        "ديرماتيك جيل": { p: 260, ing: "B5 + هيالورونيك" },
+        "ناتافيس فيتامين C": { p: 480, ing: "فيتامين C" },
+        "لاروش بيجمنتكلار": { p: 1250, ing: "كافيين متطور" },
+        "ستارفيل آي كونتور": { p: 155, ing: "كافيين + ببتيدات" },
+        "إيفا SPF50": { p: 130, ing: "حماية شمس" }
     };
 
     const video = document.getElementById('video');
@@ -141,18 +147,17 @@
             ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
             if (results.multiFaceLandmarks) {
                 const lm = results.multiFaceLandmarks[0];
-                // إعادة محرك V16.1 الأصلي الدقيق
+                // استخدام كود الفحص الدقيق من V17.4
                 const forehead = getPx(lm[10]);
                 const cheek = getPx(lm[205]);
-                const eye = getPx(lm[230]);
+                const underEye = getPx(lm[230]);
                 
                 aiAnalysis.skinType = (forehead.v > 205) ? "دهنية" : (forehead.v < 115 ? "جافة" : "مختلطة");
-                aiAnalysis.acne = (cheek.r - cheek.g > 35 && cheek.r > forehead.r * 1.2);
-                aiAnalysis.pig = (cheek.v / forehead.v < 0.85); // دقة 0.85 لكشف التصبغات
-                aiAnalysis.circles = (eye.v < forehead.v * 0.75); // دقة 0.75 لكشف الهالات
+                aiAnalysis.acne = (cheek.r - cheek.g > 35 && cheek.r > forehead.r * 1.25);
+                aiAnalysis.pig = (cheek.v / forehead.v < 0.85);
+                aiAnalysis.circles = (underEye.v < forehead.v * 0.72 && cheek.v < 190);
                 
-                if (cheek.v > 195) { aiAnalysis.acne = aiAnalysis.pig = aiAnalysis.circles = false; }
-                document.getElementById('liveStatus').innerText = `تم الفحص بدقة V16.1 ✅`;
+                document.getElementById('liveStatus').innerText = `تم الفحص بنجاح ✅`;
             }
         });
         window.startCam = () => { video.style.display='block'; upImg.style.display='none'; new Camera(video, {onFrame: async () => await faceMesh.send({image: video}), width: 640, height: 480}).start(); };
@@ -182,16 +187,16 @@
         const acne = document.getElementById('qAcne').value === 'yes';
         const pig = document.getElementById('qPig').value === 'yes';
         const circ = document.getElementById('qCircles').value;
-        const goal = document.getElementById('qGoal').value;
+        const addGlow = document.getElementById('addGlow').checked;
+        const addWhite = document.getElementById('addWhite').checked;
 
         document.getElementById('questionsCard').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
-        document.getElementById('skinTypeDisplay').innerText = "نوع البشرة: " + aiAnalysis.skinType;
+        document.getElementById('skinTypeDisplay').innerText = "تحليل Verona: بشرة " + aiAnalysis.skinType;
 
-        const pkgContainer = document.getElementById('pkgContainer');
-        pkgContainer.innerHTML = "";
+        const container = document.getElementById('pkgContainer');
+        container.innerHTML = "";
 
-        // بناء الباقات (اقتصادية - سوبر - ألترا)
         const levels = [
             { id: 'low', name: 'الاقتصادية 🥉', imp: '65%', dur: '90 يوم' },
             { id: 'mid', name: 'سوبر برو 🥈', imp: '85%', dur: '60 يوم' },
@@ -200,20 +205,12 @@
 
         levels.forEach(lvl => {
             let products = [];
-            // 1. الغسول
             products.push(lvl.id === 'high' ? "فيشي نورماديرم" : "ستارفيل وايتنينج");
-            // 2. الحبوب
             if(acne) products.push("أرجنتو كلير");
-            // 3. التصبغات
             if(pig) products.push("ناتافيس فيتامين C");
-            // 4. الهالات
-            if(circ !== 'none') {
-                products.push(lvl.id === 'high' ? "لاروش بيجمنتكلار" : "ستارفيل آي كونتور");
-            }
-            // 5. الباقة المضافة (نضارة/تفتيح)
-            if(goal === 'glow') products.push(lvl.id === 'high' ? "لوريال هيالورونيك" : "ديرماتيك جيل");
-            if(goal === 'whitening' && !pig) products.push("ناتافيس فيتامين C");
-            // 6. الترطيب
+            if(circ !== 'none') products.push(lvl.id === 'high' ? "لاروش بيجمنتكلار" : "ستارفيل آي كونتور");
+            if(addGlow) products.push(lvl.id === 'high' ? "لوريال هيالورونيك" : "ديرماتيك جيل");
+            if(addWhite && !pig) products.push("ناتافيس فيتامين C");
             products.push("شان جيل");
 
             renderPkg(lvl, [...new Set(products)]);
@@ -224,17 +221,15 @@
         let total = 0;
         let html = `<div class="pkg-card"><div class="pkg-name">${lvl.name}</div>`;
         list.forEach(name => {
-            const d = productDB[name] || {p:0, ing: "عناية"};
+            const d = productDB[name] || {p:0, ing: "طبي"};
             total += d.p;
             html += `<div class="product-line">
-                <div><div class="prod-title">${name}</div><span class="prod-meta">🧪 ${d.ing}</span></div>
+                <div><b>${name}</b><span class="prod-meta">🧪 ${d.ing}</span></div>
                 <div class="prod-price">${d.p} ج.م</div>
             </div>`;
         });
-        html += `<div class="pkg-summary">
-            <div class="total-row"><span>الإجمالي:</span> <span>${total} ج.م</span></div>
-            <span class="stat-line">✓ تحسن: ${lvl.imp} | مدة: ${lvl.dur}</span>
-        </div></div>`;
+        html += `<div class="pkg-summary"><div class="total-row"><span>الإجمالي:</span> <span>${total} ج.م</span></div>
+            <span class="stat-line">📊 تحسن: ${lvl.imp} | ⏱️ مدة: ${lvl.dur}</span></div></div>`;
         document.getElementById('pkgContainer').innerHTML += html;
     }
 
