@@ -3,59 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | ULTIMATE V18.5</title>
+    <title>VERONA AI | REPAIRED V18.6</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
-        :root { --gold: #d4af37; --bg: #080808; --card: rgba(20, 20, 20, 0.98); }
+        :root { --gold: #d4af37; --bg: #050505; --card: #111; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 10px; text-align: right; }
-        .container { max-width: 650px; margin: auto; }
+        .container { max-width: 600px; margin: auto; }
         
-        .info-box { background: rgba(212, 175, 55, 0.08); border-right: 4px solid var(--gold); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; }
+        .info-box { background: rgba(212, 175, 55, 0.1); border-right: 4px solid var(--gold); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; }
         .preview-box { position: relative; border-radius: 20px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; margin-bottom: 15px; background: #000; }
         video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         #upImg { display: none; z-index: 5; }
         
-        .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; font-size: 1rem; }
-        .card { background: var(--card); border: 1px solid #d4af3733; border-radius: 20px; padding: 20px; display: none; backdrop-filter: blur(10px); }
+        .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        .card { background: var(--card); border: 1px solid #d4af3733; border-radius: 20px; padding: 20px; display: none; }
 
-        /* نظام المستطيلات المقارنة */
-        .packages-wrapper { display: flex; gap: 12px; overflow-x: auto; padding: 10px 0; scroll-snap-type: x mandatory; }
+        /* ستايل الباقات العرضية */
+        .packages-wrapper { display: flex; gap: 15px; overflow-x: auto; padding: 10px 5px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
         .pkg-card { 
-            flex: 0 0 88%; background: #151515; border: 1px solid #333; border-radius: 18px; 
-            padding: 15px; scroll-snap-align: center; border-top: 4px solid var(--gold);
+            flex: 0 0 85%; background: #1a1a1a; border: 1px solid #333; border-radius: 20px; 
+            padding: 20px; scroll-snap-align: center; border-top: 5px solid var(--gold);
         }
-        .pkg-header { text-align: center; margin-bottom: 15px; }
-        .pkg-name { font-size: 1.2rem; font-weight: 900; color: var(--gold); }
+        .pkg-name { font-size: 1.3rem; font-weight: bold; color: var(--gold); text-align: center; margin-bottom: 15px; }
         
-        .product-line { 
-            display: flex; justify-content: space-between; align-items: flex-start; 
-            padding: 8px 0; border-bottom: 1px solid #222; 
-        }
-        .prod-info { flex: 1; }
-        .prod-title { font-size: 0.9rem; font-weight: bold; color: #fff; }
+        .product-line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; }
+        .prod-title { font-size: 0.95rem; font-weight: bold; }
         .prod-meta { font-size: 0.75rem; color: #00f2ff; display: block; }
-        .prod-price { font-size: 0.85rem; color: #25d366; font-weight: bold; margin-right: 8px; white-space: nowrap; }
+        .prod-price { color: #25d366; font-weight: bold; margin-right: 10px; }
 
-        .pkg-summary { margin-top: 15px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; }
-        .total-row { display: flex; justify-content: space-between; font-weight: bold; color: var(--gold); font-size: 1.1rem; }
-        .stat-badge { font-size: 0.75rem; color: #ccc; display: block; margin-top: 4px; }
+        .pkg-summary { margin-top: 20px; padding-top: 15px; border-top: 2px solid #333; }
+        .total-row { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; color: var(--gold); }
+        .stat-line { font-size: 0.8rem; color: #aaa; display: block; margin-top: 5px; }
 
-        select { width: 100%; padding: 12px; border-radius: 8px; background: #1a1a1a; color: #fff; border: 1px solid #444; margin-bottom: 12px; }
-        #liveStatus { position: absolute; bottom: 15px; width: 100%; color: #00f2ff; font-weight: bold; z-index: 20; text-align: center; text-shadow: 0 2px 4px #000; }
-        .disclaimer { font-size: 0.7rem; color: #666; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px; }
+        select { width: 100%; padding: 12px; border-radius: 8px; background: #222; color: #fff; border: 1px solid #444; margin-bottom: 12px; }
+        #liveStatus { position: absolute; bottom: 15px; width: 100%; color: #00f2ff; font-weight: bold; z-index: 20; text-align: center; }
+        .disclaimer { font-size: 0.7rem; color: #666; text-align: center; margin-top: 20px; padding: 10px; border-top: 1px solid #222; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold); text-align:center; letter-spacing: 1px;">VERONA AI | MASTER V18.5</h2>
+    <h2 style="color:var(--gold); text-align:center;">VERONA AI | ENGINE REPAIRED V18.6</h2>
 
     <div class="info-box">
-        <b>💡 شروط التقاط الصورة لنظام الـ AI:</b><br>
-        1. إضاءة نهارية قوية أو ضوء أبيض مواجه للوجه.<br>
-        2. تنظيف عدسة الكاميرا جيداً قبل البدء.<br>
-        3. التأكد من عدم وجود مكياج أو فلاتر برمجية.
+        <b>📸 شروط الفحص الدقيق (V16.1 Logic):</b><br>
+        1. إضاءة واضحة (يفضل ضوء الشمس) لتشخيص التصبغات.<br>
+        2. وجه الكاميرا مباشرة دون ميلان لاكتشاف زوايا الهالات.<br>
+        3. تأكد من نظافة البشرة تماماً من أي كريمات.
     </div>
 
     <div class="preview-box">
@@ -72,72 +67,69 @@
                 صورة 📁 <input type="file" hidden onchange="handleFile(event)">
             </label>
         </div>
-        <button class="btn" onclick="openQuestions()">بدء التحليل الدقيق 🔬</button>
+        <button class="btn" onclick="openQuestions()">تحليل البشرة والروتين 🔬</button>
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">تأكيد الحالة المكتشفة</h3>
-        <label>1. هل توجد حبوب ملتهبة؟</label>
+        <h3 style="color:var(--gold); text-align:center;">تأكيد النتائج الذكية</h3>
+        <label>1. هل تلاحظ حبوب ملتهبة؟</label>
         <select id="qAcne"><option value="no">لا</option><option value="yes">نعم</option></select>
-        <label>2. هل توجد تصبغات وبقع؟</label>
+        <label>2. هل تلاحظ تصبغات أو بقع؟</label>
         <select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
         <label>3. لون الهالات تحت العين:</label>
         <select id="qCircles">
             <option value="none">لا يوجد</option>
             <option value="brown">بني (تصبغات)</option>
-            <option value="blue">أزرق (إجهاد)</option>
+            <option value="blue">أزرق (إرهاق)</option>
         </select>
-        <label>4. إضافة باقة تعزيز إضافية؟</label>
+        <label>4. إضافة باقة تعزيز؟</label>
         <select id="qGoal">
             <option value="none">الروتين العلاجي فقط</option>
-            <option value="glow">باقة النضارة (هيالورونيك) ✨</option>
-            <option value="whitening">باقة التفتيح (فيتامين C) ⚪</option>
+            <option value="glow">باقة النضارة ✨</option>
+            <option value="whitening">باقة التفتيح ⚪</option>
         </select>
-        <button class="btn" onclick="generateFinalReport()">عرض مقارنة الباقات الثلاث ✨</button>
+        <button class="btn" onclick="generateFinalReport()">عرض مقارنة الباقات ✨</button>
     </div>
 
     <div id="reportCard" class="card">
         <div class="info-box" style="background:rgba(37, 211, 102, 0.05); border-color:#25d366;">
             <b>📋 تعليمات Verona للعناية:</b><br>
-            • شرب 8 أكواب مياه يومياً ضرورة قصوى.<br>
-            • النوم مبكراً (قبل 11 م) يسرع مفعول المنتجات.<br>
-            • ترطيب البشرة بمرطب طبي لمدة يومين قبل البدء بالعلاجات.
+            • شرب 3 لتر مياه يومياً ضرورة قصوى للنضارة.<br>
+            • النوم قبل 11 مساءً يعيد بناء الخلايا المتضررة.<br>
+            • <b>هام:</b> رطب بشرتك جيداً قبل البدء بالمقشرات بـ 48 ساعة.
         </div>
-
-        <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; font-size:1.1rem; margin-bottom:10px;"></div>
         
+        <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; font-size:1.1rem; margin-bottom:15px;"></div>
         <div class="packages-wrapper" id="pkgContainer"></div>
 
-        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">طلب الروتين/استشارة واتساب 💬</button>
+        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الروتين الكامل 💬</button>
         <button class="btn" style="background:#333; color:#fff;" onclick="location.reload()">فحص جديد 🔄</button>
 
         <div class="disclaimer">
-            التطبيق يستخدم معالج ذكي مطور لعمل توصيات روتين البشرة بناءً على رؤية الحاسوب وليس تطبيقاً طبياً.
+            التطبيق يستخدم معالجاً ذكياً مطوراً لعمل توصيات روتين البشرة وليس تطبيقاً طبياً.
         </div>
     </div>
 </div>
 
 <script>
     const myPhone = "201063994139";
-    
-    // المنتجات مع المواد الفعالة والأسعار
     const productDB = {
-        "ستارفيل وايتنينج": { p: 140, ing: "أربوتين + عرقسوس", link: "https://amzn.to/4kIiMtC" },
-        "أرجنتو كلير": { p: 165, ing: "زيت شجرة الشاي + فيتامين E", link: "https://amzn.to/4aNwLtH" },
-        "فيشي نورماديرم": { p: 850, ing: "حمض الساليسيليك الطبي", link: "https://amzn.to/3ORZvKm" },
+        "ستارفيل وايتنينج": { p: 145, ing: "أربوتين + عرقسوس", link: "https://amzn.to/4kIiMtC" },
+        "أرجنتو كلير": { p: 165, ing: "شجرة الشاي + E", link: "https://amzn.to/4aNwLtH" },
+        "فيشي نورماديرم": { p: 850, ing: "ساليسيليك أسيد", link: "https://amzn.to/3ORZvKm" },
         "شان جيل": { p: 195, ing: "بانثينول + صبار", link: "https://amzn.to/4arUPn4" },
-        "لوريال هيالورونيك": { p: 385, ing: "1.5% هيالورونيك أسيد", link: "https://amzn.to/4aKX5om" },
-        "ديرماتيك جيل": { p: 260, ing: "هيالورونيك + فيتامين B5", link: "https://amzn.to/3OsdarB" },
-        "ناتافيس فيتامين C": { p: 480, ing: "فيتامين C + حمض فيروليك", link: "https://amzn.to/4rvjltF" },
-        "لاروش بيجمنتكلار": { p: 1200, ing: "كافيين + فينيل ألانين", link: "https://amzn.to/3OuGhKM" },
+        "لوريال هيالورونيك": { p: 390, ing: "1.5% هيالورونيك", link: "https://amzn.to/4aKX5om" },
+        "ديرماتيك جيل": { p: 260, ing: "B5 + هيالورونيك", link: "https://amzn.to/3OsdarB" },
+        "ناتافيس فيتامين C": { p: 480, ing: "فيتامين C + فيروليك", link: "https://amzn.to/4rvjltF" },
+        "لاروش بيجمنتكلار": { p: 1250, ing: "كافيين متطور", link: "https://amzn.to/3OuGhKM" },
         "ستارفيل آي كونتور": { p: 155, ing: "كافيين + ببتيدات", link: "https://amzn.to/3ZS3qt4" },
-        "إيفا SPF50": { p: 130, ing: "فلاتر حماية كيميائية", link: "https://amzn.to/4tNw7oK" }
+        "إيفا SPF50": { p: 130, ing: "حماية واسعة المدى", link: "https://amzn.to/4tNw7oK" }
     };
 
     const video = document.getElementById('video');
     const upImg = document.getElementById('upImg');
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', {willReadFrequently: true});
     let aiAnalysis = { acne: false, pig: false, circles: false, skinType: 'مختلطة' };
 
     async function init() {
@@ -149,12 +141,18 @@
             ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
             if (results.multiFaceLandmarks) {
                 const lm = results.multiFaceLandmarks[0];
-                const forh = getPx(lm[10]); const cheek = getPx(lm[205]); const eye = getPx(lm[230]);
-                aiAnalysis.skinType = (forh.v > 205) ? "دهنية" : (forh.v < 115 ? "جافة" : "مختلطة");
-                aiAnalysis.acne = (cheek.r - cheek.g > 35);
-                aiAnalysis.pig = (cheek.v / forh.v < 0.85);
-                aiAnalysis.circles = (eye.v < forh.v * 0.72);
-                document.getElementById('liveStatus').innerText = `تم الفحص V18.5 ✅`;
+                // إعادة محرك V16.1 الأصلي الدقيق
+                const forehead = getPx(lm[10]);
+                const cheek = getPx(lm[205]);
+                const eye = getPx(lm[230]);
+                
+                aiAnalysis.skinType = (forehead.v > 205) ? "دهنية" : (forehead.v < 115 ? "جافة" : "مختلطة");
+                aiAnalysis.acne = (cheek.r - cheek.g > 35 && cheek.r > forehead.r * 1.2);
+                aiAnalysis.pig = (cheek.v / forehead.v < 0.85); // دقة 0.85 لكشف التصبغات
+                aiAnalysis.circles = (eye.v < forehead.v * 0.75); // دقة 0.75 لكشف الهالات
+                
+                if (cheek.v > 195) { aiAnalysis.acne = aiAnalysis.pig = aiAnalysis.circles = false; }
+                document.getElementById('liveStatus').innerText = `تم الفحص بدقة V16.1 ✅`;
             }
         });
         window.startCam = () => { video.style.display='block'; upImg.style.display='none'; new Camera(video, {onFrame: async () => await faceMesh.send({image: video}), width: 640, height: 480}).start(); };
@@ -185,79 +183,64 @@
         const pig = document.getElementById('qPig').value === 'yes';
         const circ = document.getElementById('qCircles').value;
         const goal = document.getElementById('qGoal').value;
-        
+
         document.getElementById('questionsCard').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
-        document.getElementById('skinTypeDisplay').innerText = "تحليل البشرة: " + aiAnalysis.skinType;
+        document.getElementById('skinTypeDisplay').innerText = "نوع البشرة: " + aiAnalysis.skinType;
 
         const pkgContainer = document.getElementById('pkgContainer');
         pkgContainer.innerHTML = "";
 
-        // بناء الروتينات للثلاث مستويات
+        // بناء الباقات (اقتصادية - سوبر - ألترا)
         const levels = [
-            { id: 'low', name: 'الباقة الاقتصادية 🥈', imp: '70%', dur: '90 يوم' },
-            { id: 'mid', name: 'باقة السوبر برو 🥇', imp: '85%', dur: '60 يوم' },
-            { id: 'high', name: 'باقة الألترا الفاخرة 💎', imp: '98%', dur: '40 يوم' }
+            { id: 'low', name: 'الاقتصادية 🥉', imp: '65%', dur: '90 يوم' },
+            { id: 'mid', name: 'سوبر برو 🥈', imp: '85%', dur: '60 يوم' },
+            { id: 'high', name: 'ألترا فاخرة 🥇', imp: '98%', dur: '45 يوم' }
         ];
 
         levels.forEach(lvl => {
             let products = [];
-            // غسول حسب الميزانية
-            if(lvl.id === 'high') products.push("فيشي نورماديرم");
-            else products.push("ستارفيل وايتنينج");
-
-            // حبوب
+            // 1. الغسول
+            products.push(lvl.id === 'high' ? "فيشي نورماديرم" : "ستارفيل وايتنينج");
+            // 2. الحبوب
             if(acne) products.push("أرجنتو كلير");
-
-            // تصبغات وبقع
+            // 3. التصبغات
             if(pig) products.push("ناتافيس فيتامين C");
-
-            // هالات
+            // 4. الهالات
             if(circ !== 'none') {
-                if(lvl.id === 'high') products.push("لاروش بيجمنتكلار");
-                else products.push("ستارفيل آي كونتور");
+                products.push(lvl.id === 'high' ? "لاروش بيجمنتكلار" : "ستارفيل آي كونتور");
             }
-
-            // باقة التعزيز
+            // 5. الباقة المضافة (نضارة/تفتيح)
             if(goal === 'glow') products.push(lvl.id === 'high' ? "لوريال هيالورونيك" : "ديرماتيك جيل");
             if(goal === 'whitening' && !pig) products.push("ناتافيس فيتامين C");
-
-            // ترطيب
+            // 6. الترطيب
             products.push("شان جيل");
 
-            renderPackage(lvl, [...new Set(products)]);
+            renderPkg(lvl, [...new Set(products)]);
         });
     }
 
-    function renderPackage(lvl, products) {
+    function renderPkg(lvl, list) {
         let total = 0;
-        let html = `<div class="pkg-card">
-            <div class="pkg-header"><div class="pkg-name">${lvl.name}</div></div>`;
-        
-        products.forEach(name => {
-            const data = productDB[name] || {p: 0, ing: "عناية"};
-            total += data.p;
+        let html = `<div class="pkg-card"><div class="pkg-name">${lvl.name}</div>`;
+        list.forEach(name => {
+            const d = productDB[name] || {p:0, ing: "عناية"};
+            total += d.p;
             html += `<div class="product-line">
-                <div class="prod-info">
-                    <div class="prod-title">${name}</div>
-                    <span class="prod-meta">🧪 ${data.ing}</span>
-                </div>
-                <div class="prod-price">${data.p} ج.م</div>
+                <div><div class="prod-title">${name}</div><span class="prod-meta">🧪 ${d.ing}</span></div>
+                <div class="prod-price">${d.p} ج.م</div>
             </div>`;
         });
-
         html += `<div class="pkg-summary">
             <div class="total-row"><span>الإجمالي:</span> <span>${total} ج.م</span></div>
-            <span class="stat-badge">📊 نسبة التحسن المتوقعة: ${lvl.imp}</span>
-            <span class="stat-badge">⏳ المدة المقدرة: ${lvl.dur}</span>
+            <span class="stat-line">✓ تحسن: ${lvl.imp} | مدة: ${lvl.dur}</span>
         </div></div>`;
         document.getElementById('pkgContainer').innerHTML += html;
     }
 
     function sendToWhatsApp() {
-        window.open(`https://wa.me/${myPhone}?text=مرحباً Verona، قمت بتحليل بشرتي وأريد طلب الروتين المناسب.`, '_blank');
+        window.open(`https://wa.me/${myPhone}?text=أهلاً Verona AI، أريد طلب الروتين الذي تم ترشيحه لي.`, '_blank');
     }
-
     init();
 </script>
 </body>
