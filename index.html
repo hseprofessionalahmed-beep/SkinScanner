@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | V17.2 CUSTOM</title>
+    <title>VERONA AI | V17.3 FINAL</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
@@ -15,7 +15,7 @@
         #upImg { display: none; z-index: 5; }
         canvas { z-index: 10; pointer-events: none; }
         .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
-        .card { background: rgba(0,0,0,0.9); border: 1px solid rgba(212,175,55,0.3); border-radius: 20px; padding: 20px; margin-top: 15px; display: none; text-align: right; backdrop-filter: blur(10px); }
+        .card { background: rgba(0,0,0,0.92); border: 1px solid rgba(212,175,55,0.3); border-radius: 20px; padding: 20px; margin-top: 15px; display: none; text-align: right; backdrop-filter: blur(10px); }
         .product-card { display: flex; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 15px; padding: 10px; margin-bottom: 12px; align-items: center; gap: 12px; }
         .product-img { width: 85px; height: 85px; border-radius: 8px; object-fit: cover; background: #fff; border: 1px solid var(--gold); }
         .product-name { color: var(--gold); font-weight: bold; font-size: 0.9rem; margin-bottom: 2px; }
@@ -30,7 +30,7 @@
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold)">VERONA AI | PRO V17.2</h2>
+    <h2 style="color:var(--gold)">VERONA AI | MASTER V17.3</h2>
 
     <div class="preview-box">
         <video id="video" playsinline></video>
@@ -50,33 +50,44 @@
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="text-align:center; color:var(--gold)">تخصيص الروتين</h3>
+        <h3 style="text-align:center; color:var(--gold)">تخصيص الطبيب الذكي</h3>
         
         <label>1. هل توجد حبوب ملتهبة؟</label>
         <select id="qAcne"><option value="no">لا يوجد</option><option value="yes">نعم</option></select>
 
-        <label>2. ما هو هدفك الأساسي؟</label>
-        <select id="qGoal">
-            <option value="glow">باقة النضارة والامتلاء ✨</option>
-            <option value="whitening">باقة التفتيح وإزالة البقع ⚪</option>
-            <option value="none">الروتين الأساسي فقط</option>
+        <label>2. هل توجد تصبغات/بقع؟</label>
+        <select id="qPig"><option value="no">لا يوجد</option><option value="yes">نعم</option></select>
+
+        <label>3. لون الهالات:</label>
+        <select id="qCircles">
+            <option value="none">لا يوجد</option>
+            <option value="brown">بني (تصبغ)</option>
+            <option value="blue">أزرق (إرهاق)</option>
         </select>
 
-        <label>3. الميزانية:</label>
+        <label>4. هل تريد إضافة باقة خاصة؟</label>
+        <select id="qGoal">
+            <option value="none">الروتين الأساسي فقط</option>
+            <option value="glow">باقة النضارة والامتلاء ✨</option>
+            <option value="whitening">باقة التفتيح المكثف ⚪</option>
+        </select>
+
+        <label>5. الميزانية:</label>
         <select id="qBudget">
             <option value="low">اقتصادي</option>
             <option value="mid" selected>متوسط</option>
             <option value="high">فاخر</option>
         </select>
 
-        <button class="btn" onclick="generateFinalReport()">عرض الروتين النهائي ✨</button>
+        <button class="btn" onclick="generateFinalReport()">عرض النتيجة النهائية ✨</button>
     </div>
 
     <div id="reportCard" class="card">
         <div id="scoreDisplay" style="font-size:3rem; text-align:center; color:var(--gold); font-weight:900;">100%</div>
         <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:10px;"></div>
+        <div id="diagText" style="margin-bottom:15px; font-size:0.85rem; color:#ddd;"></div>
         <div id="routineList"></div>
-        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الروتين 💬</button>
+        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الروتين عبر واتساب 💬</button>
         <button class="btn" style="background:#333; color:#fff;" onclick="location.reload()">فحص جديد 🔄</button>
     </div>
 </div>
@@ -84,20 +95,22 @@
 <script>
     const myPhone = "201063994139";
     const productDB = {
-        "أرجنتو كلير": { img: "https://m.media-amazon.com/images/I/41D8WpG4EHL._AC_SY450_.jpg", ing: "شجرة الشاي", use: "علاج الحبوب.", link: "https://amzn.to/4aNwLtH" },
-        "ستارفيل وايتنينج": { img: "https://m.media-amazon.com/images/I/51p6KxR2Y1L._AC_SY450_.jpg", ing: "أربوتين", use: "تفتيح يومي.", link: "https://amzn.to/4kIiMtC" },
-        "لوريال هيالورونيك": { img: "https://m.media-amazon.com/images/I/61S4iN4A7KL._AC_SY450_.jpg", ing: "هيالورونيك 1.5%", use: "نضارة فائقة.", link: "https://amzn.to/4aKX5om" },
-        "ديرماتيك جيل": { img: "https://m.media-amazon.com/images/I/51Kz5r0W-SL._AC_SY450_.jpg", ing: "هيالورونيك، B5", use: "ترطيب النضارة.", link: "https://amzn.to/3OsdarB" },
-        "شان جيل": { img: "https://m.media-amazon.com/images/I/51r9vS3A8YL._AC_SY450_.jpg", ing: "بانثينول", use: "مرطب طبي.", link: "https://amzn.to/4arUPn4" },
-        "ناتافيس فيتامين C": { img: "https://m.media-amazon.com/images/I/41D8WpG4EHL._AC_SY450_.jpg", ing: "Vitamin C + Ferulic", use: "تفتيح ونضارة.", link: "https://amzn.to/4rvjltF" },
-        "فيشي نورماديرم": { img: "https://m.media-amazon.com/images/I/51uIuE8-WvL._AC_SY450_.jpg", ing: "ساليسيليك", use: "غسول طبي فاخر.", link: "https://amzn.to/3ORZvKm" }
+        "أرجنتو كلير": { img: "https://m.media-amazon.com/images/I/41D8WpG4EHL._AC_SY450_.jpg", ing: "شجرة الشاي", use: "علاج الحبوب والتهابها.", link: "https://amzn.to/4aNwLtH" },
+        "ستارفيل وايتنينج": { img: "https://m.media-amazon.com/images/I/51p6KxR2Y1L._AC_SY450_.jpg", ing: "أربوتين + عرقسوس", use: "غسول تفتيح يومي.", link: "https://amzn.to/4kIiMtC" },
+        "لوريال هيالورونيك": { img: "https://m.media-amazon.com/images/I/61S4iN4A7KL._AC_SY450_.jpg", ing: "1.5% Hyaluronic Acid", use: "نضارة فائقة وملء خطوط.", link: "https://amzn.to/4aKX5om" },
+        "ديرماتيك جيل": { img: "https://m.media-amazon.com/images/I/51Kz5r0W-SL._AC_SY450_.jpg", ing: "هيالورونيك + B5", use: "ترطيب مائي للنضارة.", link: "https://amzn.to/3OsdarB" },
+        "شان جيل": { img: "https://m.media-amazon.com/images/I/51r9vS3A8YL._AC_SY450_.jpg", ing: "بانثينول + صبار", use: "مرطب طبي خفيف.", link: "https://amzn.to/4arUPn4" },
+        "ناتافيس فيتامين C": { img: "https://m.media-amazon.com/images/I/41D8WpG4EHL._AC_SY450_.jpg", ing: "Vit C + Ferulic", use: "تفتيح بقع ونضارة.", link: "https://amzn.to/4rvjltF" },
+        "فيشي نورماديرم": { img: "https://m.media-amazon.com/images/I/51uIuE8-WvL._AC_SY450_.jpg", ing: "حمض الساليسيليك", use: "غسول طبي فاخر للحبوب.", link: "https://amzn.to/3ORZvKm" },
+        "لاروش بيجمنتكلار": { img: "https://m.media-amazon.com/images/I/51GvWpBfB8L._AC_SY450_.jpg", ing: "كافيين + تفتيح", use: "علاج الهالات السوداء.", link: "https://amzn.to/3OuGhKM" },
+        "ستارفيل آي كونتور": { img: "https://m.media-amazon.com/images/I/51p6KxR2Y1L._AC_SY450_.jpg", ing: "كافيين + أربوتين", use: "علاج هالات اقتصادي.", link: "https://amzn.to/3ZS3qt4" }
     };
 
     const video = document.getElementById('video');
     const upImg = document.getElementById('upImg');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', {willReadFrequently: true});
-    let faceMesh, aiAnalysis = { acne: false, skinType: 'مختلطة' };
+    let faceMesh, aiAnalysis = { acne: false, pig: false, circles: false, skinType: 'مختلطة' };
     let finalSelection = [];
 
     async function init() {
@@ -111,16 +124,27 @@
         });
     }
 
-    // محرك V16.1 الأصلي الدقيق
+    // استعادة محرك V16.1 الأصلي بالكامل
     function runV16AI(lm) {
         const forehead = getPx(lm[10]);
         const cheek = getPx(lm[205]);
+        const underEye = getPx(lm[230]); 
+        
         if (forehead.v > 205) aiAnalysis.skinType = "دهنية";
         else if (forehead.v < 115) aiAnalysis.skinType = "جافة";
         else aiAnalysis.skinType = "مختلطة";
-        aiAnalysis.acne = (cheek.r - cheek.g > 35 && cheek.r > forehead.r * 1.25);
-        if (cheek.v > 190) aiAnalysis.acne = false;
-        document.getElementById('liveStatus').innerText = `تحليل Verona V17.2 ✅`;
+
+        const redVsGlow = cheek.r - cheek.g;
+        aiAnalysis.acne = (redVsGlow > 35 && cheek.r > forehead.r * 1.25);
+        
+        const brightnessDrop = cheek.v / forehead.v;
+        aiAnalysis.pig = (brightnessDrop < 0.85);
+
+        if (underEye.v < forehead.v * 0.72 && cheek.v < 190) aiAnalysis.circles = true;
+        else aiAnalysis.circles = false;
+
+        if (cheek.v > 190) { aiAnalysis.acne = false; aiAnalysis.pig = false; aiAnalysis.circles = false; }
+        document.getElementById('liveStatus').innerText = `تحليل Verona V17.3 ✅`;
     }
 
     function getPx(p) {
@@ -134,32 +158,50 @@
         document.getElementById('controls').style.display = 'none';
         document.getElementById('questionsCard').style.display = 'block';
         document.getElementById('qAcne').value = aiAnalysis.acne ? "yes" : "no";
+        document.getElementById('qPig').value = aiAnalysis.pig ? "yes" : "no";
+        document.getElementById('qCircles').value = aiAnalysis.circles ? "brown" : "none";
     }
 
     function generateFinalReport() {
         const acne = document.getElementById('qAcne').value === 'yes';
+        const pig = document.getElementById('qPig').value === 'yes';
+        const circ = document.getElementById('qCircles').value;
         const goal = document.getElementById('qGoal').value;
         const budget = document.getElementById('qBudget').value;
 
+        let score = 100;
+        if(acne) score -= 20; if(pig) score -= 25; if(circ !== 'none') score -= 15;
+
         document.getElementById('questionsCard').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
+        document.getElementById('scoreDisplay').innerText = score + "%";
         document.getElementById('skinTypeDisplay').innerText = "بشرة " + aiAnalysis.skinType;
         
-        buildRoutine(acne, goal, budget);
+        let dTxt = "<b>التشخيص:</b><br>";
+        dTxt += acne ? "• حبوب نشطة.<br>" : "• بشرة صافية من الحبوب.<br>";
+        dTxt += pig ? "• تصبغات متفاوتة.<br>" : "• لون بشرة موحد.<br>";
+        dTxt += (circ !== 'none') ? "• هالات حول العين.<br>" : "• محيط عين مشرق.<br>";
+        document.getElementById('diagText').innerHTML = dTxt;
+
+        buildRoutine(acne, pig, circ, goal, budget);
     }
 
-    function buildRoutine(acne, goal, budget) {
+    function buildRoutine(acne, pig, circ, goal, budget) {
         const list = document.getElementById('routineList');
         list.innerHTML = ""; finalSelection = [];
 
-        // 1. الغسول الأساسي
+        // 1. الغسول
         if(budget === 'high') addP("الغسول", "فيشي نورماديرم");
         else addP("الغسول", "ستارفيل وايتنينج");
 
-        // 2. معالجة الحبوب إذا وجدت
+        // 2. العلاجات المخصصة
         if(acne) addP("علاج الحبوب", "أرجنتو كلير");
+        if(circ !== 'none') {
+            if(budget === 'high') addP("علاج الهالات", "لاروش بيجمنتكلار");
+            else addP("علاج الهالات", "ستارفيل آي كونتور");
+        }
 
-        // 3. إضافة الباقة المختارة (نضارة أو تفتيح)
+        // 3. الباقات المضافة
         if(goal === 'glow') {
             if(budget === 'high') addP("باقة النضارة", "لوريال هيالورونيك");
             else addP("باقة النضارة", "ديرماتيك جيل");
@@ -167,7 +209,7 @@
             addP("باقة التفتيح", "ناتافيس فيتامين C");
         }
 
-        // 4. المرطب الأساسي
+        // 4. الترطيب
         addP("الترطيب", "شان جيل");
     }
 
@@ -179,7 +221,7 @@
                 <img src="${p.img}" class="product-img">
                 <div class="product-info">
                     <div class="product-name">${name}</div>
-                    <span class="active-ing">🔬 ${cat}</span>
+                    <span class="active-ing">✨ ${cat}</span>
                     <div class="product-usage">${p.use}</div>
                     <a href="${p.link}" target="_blank" class="buy-link">شراء 🛒</a>
                     <a href="https://wa.me/${myPhone}?text=بديل لـ ${name}" class="wa-link">بديل 💬</a>
@@ -188,7 +230,7 @@
     }
 
     function sendToWhatsApp() {
-        let msg = `Verona AI V17.2:\nالبشرة: ${aiAnalysis.skinType}\nالروتين المختصر:\n`;
+        let msg = `Verona AI Report:\nالسكور: ${document.getElementById('scoreDisplay').innerText}\nالبشرة: ${aiAnalysis.skinType}\nالروتين:\n`;
         finalSelection.forEach(p => msg += `• ${p}\n`);
         window.open(`https://wa.me/${myPhone}?text=${encodeURIComponent(msg)}`, '_blank');
     }
