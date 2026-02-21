@@ -2,101 +2,156 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI | Full Routine V24</title>
+<title>VERONA AI | FULL PRO V24</title>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 <style>
-:root { --gold:#d4af37; --bg:#050505; }
-body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color:#fff; margin:0; padding:10px; text-align:right; }
-.container { max-width:500px; margin:auto; }
-.preview-box { position:relative; border-radius:25px; overflow:hidden; border:2px solid var(--gold); aspect-ratio:4/5; margin-bottom:15px; background:#000; }
-video, canvas, img.preview { width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; }
-.live-overlay { position:absolute; top:15px; left:15px; right:15px; z-index:30; pointer-events:none; }
-.badge { background: rgba(0,0,0,0.7); padding:5px 12px; border-radius:20px; font-size:0.8rem; margin-bottom:5px; display:inline-block; border:1px solid var(--gold); }
-.btn { background: linear-gradient(135deg,#a67c00,#ffbf00); color:#000; border:none; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:10px; }
-.card { background:#111; border:1px solid #d4af3733; border-radius:20px; padding:15px; display:none; margin-top:15px; }
-.packages-vertical { display:flex; flex-direction:column; gap:20px; }
-.pkg-card { background:#1a1a1a; border:1px solid #333; border-radius:18px; padding:15px; border-top:4px solid var(--gold); }
-.product-line { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #222; font-size:0.85rem; }
-.buy-link { color: var(--gold); text-decoration:none; font-size:1.1rem; }
-.total-row { display:flex; justify-content:space-between; font-weight:bold; color:var(--gold); margin-top:10px; }
-.disclaimer { font-size:0.7rem; color:#777; margin-top:20px; text-align:center; }
+:root { --gold: #d4af37; --bg: #050505; }
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 10px; text-align: right; }
+.container { max-width: 550px; margin: auto; }
+.preview-box { position: relative; border-radius: 25px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; margin-bottom: 15px; background: #000; }
+video, canvas { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+.live-overlay { position: absolute; top: 15px; left: 15px; right: 15px; z-index: 30; pointer-events: none; }
+.badge { background: rgba(0,0,0,0.7); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 5px; display: inline-block; border: 1px solid var(--gold); }
+#lightLevel { font-weight: bold; }
+.btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
+.card { background: #111; border: 1px solid #d4af3733; border-radius: 20px; padding: 15px; display: none; margin-top: 15px; }
+.packages-vertical { display: flex; flex-direction: column; gap: 20px; }
+.pkg-card { background: #1a1a1a; border: 1px solid #333; border-radius: 18px; padding: 15px; border-top: 4px solid var(--gold); }
+.product-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #222; font-size: 0.85rem; }
+.buy-link { color: var(--gold); text-decoration: none; font-size: 1.1rem; }
+.total-row { display: flex; justify-content: space-between; font-weight: bold; color: var(--gold); margin-top: 10px; }
+.disclaimer { font-size: 0.7rem; color: #777; margin-top: 20px; text-align: center; }
 </style>
 </head>
-<body>
-<div class="container">
-<h2 style="color:var(--gold); text-align:center;">VERONA AI | Full Routine V24</h2>
-<div class="preview-box">
-<video id="video" playsinline hidden></video>
-<img id="previewImg" class="preview" hidden />
-<canvas id="canvas"></canvas>
-<div class="live-overlay">
-<div id="lightLevel" class="badge">جاري قياس الإضاءة...</div><br>
-<div id="liveDetection" class="badge" style="color: var(--gold); display:none;">جاري فحص العيوب...</div>
-</div>
-<div id="liveStatus" class="badge" style="position:absolute;bottom:15px;width:100%;text-align:center;color:#00f2ff;">بانتظار تفعيل الكاميرا...</div>
-</div>
-<div id="controls">
-<button class="btn" onclick="startCam()">بدء الكاميرا 📸</button>
-<button class="btn" style="background:#222; color:#fff;" onclick="document.getElementById('fileInput').click()">أضف صورة 📁</button>
-<input type="file" id="fileInput" accept="image/*" hidden onchange="processFile(event)">
-<button class="btn" onclick="openQuestions()">تخصيص الروتين 🔬</button>
-</div>
+<body><div class="container">
+<h2 style="color:var(--gold); text-align:center;">VERONA AI | V24 PRO</h2><div class="preview-box">
+    <video id="video" playsinline hidden></video>
+    <canvas id="canvas"></canvas>
+    <div class="live-overlay">
+        <div id="lightLevel" class="badge">جاري قياس الإضاءة...</div><br>
+        <div id="liveDetection" class="badge" style="color: var(--gold); display:none;">جاري فحص العيوب...</div>
+    </div>
+</div><button class="btn" onclick="startCam()">📸 بدء الكاميرا</button> <button class="btn" onclick="addImage()" style="background:#222; color:#fff;">📁 أضف صورة</button> <button class="btn" onclick="openQuestions()">تخصيص الروتين 🔬</button>
+
 <div id="questionsCard" class="card">
 <h3 style="color:var(--gold); text-align:center;">تأكيد التحليل</h3>
-<label>حبوب ملتهبة؟</label><select id="qAcne"><option value="no">لا</option><option value="yes">نعم</option></select>
-<label>تصبغات؟</label><select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
-<label>هالات؟</label><select id="qCircles"><option value="none">لا يوجد</option><option value="brown">بني</option></select>
+<label>حبوب ملتهبة؟</label>
+<select id="qAcne"><option value="no">لا</option><option value="yes">نعم</option></select>
+<label>تصبغات؟</label>
+<select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
+<label>هالات؟</label>
+<select id="qCircles"><option value="none">لا يوجد</option><option value="brown">بني</option></select>
 <button class="btn" onclick="generateFinalReport()">عرض الروتين النهائي ✨</button>
-</div>
-<div id="reportCard" class="card">
+</div><div id="reportCard" class="card">
 <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:15px;"></div>
 <div class="packages-vertical" id="pkgContainer"></div>
 <button class="btn" onclick="location.reload()" style="background:#333; color:#fff; margin-top:20px;">إعادة الفحص 🔄</button>
 <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">طلب المنتجات 💬</button>
 <div class="disclaimer">⚠️ هذا التحليل استرشادي ذكي، يرجى استشارة المختص للحالات الحرجة.</div>
-</div>
-</div>
-<script>
+</div><script>
 const myPhone = "201063994139";
 const productDB = {
-"ستارفيل وايتنينج": { p:145, active:"أربوتين + فيتامين C", reason:"تفتيح التصبغات وتوحيد لون البشرة", when:"صباحًا قبل واقي الشمس", link:"https://www.amazon.eg/s?k=starville+whitening" },
-"أرجنتو كلير": { p:165, active:"Niacinamide", reason:"تهدئة الحبوب وتقليل الالتهابات", when:"صباحًا ومساءً", link:"https://www.amazon.eg/s?k=argento+clear" },
-"فيشي نورماديرم": { p:850, active:"حمض الساليسيليك", reason:"تحكم الدهون وتنظيف المسام", when:"صباحًا", link:"https://www.amazon.eg/s?k=vichy+normaderm" },
-"شان جيل": { p:195, active:"ألو فيرا", reason:"ترطيب البشرة وتهدئة التهيج", when:"صباحًا ومساءً", link:"https://www.amazon.eg/s?k=shaan+gel" },
-"لوريال هيالورونيك": { p:395, active:"هيالورونيك أسيد", reason:"ترطيب عميق وامتلاء البشرة", when:"مساءً", link:"https://www.amazon.eg/s?k=loreal+hyaluronic" },
-"ديرماتيك جيل": { p:260, active:"بروبيلين غليكول", reason:"ترطيب ومساعدة الجلد على الامتصاص", when:"مساءً", link:"https://www.amazon.eg/s?k=dermatique+gel" },
-"ناتافيس فيتامين C": { p:485, active:"فيتامين C 15%", reason:"تفتيح البشرة وتحفيز الكولاجين", when:"صباحًا", link:"https://www.amazon.eg/s?k=natavis+vitamin+c" },
-"لاروش بيجمنتكلار": { p:1250, active:"أربوتين + Niacinamide", reason:"تفتيح تصبغات عميقة", when:"مساءً", link:"https://www.amazon.eg/s?k=la+roche+pigmentclar" },
-"ستارفيل آي كونتور": { p:155, active:"كافيين + Peptides", reason:"تقليل الهالات والتورم حول العين", when:"صباحًا ومساءً", link:"https://www.amazon.eg/s?k=starville+eye+contour" },
-"بوباي جل واقي شمس": { p:180, active:"SPF50", reason:"حماية من الشمس ومنع التصبغات", when:"صباحًا", link:"https://www.amazon.eg/s?k=bobai+sunscreen+gel" },
-"لاروش أنثيليوس": { p:650, active:"SPF50", reason:"واقي شمس فعال للبشرة الدهنية", when:"صباحًا", link:"https://www.amazon.eg/s?k=la+roche+posay+anthelios" },
-"غسول سيرافيه": { p:450, active:"Ceramides + Niacinamide", reason:"تنظيف البشرة وترطيبها", when:"صباحًا ومساءً", link:"https://www.amazon.eg/s?k=cerave+cleanser" }
-};const video = document.getElementById('video'); const previewImg = document.getElementById('previewImg'); const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d', {willReadFrequently:true}); let aiAnalysis = { acne:false, pig:false, circles:false, skinType:'مختلطة' };
+    "ستارفيل وايتنينج": {p:145, link:"https://www.amazon.eg/s?k=starville+whitening", act:"فيتامين C", reason:"تفتيح البشرة وتقليل التصبغات", time:"صباح"},
+    "أرجنتو كلير": {p:165, link:"https://www.amazon.eg/s?k=argento+clear", act:"أربوتين", reason:"تصحيح التصبغات وحماية البشرة", time:"مساء"},
+    "فيشي نورماديرم": {p:850, link:"https://www.amazon.eg/s?k=vichy+normaderm", act:"ساليسيليك أسيد", reason:"تنظيف المسام وتقليل الحبوب", time:"صباح"},
+    "شان جيل": {p:195, link:"https://www.amazon.eg/s?k=shaan+gel", act:"AHA", reason:"تجديد البشرة وتحسين ملمسها", time:"مساء"},
+    "لوريال هيالورونيك": {p:395, link:"https://www.amazon.eg/s?k=loreal+hyaluronic", act:"هيالورونيك أسيد", reason:"ترطيب عميق", time:"صباح"},
+    "ديرماتيك جيل": {p:260, link:"https://www.amazon.eg/s?k=dermatique+gel", act:"Niacinamide", reason:"تقليل التصبغات وتحسين توهج البشرة", time:"مساء"},
+    "ناتافيس فيتامين C": {p:485, link:"https://www.amazon.eg/s?k=natavis+vitamin+c", act:"فيتامين C", reason:"تفتيح وحماية مضادة للأكسدة", time:"صباح"},
+    "لاروش بيجمنتكلار": {p:1250, link:"https://www.amazon.eg/s?k=la+roche+pigmentclar", act:"فراكتيونال أسيد", reason:"تفتيح التصبغات العميقة", time:"مساء"},
+    "ستارفيل آي كونتور": {p:155, link:"https://www.amazon.eg/s?k=starville+eye+contour", act:"كافيين", reason:"تقليل الهالات حول العين", time:"صباح"},
+    "بوباي جل واقي شمس": {p:180, link:"https://www.amazon.eg/s?k=bobai+sunscreen+gel", act:"SPF50", reason:"حماية من الأشعة UV", time:"صباح"},
+    "لاروش أنثيليوس": {p:650, link:"https://www.amazon.eg/s?k=la+roche+posay+anthelios", act:"SPF50", reason:"حماية من الشمس لجميع أنواع البشرة", time:"صباح"},
+    "غسول سيرافيه": {p:450, link:"https://www.amazon.eg/s?k=cerave+cleanser", act:"Ceramides", reason:"تنظيف البشرة دون جفاف", time:"مساء"}
+};
 
-const faceMesh = new FaceMesh({locateFile:(f)=>https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}}); faceMesh.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.6 }); faceMesh.onResults(results => { if(results.image) ctx.drawImage(results.image,0,0,canvas.width,canvas.height); if(results.multiFaceLandmarks && results.multiFaceLandmarks.length>0){ const lm = results.multiFaceLandmarks[0]; const fore = getPx(lm[10]); const cheek = getPx(lm[205]); const eye = getPx(lm[230]); const light = fore.v; const lightEl = document.getElementById('lightLevel'); lightEl.innerText = light<100?"⚠️ الإضاءة ضعيفة" : "✅ الإضاءة جيدة"; lightEl.style.color = light<100 ? '#ff4d4d':'#25d366';
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d', {willReadFrequently:true});
+let aiAnalysis = { acne:false, pig:false, circles:false, skinType:'مختلطة' };
 
-aiAnalysis.skinType = (fore.v>205)?'دهنية':(fore.v<115)?'جافة':'مختلطة';
-    aiAnalysis.acne = (cheek.r-cheek.g>35);
-    aiAnalysis.pig = (cheek.v/fore.v<0.85);
-    aiAnalysis.circles = (eye.v<fore.v*0.72);
+const faceMesh = new FaceMesh({locateFile: (f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+faceMesh.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.6 });
 
-    const detEl = document.getElementById('liveDetection');
-    detEl.style.display="inline-block";
-    let msgs=[];
-    if(aiAnalysis.acne) msgs.push("حبوب 🔴");
-    if(aiAnalysis.pig) msgs.push("تصبغات 🟤");
-    if(aiAnalysis.circles) msgs.push("هالات 👁️");
-    detEl.innerText = msgs.length>0 ? msgs.join(' | ') : "البشرة صافية ✨";
+faceMesh.onResults(results=>{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
+    if(results.multiFaceLandmarks && results.multiFaceLandmarks.length>0){
+        const lm = results.multiFaceLandmarks[0];
+        const fore = getPx(lm[10]);
+        const cheek = getPx(lm[205]);
+        const eye = getPx(lm[230]);
+        const light = fore.v;
+        const lightEl = document.getElementById('lightLevel');
+        lightEl.innerText = light<100 ? "⚠️ الإضاءة ضعيفة" : "✅ الإضاءة جيدة";
+        lightEl.style.color = light<100 ? "#ff4d4d":"#25d366";
 
-    drawConnectors(ctx,lm,FACEMESH_TESSELATION,{color:'#d4af3740',lineWidth:1});
-    document.getElementById('liveStatus').innerText="تم الفحص بنجاح ✅";
-}
-
+        aiAnalysis.skinType = fore.v>205?"دهنية":(fore.v<115?"جافة":"مختلطة");
+        aiAnalysis.acne = (cheek.r-cheek.g>35);
+        aiAnalysis.pig = (cheek.v/fore.v<0.85);
+        aiAnalysis.circles = (eye.v<fore.v*0.72);
+        document.getElementById('liveDetection').style.display='inline-block';
+        document.getElementById('liveDetection').innerText = aiAnalysis.acne||aiAnalysis.pig||aiAnalysis.circles ? "رصد: " + [aiAnalysis.acne?"حبوب 🔴":"",aiAnalysis.pig?"تصبغات 🟤":"",aiAnalysis.circles?"هالات 👁️":""].filter(x=>x).join(" | ") : "البشرة صافية ✨";
+        drawConnectors(ctx,lm,FACEMESH_TESSELATION,{color:'#d4af3740', lineWidth:1});
+    }
 });
 
-function getPx(p){const x=Math.floor(p.xcanvas.width); const y=Math.floor(p.ycanvas.height); const d=ctx.getImageData(x,y,1,1).data; return {r:d[0],g:d[1],v:(d[0]+d[1]+d[2])/3};} function startCam(){ video.hidden=false; previewImg.hidden=true; new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); canvas.width=640; canvas.height=480; } function processFile(e){ const file=e.target.files[0]; if(!file) return; const img=new Image(); img.onload=()=>{ previewImg.src=img.src; previewImg.hidden=false; video.hidden=true; canvas.width=img.width; canvas.height=img.height; faceMesh.send({image:img}); }; img.src=URL.createObjectURL(file); } function openQuestions(){ document.getElementById('controls').style.display='none'; document.getElementById('questionsCard').style.display='block'; document.getElementById('qAcne').value=aiAnalysis.acne?'yes':'no'; document.getElementById('qPig').value=aiAnalysis.pig?'yes':'no'; document.getElementById('qCircles').value=aiAnalysis.circles?'brown':'none'; } function generateFinalReport(){ const acne=document.getElementById('qAcne').value==='yes'; const pig=document.getElementById('qPig').value==='yes'; const circ=document.getElementById('qCircles').value; document.getElementById('questionsCard').style.display='none'; document.getElementById('reportCard').style.display='block'; document.getElementById('skinTypeDisplay').innerText="بشرة " + aiAnalysis.skinType; const container=document.getElementById('pkgContainer'); container.innerHTML=''; [{id:'morning',n:'صباحًا 🌞'}, {id:'evening',n:'مساءً 🌜'}].forEach(lvl=>{ let list=[]; Object.keys(productDB).forEach(name=>{ const p=productDB[name]; if((lvl.id==='morning' && p.when.includes('صباح')) || (lvl.id==='evening' && p.when.includes('مساء'))){ if(acne && name.includes('أرجنتو')) list.push(name); else if(pig && name.includes('فيتامين')) list.push(name); else list.push(name); } }); let html=<div class="pkg-card"><div style="color:var(--gold); font-weight:bold; text-align:center; margin-bottom:10px;">${lvl.n}</div>; let total=0; [...new Set(list)].forEach(name=>{ const d=productDB[name]; total+=d.p; html+=<div class="product-line"><span>${name} (${d.active}) - ${d.reason}</span><b>${d.p} ج.م</b> <a href='${d.link}' target='_blank' class='buy-link'>🛒</a></div>; }); html+=<div class="total-row"><span>المجموع:</span><span>${total} ج.م</span></div></div>; container.innerHTML+=html; }); } function sendToWhatsApp(){ window.open(https://wa.me/${myPhone}?text=أريد طلب روتين Verona AI الخاص بي., '_blank');} </script>
+function getPx(p){const x=Math.floor(p.x*canvas.width),y=Math.floor(p.y*canvas.height),d=ctx.getImageData(x,y,1,1).data; return {r:d[0],g:d[1],v:(d[0]+d[1]+d[2])/3};}
 
-</body>
+function startCam(){video.hidden=false; canvas.width=640; canvas.height=480; new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}), width:640, height:480}).start();}
+
+function addImage(){
+    const input=document.createElement('input'); input.type='file'; input.accept='image/*';
+    input.onchange=async e=>{
+        const file=e.target.files[0]; if(!file) return;
+        const img=new Image(); img.onload=async()=>{
+            canvas.width=img.width; canvas.height=img.height;
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.drawImage(img,0,0,canvas.width,canvas.height);
+            await faceMesh.send({image:img});
+        };
+        img.src=URL.createObjectURL(file);
+    };
+    input.click();
+}
+
+function openQuestions(){
+    document.getElementById('questionsCard').style.display='block';
+    document.getElementById('qAcne').value = aiAnalysis.acne?'yes':'no';
+    document.getElementById('qPig').value = aiAnalysis.pig?'yes':'no';
+    document.getElementById('qCircles').value = aiAnalysis.circles?'brown':'none';
+}
+
+function generateFinalReport(){
+    const acne=document.getElementById('qAcne').value==='yes';
+    const pig=document.getElementById('qPig').value==='yes';
+    const circ=document.getElementById('qCircles').value;
+    document.getElementById('questionsCard').style.display='none';
+    document.getElementById('reportCard').style.display='block';
+    document.getElementById('skinTypeDisplay').innerText="تحليل Verona: بشرة "+aiAnalysis.skinType;
+
+    const container=document.getElementById('pkgContainer'); container.innerHTML='';
+    [{id:'morning',n:'روتين صباحي 🌅'}, {id:'night',n:'روتين مساء 🌙'}].forEach(lvl=>{
+        let list=[];
+        for(const [name,info] of Object.entries(productDB)){
+            if((lvl.id==='morning' && info.time==='صباح') || (lvl.id==='night' && info.time==='مساء')){
+                if((acne && name.includes('أرجنتو')) || (pig && name.includes('ناتافيس')) || circ!=='none' && name.includes('آي كونتور')) list.push(name);
+                else if(name.includes('وايتنينج')||name.includes('نورماديرم')||name.includes('شان جيل')||name.includes('لوريال')||name.includes('لاروش')) list.push(name);
+            }
+        }
+        let html=`<div class="pkg-card"><div style="color:var(--gold); font-weight:bold; text-align:center; margin-bottom:10px;">${lvl.n}</div>`;
+        let total=0;
+        [...new Set(list)].forEach(name=>{
+            const d=productDB[name]; total+=d.p;
+            html+=`<div class="product-line"><span>${name} (${d.act}): ${d.reason} <a href="${d.link}" target="_blank" class="buy-link">🛒</a></span><b>${d.p} ج.م</b></div>`;
+        });
+        html+=`<div class="total-row"><span>المجموع:</span><span>${total} ج.م</span></div></div>`;
+        container.innerHTML+=html;
+    });
+}
+
+function sendToWhatsApp(){window.open(`https://wa.me/${myPhone}?text=أريد طلب روتين Verona AI الخاص بي.`,'_blank');}
+</script></body>
 </html>
