@@ -1,155 +1,169 @@
-<!DOCTYPE html><html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verona Ai Final</title>
+<title>VERONA AI PRO | النهائية</title>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 <style>
-body{font-family:Arial;background:#f5f5f5;text-align:center;padding:20px}
-button{padding:10px 18px;margin:5px;border:none;border-radius:8px;cursor:pointer}
-.primary{background:#111;color:#fff}
-.card{background:#fff;padding:15px;margin:15px auto;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.08);max-width:700px;text-align:right}
-.section{font-weight:bold;margin-top:10px}
-video,canvas,img{max-width:100%;border-radius:12px;margin-top:10px}
-.badge{display:inline-block;padding:5px 10px;border-radius:20px;background:#eee;margin:3px;font-size:12px}
+:root { --gold:#d4af37; --bg:#050505; --gold-soft:#f1d77a; }
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;padding:10px;text-align:right;}
+.container{max-width:500px;margin:auto;}
+.preview-box{position:relative;border-radius:25px;overflow:hidden;border:2px solid var(--gold);aspect-ratio:4/5;margin-bottom:15px;background:#000;}
+video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
+.live-overlay{position:absolute;top:15px;left:15px;right:15px;z-index:30;pointer-events:none;}
+.badge{background:rgba(0,0,0,0.7);padding:5px 12px;border-radius:20px;font-size:0.8rem;margin-bottom:5px;display:inline-block;border:1px solid var(--gold);}
+#lightLevel{font-weight:bold;}
+.btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer;width:100%;margin-bottom:10px;}
+.card{background:#111;border:1px solid #d4af3733;border-radius:20px;padding:15px;display:none;margin-top:15px;}
+.packages-vertical{display:flex;flex-direction:column;gap:20px;}
+.pkg-card{background:#1a1a1a;border:1px solid #333;border-radius:18px;padding:15px;border-top:4px solid var(--gold);}
+.product-line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222;font-size:0.85rem;}
+.buy-link{color:var(--gold);text-decoration:none;font-size:1.1rem;}
+.total-row{display:flex;justify-content:space-between;font-weight:bold;color:var(--gold);margin-top:10px;}
+.disclaimer{font-size:0.7rem;color:#777;margin-top:20px;text-align:center;}
 </style>
 </head>
-<body><h2>Verona Ai - النسخة النهائية</h2><input type="file" id="upload" accept="image/*" hidden>
-<button class="primary" onclick="upload.click()">أضف صورة</button>
-<button onclick="startCamera()">فتح الكاميرا</button>
-<button onclick="capture()">التقاط</button><br>
-<video id="video" autoplay playsinline style="display:none"></video>
+<body>
+<div class="container">
+<h2 style="color:var(--gold);text-align:center;">VERONA AI PRO | النهائية</h2>
+<div class="preview-box">
+<video id="video" playsinline hidden></video>
 <canvas id="canvas"></canvas>
-<img id="preview" /><div id="result" class="card" style="display:none"></div>
-<div id="packages" style="display:none"></div>
-<div id="tips" class="card" style="display:none">
-<h3>تعليمات عامة</h3>
-<ul>
-<li>واقي الشمس يوميًا SPF50.</li>
-<li>ترطيب صباحًا ومساءً.</li>
-<li>عدم خلط الريتينول مع فيتامين C في نفس الروتين.</li>
-<li>شرب ماء كافي يوميًا.</li>
-</ul>
-</div><script>
-let video=document.getElementById("video");
-let canvas=document.getElementById("canvas");
-let ctx=canvas.getContext("2d");
-let faceMesh=new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
-faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true});
-faceMesh.onResults(onResults);
+<div class="live-overlay">
+<div id="lightLevel" class="badge">جاري قياس الإضاءة...</div><br>
+<div id="liveDetection" class="badge" style="color: var(--gold); display:none;">جاري فحص العيوب...</div>
+</div>
+<div id="liveStatus" style="position:absolute;bottom:15px;width:100%;color:#00f2ff;font-weight:bold;z-index:20;text-align:center;">بانتظار تفعيل الكاميرا...</div>
+</div>
 
-function startCamera(){
-navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
-video.srcObject=stream;
-video.style.display="block";
+<div id="controls">
+<button class="btn" onclick="startCam()">بدء المسح الذكي 📸</button>
+<button class="btn" style="background:#222;color:#fff;" onclick="openQuestions()">تخصيص الروتين 🔬</button>
+</div>
+
+<div id="questionsCard" class="card">
+<h3 style="color:var(--gold);text-align:center;">تأكيد التحليل</h3>
+<label>حبوب ملتهبة؟</label>
+<select id="qAcne"><option value="no">لا</option><option value="yes">نعم</option></select>
+<label>تصبغات؟</label>
+<select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
+<label>هالات؟</label>
+<select id="qCircles"><option value="none">لا يوجد</option><option value="brown">بني</option></select>
+<label>نضارة / تفتيح؟</label>
+<select id="qBrighten"><option value="none">لا تحتاج</option><option value="bright">نضارة</option><option value="lighten">تفتيح</option></select>
+<button class="btn" onclick="generateFinalReport()">عرض الروتين النهائي ✨</button>
+</div>
+
+<div id="reportCard" class="card">
+<div id="skinTypeDisplay" style="text-align:center;color:#00f2ff;font-weight:bold;margin-bottom:15px;"></div>
+<div class="packages-vertical" id="pkgContainer"></div>
+<button class="btn" onclick="location.reload()" style="background:#333;color:#fff;margin-top:20px;">إعادة الفحص 🔄</button>
+<button class="btn" style="background:#25d366;color:white;" onclick="sendToWhatsApp()">طلب المنتجات 💬</button>
+<div class="disclaimer">⚠️ هذا التحليل استرشادي ذكي، يرجى استشارة المختص للحالات الحرجة.</div>
+</div>
+</div>
+
+<script>
+const myPhone = "201063994139";
+const productDB = {
+"ستارفيل وايتنينج": {p:145,link:"https://www.amazon.eg/s?k=starville+whitening"},
+"أرجنتو كلير": {p:165,link:"https://www.amazon.eg/s?k=argento+clear"},
+"فيشي نورماديرم": {p:850,link:"https://www.amazon.eg/s?k=vichy+normaderm"},
+"شان جيل": {p:195,link:"https://www.amazon.eg/s?k=shaan+gel"},
+"لوريال هيالورونيك": {p:395,link:"https://www.amazon.eg/s?k=loreal+hyaluronic"},
+"ديرماتيك جيل": {p:260,link:"https://www.amazon.eg/s?k=dermatique+gel"},
+"ناتافيس فيتامين C": {p:485,link:"https://www.amazon.eg/s?k=natavis+vitamin+c"},
+"لاروش بيجمنتكلار": {p:1250,link:"https://www.amazon.eg/s?k=la+roche+pigmentclar"},
+"ستارفيل آي كونتور": {p:155,link:"https://www.amazon.eg/s?k=starville+eye+contour"},
+"بوباي جل واقي شمس": {p:180,link:"https://www.amazon.eg/s?k=bobai+sunscreen+gel"},
+"لاروش أنثيليوس": {p:650,link:"https://www.amazon.eg/s?k=la+roche+posay+anthelios"},
+"غسول سيرافيه": {p:450,link:"https://www.amazon.eg/s?k=cerave+cleanser"}
+};
+
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d',{willReadFrequently:true});
+let aiAnalysis = {acne:false,pig:false,circles:false,skinType:'مختلطة',bright:'none'};
+
+const faceMesh = new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.6});
+
+faceMesh.onResults(results=>{
+ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
+if(results.multiFaceLandmarks?.length>0){
+const lm=results.multiFaceLandmarks[0];
+drawConnectors(ctx,lm,FACEMESH_TESSELATION,{color:'#d4af3740',lineWidth:1});
+
+// قياس الإضاءة
+const fore=getPx(lm[10]); const cheek=getPx(lm[205]); const eye=getPx(lm[230]);
+const lightEl=document.getElementById('lightLevel');
+if(fore.v<100){lightEl.innerText="⚠️ الإضاءة ضعيفة"; lightEl.style.color="#ff4d4d";}
+else{lightEl.innerText="✅ الإضاءة جيدة"; lightEl.style.color="#25d366";}
+
+// تحليل لحظي
+aiAnalysis.skinType=(fore.v>205)?"دهنية":(fore.v<115?"جافة":"مختلطة");
+aiAnalysis.acne=(cheek.r-cheek.g>35);
+aiAnalysis.pig=(cheek.v/fore.v<0.85);
+aiAnalysis.circles=(eye.v<fore.v*0.72);
+
+const detEl=document.getElementById('liveDetection');
+detEl.style.display="inline-block";
+let msgs=[];
+if(aiAnalysis.acne) msgs.push("حبوب ملتهبة 🔴");
+if(aiAnalysis.pig) msgs.push("تصبغات قوية 🟤");
+if(aiAnalysis.circles) msgs.push("هالات سوداء 👁️");
+detEl.innerText=msgs.length>0?"رصد: "+msgs.join(" | "):"البشرة تبدو صافية ✨";
+
+document.getElementById('liveStatus').innerText="تم الفحص بنجاح ✅";
+}
+});
+
+function getPx(p){const x=Math.floor(p.x*canvas.width); const y=Math.floor(p.y*canvas.height); const d=ctx.getImageData(x,y,1,1).data; return {r:d[0],g:d[1],v:(d[0]+d[1]+d[2])/3};}
+function startCam(){new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); canvas.width=640; canvas.height=480;}
+function openQuestions(){
+document.getElementById('controls').style.display='none';
+document.getElementById('questionsCard').style.display='block';
+document.getElementById('qAcne').value=aiAnalysis.acne?"yes":"no";
+document.getElementById('qPig').value=aiAnalysis.pig?"yes":"no";
+document.getElementById('qCircles').value=aiAnalysis.circles?"brown":"none";
+document.getElementById('qBrighten').value=aiAnalysis.bright;
+}
+function generateFinalReport(){
+aiAnalysis.acne=document.getElementById('qAcne').value==="yes";
+aiAnalysis.pig=document.getElementById('qPig').value==="yes";
+aiAnalysis.circles=document.getElementById('qCircles').value!=="none";
+aiAnalysis.bright=document.getElementById('qBrighten').value;
+
+document.getElementById('questionsCard').style.display='none';
+document.getElementById('reportCard').style.display='block';
+document.getElementById('skinTypeDisplay').innerText="تحليل Verona: بشرة "+aiAnalysis.skinType;
+
+const container=document.getElementById('pkgContainer');
+container.innerHTML="";
+
+[ {id:'low', n:'الباقة الاقتصادية 🥉'}, {id:'high', n:'الباقة الألترا الفاخرة 🥇'} ].forEach(lvl=>{
+let list=[];
+if(aiAnalysis.skinType==="دهنية") list.push(lvl.id==='high'?"فيشي نورماديرم":"أرجنتو كلير");
+else list.push(lvl.id==='high'?"غسول سيرافيه":"ستارفيل وايتنينج");
+if(aiAnalysis.acne) list.push("أرجنتو كلير");
+if(aiAnalysis.pig) list.push("ناتافيس فيتامين C");
+if(aiAnalysis.circles) list.push(lvl.id==='high'?"لاروش بيجمنتكلار":"ستارفيل آي كونتور");
+list.push("شان جيل");
+list.push(lvl.id==='high'?"لاروش أنثيليوس":"بوباي جل واقي شمس");
+
+let html=`<div class="pkg-card"><div style="color:var(--gold);font-weight:bold;margin-bottom:10px;text-align:center;">${lvl.n}</div>`;
+let total=0;
+[...new Set(list)].forEach(name=>{const d=productDB[name]; total+=d.p; html+=`<div class="product-line"><span>${name} <a href="${d.link}" target="_blank" class="buy-link">🛒</a></span><b>${d.p} ج.م</b></div>`;});
+html+=`<div class="total-row"><span>المجموع:</span><span>${total} ج.م</span></div></div>`;
+container.innerHTML+=html;
 });
 }
 
-function capture(){
-canvas.width=video.videoWidth;
-canvas.height=video.videoHeight;
-ctx.drawImage(video,0,0);
-faceMesh.send({image:canvas});
-}
-
-upload.onchange=e=>{
-let reader=new FileReader();
-reader.onload=function(){
-preview.src=reader.result;
-preview.onload=()=>{
-canvas.width=preview.width;
-canvas.height=preview.height;
-ctx.drawImage(preview,0,0);
-faceMesh.send({image:canvas});
-}
-}
-reader.readAsDataURL(e.target.files[0]);
-}
-
-function onResults(results){
-ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
-if(results.multiFaceLandmarks.length>0){
-for(const landmarks of results.multiFaceLandmarks){
-drawConnectors(ctx,landmarks,FaceMesh.FACEMESH_TESSELATION,{color:'#00FF00',lineWidth:0.5});
-}
-analyzeImage();
-}
-}
-
-function analyzeImage(){
-let imgData=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-let total=0;
-for(let i=0;i<imgData.length;i+=4){
-total+=(imgData[i]+imgData[i+1]+imgData[i+2])/3;
-}
-let brightness=total/(imgData.length/4);
-
-let acne=brightness<110?"متوسطة":"خفيفة";
-let pigmentation=brightness<100?"عميقة":"خفيفة";
-
-result.innerHTML=`<h3>نتيجة التحليل</h3>
-<div class='badge'>درجة الإضاءة: ${brightness.toFixed(0)}</div>
-<div class='badge'>حبوب: ${acne}</div>
-<div class='badge'>تصبغات: ${pigmentation}</div>`;
-result.style.display="block";
-showPackages();
-}
-
-function product(name,active,why,benefit,price,link){
-return `<p><strong>${name}</strong><br>
-المادة الفعالة: ${active}<br>
-لماذا يستخدم: ${why}<br>
-الفائدة: ${benefit}<br>
-السعر: ${price} جنيه<br>
-<a href='${link}' target='_blank'>رابط الشراء</a></p>`;
-}
-
-function showPackages(){
-packages.innerHTML=`
-
-<div class='card'>
-<h3>الباقة الاقتصادية</h3>
-<div class='section'>صباحًا</div>
-${product("غسول Garnier","Salicylic Acid","تنظيف المسام","تقليل الحبوب",120,"#")}
-${product("سيروم Eva","Vitamin C","تفتيح","إشراقة",150,"#")}
-<div class='section'>مساءً</div>
-${product("سيروم The Ordinary","Niacinamide","تقليل الدهون","تحسين الملمس",350,"#")}
-${product("مرطب Nivea","Hyaluronic Acid","ترطيب","منع الجفاف",90,"#")}
-</div>
-
-<div class='card'>
-<h3>الباقة السوبر</h3>
-<div class='section'>صباحًا</div>
-${product("غسول La Roche","Effaclar Gel","تنقية عميقة","تقليل الإفرازات",220,"#")}
-${product("سيروم Vichy","Vitamin C 15%","تفتيح قوي","تقليل التصبغات",600,"#")}
-<div class='section'>مساءً</div>
-${product("سيروم Bioderma","Niacinamide","تهدئة البشرة","تقليل الحبوب",500,"#")}
-${product("مرطب Cetaphil","Glycerin","ترطيب عميق","حماية الحاجز",250,"#")}
-</div>
-
-<div class='card'>
-<h3>الباقة الألترا</h3>
-<div class='section'>صباحًا</div>
-${product("غسول Skinceuticals","Gentle Cleanser","تنظيف احترافي","حماية البشرة",900,"#")}
-${product("سيروم Skinceuticals","CE Ferulic","مضاد أكسدة","تفتيح ونضارة",7500,"#")}
-<div class='section'>مساءً</div>
-${product("ريتينول Obagi","Retinol 1%","تحفيز الكولاجين","تقليل التجاعيد",1800,"#")}
-${product("مرطب Eucerin","Urea 5%","إصلاح البشرة","منع الجفاف",400,"#")}
-</div>
-
-`;
-packages.style.display="block";
-tips.style.display="block";
-}
-${product("سيروم Eva","Vitamin C","تفتيح","إشراقة",150,"#")}
-<div class='section'>مساءً</div>
-${product("سيروم The Ordinary","Niacinamide","تقليل الدهون","تحسين الملمس",350,"#")}
-${product("مرطب Nivea","Hyaluronic Acid","ترطيب","منع الجفاف",90,"#")}
-</div>`;
-packages.style.display="block";
-tips.style.display="block";
-}
-
-</script></body>
+function sendToWhatsApp(){window.open(`https://wa.me/${myPhone}?text=أريد طلب روتين Verona AI الخاص بي.`, '_blank');}
+</script>
+</body>
 </html>
