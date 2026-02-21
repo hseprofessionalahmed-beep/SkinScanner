@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | V17.3 FINAL</title>
+    <title>VERONA AI | V17.4 CUMULATIVE</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
@@ -30,7 +30,7 @@
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold)">VERONA AI | MASTER V17.3</h2>
+    <h2 style="color:var(--gold)">VERONA AI | MASTER V17.4</h2>
 
     <div class="preview-box">
         <video id="video" playsinline></video>
@@ -50,7 +50,7 @@
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="text-align:center; color:var(--gold)">تخصيص الطبيب الذكي</h3>
+        <h3 style="text-align:center; color:var(--gold)">تخصيص الروتين التراكمي</h3>
         
         <label>1. هل توجد حبوب ملتهبة؟</label>
         <select id="qAcne"><option value="no">لا يوجد</option><option value="yes">نعم</option></select>
@@ -65,11 +65,11 @@
             <option value="blue">أزرق (إرهاق)</option>
         </select>
 
-        <label>4. هل تريد إضافة باقة خاصة؟</label>
+        <label>4. إضافة باقة تعزيز نضارة/تفتيح؟</label>
         <select id="qGoal">
-            <option value="none">الروتين الأساسي فقط</option>
-            <option value="glow">باقة النضارة والامتلاء ✨</option>
-            <option value="whitening">باقة التفتيح المكثف ⚪</option>
+            <option value="none">لا، الروتين العلاجي فقط</option>
+            <option value="glow">باقة النضارة والامتلاء (+ سيروم نضارة) ✨</option>
+            <option value="whitening">باقة التفتيح المكثف (+ سيروم فيتامين C) ⚪</option>
         </select>
 
         <label>5. الميزانية:</label>
@@ -79,7 +79,7 @@
             <option value="high">فاخر</option>
         </select>
 
-        <button class="btn" onclick="generateFinalReport()">عرض النتيجة النهائية ✨</button>
+        <button class="btn" onclick="generateFinalReport()">عرض الروتين الكامل ✨</button>
     </div>
 
     <div id="reportCard" class="card">
@@ -87,7 +87,7 @@
         <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:10px;"></div>
         <div id="diagText" style="margin-bottom:15px; font-size:0.85rem; color:#ddd;"></div>
         <div id="routineList"></div>
-        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الروتين عبر واتساب 💬</button>
+        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الروتين الكامل 💬</button>
         <button class="btn" style="background:#333; color:#fff;" onclick="location.reload()">فحص جديد 🔄</button>
     </div>
 </div>
@@ -124,27 +124,19 @@
         });
     }
 
-    // استعادة محرك V16.1 الأصلي بالكامل
     function runV16AI(lm) {
         const forehead = getPx(lm[10]);
         const cheek = getPx(lm[205]);
         const underEye = getPx(lm[230]); 
-        
         if (forehead.v > 205) aiAnalysis.skinType = "دهنية";
         else if (forehead.v < 115) aiAnalysis.skinType = "جافة";
         else aiAnalysis.skinType = "مختلطة";
-
         const redVsGlow = cheek.r - cheek.g;
         aiAnalysis.acne = (redVsGlow > 35 && cheek.r > forehead.r * 1.25);
-        
-        const brightnessDrop = cheek.v / forehead.v;
-        aiAnalysis.pig = (brightnessDrop < 0.85);
-
-        if (underEye.v < forehead.v * 0.72 && cheek.v < 190) aiAnalysis.circles = true;
-        else aiAnalysis.circles = false;
-
+        aiAnalysis.pig = (cheek.v / forehead.v < 0.85);
+        aiAnalysis.circles = (underEye.v < forehead.v * 0.72 && cheek.v < 190);
         if (cheek.v > 190) { aiAnalysis.acne = false; aiAnalysis.pig = false; aiAnalysis.circles = false; }
-        document.getElementById('liveStatus').innerText = `تحليل Verona V17.3 ✅`;
+        document.getElementById('liveStatus').innerText = `تحليل Verona V17.4 ✅`;
     }
 
     function getPx(p) {
@@ -169,20 +161,11 @@
         const goal = document.getElementById('qGoal').value;
         const budget = document.getElementById('qBudget').value;
 
-        let score = 100;
-        if(acne) score -= 20; if(pig) score -= 25; if(circ !== 'none') score -= 15;
-
         document.getElementById('questionsCard').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
-        document.getElementById('scoreDisplay').innerText = score + "%";
+        document.getElementById('scoreDisplay').innerText = (100 - (acne?20:0) - (pig?25:0) - (circ!=='none'?15:0)) + "%";
         document.getElementById('skinTypeDisplay').innerText = "بشرة " + aiAnalysis.skinType;
         
-        let dTxt = "<b>التشخيص:</b><br>";
-        dTxt += acne ? "• حبوب نشطة.<br>" : "• بشرة صافية من الحبوب.<br>";
-        dTxt += pig ? "• تصبغات متفاوتة.<br>" : "• لون بشرة موحد.<br>";
-        dTxt += (circ !== 'none') ? "• هالات حول العين.<br>" : "• محيط عين مشرق.<br>";
-        document.getElementById('diagText').innerHTML = dTxt;
-
         buildRoutine(acne, pig, circ, goal, budget);
     }
 
@@ -190,27 +173,36 @@
         const list = document.getElementById('routineList');
         list.innerHTML = ""; finalSelection = [];
 
-        // 1. الغسول
-        if(budget === 'high') addP("الغسول", "فيشي نورماديرم");
-        else addP("الغسول", "ستارفيل وايتنينج");
+        // 1. الغسول (علاجي أساسي)
+        if(budget === 'high') addP("الغسول العلاجي", "فيشي نورماديرم");
+        else addP("الغسول العلاجي", "ستارفيل وايتنينج");
 
-        // 2. العلاجات المخصصة
+        // 2. علاج الحبوب (إذا وجدت)
         if(acne) addP("علاج الحبوب", "أرجنتو كلير");
+
+        // 3. علاج التصبغات (إذا وجدت)
+        if(pig) {
+            if(budget === 'low') addP("علاج التصبغات", "ستارفيل وايتنينج"); 
+            else addP("سيروم التصبغات", "ناتافيس فيتامين C");
+        }
+
+        // 4. علاج الهالات (إذا وجدت)
         if(circ !== 'none') {
             if(budget === 'high') addP("علاج الهالات", "لاروش بيجمنتكلار");
             else addP("علاج الهالات", "ستارفيل آي كونتور");
         }
 
-        // 3. الباقات المضافة
+        // 5. الباقات الإضافية (إضافة وليست استبدال)
         if(goal === 'glow') {
-            if(budget === 'high') addP("باقة النضارة", "لوريال هيالورونيك");
-            else addP("باقة النضارة", "ديرماتيك جيل");
+            if(budget === 'high') addP("إضافة باقة نضارة", "لوريال هيالورونيك");
+            else addP("إضافة باقة نضارة", "ديرماتيك جيل");
         } else if(goal === 'whitening') {
-            addP("باقة التفتيح", "ناتافيس فيتامين C");
+            if(pig) { /* التفتيح موجود بالفعل في علاج التصبغات */ }
+            else addP("إضافة باقة تفتيح", "ناتافيس فيتامين C");
         }
 
-        // 4. الترطيب
-        addP("الترطيب", "شان جيل");
+        // 6. الترطيب (الختام)
+        addP("الترطيب الطبي", "شان جيل");
     }
 
     function addP(cat, name) {
@@ -230,7 +222,7 @@
     }
 
     function sendToWhatsApp() {
-        let msg = `Verona AI Report:\nالسكور: ${document.getElementById('scoreDisplay').innerText}\nالبشرة: ${aiAnalysis.skinType}\nالروتين:\n`;
+        let msg = `Verona AI V17.4:\nالسكور: ${document.getElementById('scoreDisplay').innerText}\nالروتين العلاجي الكامل:\n`;
         finalSelection.forEach(p => msg += `• ${p}\n`);
         window.open(`https://wa.me/${myPhone}?text=${encodeURIComponent(msg)}`, '_blank');
     }
