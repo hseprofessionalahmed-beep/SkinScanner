@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | V23.1 PRO</title>
+    <title>VERONA AI | ULTIMATE V23.2</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
@@ -14,20 +14,28 @@
         .preview-box { position: relative; border-radius: 25px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; margin-bottom: 15px; background: #000; }
         video, canvas { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
-        .card { background: #111; border: 1px solid #d4af3733; border-radius: 20px; padding: 15px; display: none; }
+        .card { background: #111; border: 1px solid #d4af3733; border-radius: 20px; padding: 15px; display: none; margin-top: 15px; }
         .packages-wrapper { display: flex; gap: 12px; overflow-x: auto; padding: 10px 5px; scroll-snap-type: x mandatory; }
         .pkg-card { flex: 0 0 85%; background: #1a1a1a; border: 1px solid #333; border-radius: 18px; padding: 15px; scroll-snap-align: center; border-top: 4px solid var(--gold); }
         .product-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #222; font-size: 0.85rem; }
-        .buy-link { color: var(--gold); text-decoration: none; font-size: 1.1rem; margin-right: 5px; }
+        .buy-link { color: var(--gold); text-decoration: none; font-size: 1.1rem; }
         .total-row { display: flex; justify-content: space-between; font-weight: bold; color: var(--gold); margin-top: 10px; }
-        .check-item { display: flex; align-items: center; gap: 10px; background: #222; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #444; }
+        .info-box { background: #222; padding: 10px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 10px; border-left: 3px solid var(--gold); }
+        .disclaimer { font-size: 0.7rem; color: #777; margin-top: 20px; text-align: center; }
         #liveStatus { position: absolute; bottom: 15px; width: 100%; color: #00f2ff; font-weight: bold; z-index: 20; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold); text-align:center;">VERONA AI | V23.1 PRO</h2>
+    <h2 style="color:var(--gold); text-align:center;">VERONA AI | V23.2 PRO</h2>
+
+    <div id="instructions" class="info-box">
+        <b>💡 تعليمات الكاميرا:</b><br>
+        1. قف في إضاءة جيدة (مواجهة للنافذة مثلاً).<br>
+        2. ابعد الهاتف عن وجهك بمسافة 30 سم.<br>
+        3. انتظر ظهور الشبكة الذهبية وتأكيد "تم الفحص".
+    </div>
 
     <div class="preview-box">
         <video id="video" playsinline hidden></video>
@@ -48,34 +56,46 @@
         <select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
         <label>هالات؟</label>
         <select id="qCircles"><option value="none">لا يوجد</option><option value="brown">بني</option></select>
-        <div class="check-item"><input type="checkbox" id="addGlow"><label>باقة النضارة ✨</label></div>
-        <div class="check-item"><input type="checkbox" id="addWhite"><label>باقة التفتيح ⚪</label></div>
         <button class="btn" onclick="generateFinalReport()">النتائج النهائية ✨</button>
     </div>
 
     <div id="reportCard" class="card">
         <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:10px;"></div>
+        
         <div class="packages-wrapper" id="pkgContainer"></div>
-        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الروتين عبر الواتساب 💬</button>
+
+        <div class="info-box" style="margin-top:15px;">
+            <b>🌙 إرشادات النوم والترطيب:</b><br>
+            - النوم 7-8 ساعات يومياً يقلل من الهالات بنسبة 30%.<br>
+            - شرب 3 لتر ماء يحافظ على مرونة الجلد.<br>
+            - الترطيب يكون دائماً على بشرة مندّاة قليلاً.
+        </div>
+
+        <button class="btn" onclick="resetApp()" style="background:#333; color:#fff;">إعادة الفحص 🔄</button>
+        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الروتين 💬</button>
+        
+        <div class="disclaimer">
+            <b>⚠️ إخلاء مسؤولية:</b> هذا التحليل استرشادي يعتمد على الرؤية الحاسوبية، ولا يغني عن استشارة الطبيب المختص في الحالات المرضية الشديدة.
+        </div>
     </div>
 </div>
 
 <script>
     const myPhone = "201063994139";
-    // قاعدة البيانات مع إضافة الروابط (استبدل '#' برابط المتجر الحقيقي)
+    // قاعدة البيانات بروابط أمازون مصر
     const productDB = {
-        "ستارفيل وايتنينج": { p: 145, link: "#" }, 
-        "أرجنتو كلير": { p: 165, link: "#" },
-        "فيشي نورماديرم": { p: 850, link: "#" }, 
-        "شان جيل": { p: 195, link: "#" },
-        "لوريال هيالورونيك": { p: 395, link: "#" }, 
-        "ديرماتيك جيل": { p: 260, link: "#" },
-        "ناتافيس فيتامين C": { p: 485, link: "#" }, 
-        "لاروش بيجمنتكلار": { p: 1250, link: "#" },
-        "ستارفيل آي كونتور": { p: 155, link: "#" },
-        "بوباي جل واقي شمس": { p: 180, link: "#" },
-        "لاروش أنثيليوس": { p: 650, link: "#" },
-        "غسول سيرافيه": { p: 450, link: "#" }
+        "ستارفيل وايتنينج": { p: 145, link: "https://www.amazon.eg/s?k=starville+whitening" }, 
+        "أرجنتو كلير": { p: 165, link: "https://www.amazon.eg/s?k=argento+clear" },
+        "فيشي نورماديرم": { p: 850, link: "https://www.amazon.eg/s?k=vichy+normaderm" }, 
+        "شان جيل": { p: 195, link: "https://www.amazon.eg/s?k=shaan+gel" },
+        "لوريال هيالورونيك": { p: 395, link: "https://www.amazon.eg/s?k=loreal+hyaluronic" }, 
+        "ديرماتيك جيل": { p: 260, link: "https://www.amazon.eg/s?k=dermatique+gel" },
+        "ناتافيس فيتامين C": { p: 485, link: "https://www.amazon.eg/s?k=natavis+vitamin+c" }, 
+        "لاروش بيجمنتكلار": { p: 1250, link: "https://www.amazon.eg/s?k=la+roche+pigmentclar" },
+        "ستارفيل آي كونتور": { p: 155, link: "https://www.amazon.eg/s?k=starville+eye+contour" },
+        "بوباي جل واقي شمس": { p: 180, link: "https://www.amazon.eg/s?k=bobai+sunscreen+gel" },
+        "لاروش أنثيليوس": { p: 650, link: "https://www.amazon.eg/s?k=la+roche+posay+anthelios" },
+        "غسول سيرافيه": { p: 450, link: "https://www.amazon.eg/s?k=cerave+cleanser" }
     };
 
     const video = document.getElementById('video');
@@ -111,6 +131,7 @@
     }
 
     function startCam() {
+        document.getElementById('instructions').style.display = 'none';
         new Camera(video, {onFrame: async () => await faceMesh.send({image: video}), width: 640, height: 480}).start();
         canvas.width = 640; canvas.height = 480;
     }
@@ -127,8 +148,6 @@
         const acne = document.getElementById('qAcne').value === 'yes';
         const pig = document.getElementById('qPig').value === 'yes';
         const circ = document.getElementById('qCircles').value;
-        const addGlow = document.getElementById('addGlow').checked;
-        const addWhite = document.getElementById('addWhite').checked;
 
         document.getElementById('questionsCard').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
@@ -137,44 +156,29 @@
         const container = document.getElementById('pkgContainer');
         container.innerHTML = "";
 
-        [{id:'low', n:'الاقتصادية 🥉'}, {id:'mid', n:'سوبر برو 🥈'}, {id:'high', n:'ألترا فاخرة 🥇'}].forEach(lvl => {
+        [{id:'low', n:'الاقتصادية'}, {id:'high', n:'ألترا فاخرة'}].forEach(lvl => {
             let list = [];
-            
-            // 1. غسول حسب الحالة
             if(aiAnalysis.skinType === "دهنية") list.push(lvl.id === 'high' ? "فيشي نورماديرم" : "أرجنتو كلير");
             else list.push(lvl.id === 'high' ? "غسول سيرافيه" : "ستارفيل وايتنينج");
-
-            // 2. العلاج (حبوب/تصبغات/هالات)
             if(acne) list.push("أرجنتو كلير");
             if(pig) list.push("ناتافيس فيتامين C");
             if(circ !== 'none') list.push(lvl.id === 'high' ? "لاروش بيجمنتكلار" : "ستارفيل آي كونتور");
-            
-            // 3. الإضافات
-            if(addGlow) list.push(lvl.id === 'high' ? "لوريال هيالورونيك" : "ديرماتيك جيل");
-            if(addWhite && !pig) list.push("ناتافيس فيتامين C");
-            
-            // 4. ترطيب وواقي شمس
             list.push("شان جيل");
             list.push(lvl.id === 'high' ? "لاروش أنثيليوس" : "بوباي جل واقي شمس");
 
             let html = `<div class="pkg-card"><div class="pkg-name">${lvl.n}</div>`;
             let total = 0;
             [...new Set(list)].forEach(name => {
-                const d = productDB[name] || {p:0, link:'#'}; 
-                total += d.p;
-                html += `<div class="product-line">
-                            <span>${name} <a href="${d.link}" class="buy-link">🛒</a></span>
-                            <b>${d.p} ج.م</b>
-                         </div>`;
+                const d = productDB[name]; total += d.p;
+                html += `<div class="product-line"><span>${name} <a href="${d.link}" target="_blank" class="buy-link">🛒</a></span><b>${d.p} ج.م</b></div>`;
             });
             html += `<div class="total-row"><span>المجموع:</span><span>${total} ج.م</span></div></div>`;
             container.innerHTML += html;
         });
     }
 
-    function sendToWhatsApp() {
-        window.open(`https://wa.me/${myPhone}?text=مرحباً، قمت بتحليل بشرتي وأريد طلب الروتين المناسب لي.`, '_blank');
-    }
+    function resetApp() { location.reload(); }
+    function sendToWhatsApp() { window.open(`https://wa.me/${myPhone}?text=أريد طلب الروتين المخصص لي من VERONA AI.`, '_blank'); }
 </script>
 </body>
 </html>
