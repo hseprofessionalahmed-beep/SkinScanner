@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | V23.6</title>
+    <title>VERONA AI | V23.7 REPAIR</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
@@ -15,113 +15,107 @@
         video, canvas, #userImg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         #userImg { display: none; z-index: 5; }
         
-        .live-overlay { position: absolute; top: 15px; left: 15px; right: 15px; z-index: 30; pointer-events: none; }
-        .badge { background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 5px; display: inline-block; border: 1px solid var(--gold); }
+        /* طبقة التنبيهات فوق الصورة مباشرة */
+        .status-overlay { position: absolute; top: 10px; right: 10px; left: 10px; z-index: 100; pointer-events: none; }
+        .log-badge { background: rgba(0, 0, 0, 0.8); color: var(--gold); padding: 8px 15px; border-radius: 10px; font-size: 0.85rem; border: 1px solid var(--gold); margin-bottom: 5px; display: block; width: fit-content; }
 
-        .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        .btn { background: linear-gradient(135deg, #a67c00, #ffbf00); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; display: block; }
         .card { background: #111; border: 1px solid #d4af3733; border-radius: 20px; padding: 15px; display: none; margin-top: 15px; }
         
         .pkg-card { background: #1a1a1a; border: 1px solid #333; border-radius: 18px; padding: 15px; border-top: 4px solid var(--gold); margin-bottom: 25px; }
         .product-item { padding: 12px 0; border-bottom: 1px solid #222; }
         .usage-box { background: #222; padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 0.8rem; border-right: 3px solid #00f2ff; }
-        
-        .check-item { display: flex; align-items: center; gap: 12px; background: #222; padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #444; }
-        .total-row { display: flex; justify-content: space-between; font-weight: bold; color: var(--gold); margin-top: 15px; font-size: 1.1rem; border-top: 1px solid #444; padding-top: 10px; }
+        .total-row { display: flex; justify-content: space-between; font-weight: bold; color: var(--gold); margin-top: 15px; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color:var(--gold); text-align:center;">VERONA AI | V23.6</h2>
+    <h2 style="color:var(--gold); text-align:center;">VERONA AI | V23.7</h2>
 
     <div class="preview-box">
         <video id="video" playsinline hidden></video>
         <img id="userImg">
         <canvas id="canvas"></canvas>
-        <div class="live-overlay">
-            <div id="lightLevel" class="badge">قياس الإضاءة...</div><br>
-            <div id="liveDetection" class="badge" style="color:var(--gold); display:none;">جاري الفحص...</div>
+        
+        <div class="status-overlay">
+            <div id="lightMsg" class="log-badge">بانتظار الإضاءة...</div>
+            <div id="detectMsg" class="log-badge" style="display:none;">تحليل العيوب...</div>
         </div>
-        <div id="liveStatus" style="position:absolute; bottom:15px; width:100%; text-align:center; font-weight:bold; color:#00f2ff;">وجه الكاميرا نحوك</div>
     </div>
 
-    <div id="controls">
-        <button class="btn" onclick="startCam()">1. تشغيل الكاميرا 📸</button>
+    <div id="mainControls">
+        <button class="btn" onclick="startCam()">1. فتح الكاميرا 📸</button>
         <button class="btn" style="background:#444; color:#fff;" onclick="document.getElementById('fileInput').click()">2. رفع صورة 🖼️</button>
         <input type="file" id="fileInput" hidden accept="image/*" onchange="handleImage(event)">
         
-        <button id="showResultBtn" class="btn" style="background: #25d366; color: white; display: none;" onclick="openQuestions()">3. إظهار نتيجة الفحص 🔍</button>
+        <button id="resBtn" class="btn" style="background: #25d366; color: white; display: none;" onclick="openScanResult()">3. إظهار نتيجة الفحص 🔍</button>
     </div>
 
-    <div id="scanResultCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">نتائج المسح الأولي 🔬</h3>
-        <p id="scanSummary" style="font-size: 0.9rem; line-height: 1.6; text-align: center;"></p>
-        <hr style="border: 0.5px solid #333; margin: 15px 0;">
+    <div id="resultCard" class="card">
+        <h3 style="color:var(--gold); text-align:center;">تم الرصد بنجاح ✅</h3>
+        <p id="summaryText" style="text-align: center; font-size: 0.95rem;"></p>
+        <hr style="border:0.1px solid #333;">
         
-        <label>هل تعاني من حبوب نشطة؟</label>
-        <select id="qAcne" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; background:#222; color:#fff; border:1px solid #444;">
+        <label>هل الحبوب ملتهبة؟</label>
+        <select id="qAcne" style="width:100%; padding:10px; margin-bottom:10px; background:#222; color:#fff; border-radius:8px;">
             <option value="no">لا</option><option value="yes">نعم</option>
         </select>
 
-        <label>هل توجد بقع داكنة/تصبغات؟</label>
-        <select id="qPig" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; background:#222; color:#fff; border:1px solid #444;">
+        <label>هل التصبغات واضحة؟</label>
+        <select id="qPig" style="width:100%; padding:10px; margin-bottom:10px; background:#222; color:#fff; border-radius:8px;">
             <option value="no">لا</option><option value="yes">نعم</option>
         </select>
 
-        <div class="check-item"><input type="checkbox" id="addGlow"> <label>إضافة باقة النضارة ✨</label></div>
-        <div class="check-item"><input type="checkbox" id="addWhite"> <label>إضافة باقة التفتيح ⚪</label></div>
-
-        <button class="btn" onclick="generateFinalReport()">استخراج الروتين النهائي 📊</button>
+        <button class="btn" onclick="showRoutine()">عرض الروتين النهائي ✨</button>
     </div>
 
     <div id="reportCard" class="card">
-        <div id="skinTypeDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:15px;"></div>
-        <div id="pkgContainer"></div>
+        <div id="skinDisplay" style="text-align:center; color:#00f2ff; font-weight:bold; margin-bottom:15px;"></div>
+        <div id="pkgList"></div>
         <button class="btn" onclick="location.reload()" style="background:#333; color:#fff;">إعادة الفحص 🔄</button>
-        <button class="btn" style="background:#25d366; color:white;" onclick="sendToWhatsApp()">اطلب الروتين الكامل 💬</button>
     </div>
 </div>
 
 <script>
     const myPhone = "201063994139";
-    const productDB = {
-        "ستارفيل وايتنينج غسول": { p: 145, ing: "أربوتين", ben: "تفتيح وتنظيف", use: "صباحاً ومساءً", link: "https://www.amazon.eg/s?k=starville+whitening" },
-        "أرجنتو كلير غسول": { p: 165, ing: "شجرة الشاي", ben: "مضاد للحبوب", use: "مرتين يومياً", link: "https://www.amazon.eg/s?k=argento+clear" },
-        "فيشي نورماديرم": { p: 850, ing: "ساليسيليك", ben: "تحكم بالدهون", use: "مرة مساءً", link: "https://www.amazon.eg/s?k=vichy+normaderm" },
-        "شان جيل": { p: 195, ing: "بانثينول", ben: "ترطيب مائي", use: "بعد الغسول", link: "https://www.amazon.eg/s?k=shaan+gel" },
-        "لوريال هيالورونيك": { p: 395, ing: "هيالورونيك", ben: "نضارة وملء", use: "قبل المرطب", link: "https://www.amazon.eg/s?k=loreal+hyaluronic" },
-        "ناتافيس فيتامين C": { p: 485, ing: "فيتامين C", ben: "تفتيح البقع", use: "صباحاً قبل واقي الشمس", link: "https://www.amazon.eg/s?k=natavis+vitamin+c" },
-        "ستارفيل آي كونتور": { p: 155, ing: "كافيين", ben: "علاج الهالات", use: "مساءً حول العين", link: "https://www.amazon.eg/s?k=starville+eye+contour" },
-        "بوباي جل شمس": { p: 180, ing: "SPF 50", ben: "حماية من الشمس", use: "قبل الخروج بـ 20 دقيقة", link: "https://www.amazon.eg/s?k=bobai+sunscreen" }
+    const products = {
+        "أرجنتو كلير": { p: 165, ing: "شجرة الشاي", use: "صباحاً ومساءً", link: "https://www.amazon.eg/s?k=argento+clear" },
+        "ستارفيل وايتنينج": { p: 145, ing: "أربوتين", use: "صباحاً ومساءً", link: "https://www.amazon.eg/s?k=starville+whitening" },
+        "شان جيل": { p: 195, ing: "بانثينول", use: "بعد الغسول", link: "https://www.amazon.eg/s?k=shaan+gel" },
+        "بوباي جل": { p: 180, ing: "SPF 50", use: "قبل الشمس", link: "https://www.amazon.eg/s?k=bobai+sunscreen" }
     };
 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', {willReadFrequently: true});
-    let aiAnalysis = { acne: false, pig: false, circles: false, skinType: 'مختلطة' };
+    let data = { acne: false, pig: false, skin: 'مختلطة' };
 
     const faceMesh = new FaceMesh({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
-    faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.6 });
+    faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
     
     faceMesh.onResults(results => {
         ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
         if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
             const lm = results.multiFaceLandmarks[0];
-            const fore = getPx(lm[10]); const cheek = getPx(lm[205]); const eye = getPx(lm[230]);
+            const fore = getPx(lm[10]); const cheek = getPx(lm[205]);
             
-            aiAnalysis.skinType = (fore.v > 205) ? "دهنية" : (fore.v < 115 ? "جافة" : "مختلطة");
-            aiAnalysis.acne = (cheek.r - cheek.g > 35);
-            aiAnalysis.pig = (cheek.v / fore.v < 0.85);
-            aiAnalysis.circles = (eye.v < fore.v * 0.72);
+            // تحديث الإضاءة والرصد فوراً على الشاشة
+            document.getElementById('lightMsg').innerText = fore.v < 100 ? "⚠️ الإضاءة ضعيفة" : "✅ إضاءة جيدة";
+            document.getElementById('lightMsg').style.color = fore.v < 100 ? "red" : "#25d366";
+            
+            data.acne = (cheek.r - cheek.g > 35);
+            data.pig = (cheek.v / fore.v < 0.85);
+            data.skin = (fore.v > 200) ? "دهنية" : "مختلطة/جافة";
 
-            const light = fore.v;
-            document.getElementById('lightLevel').innerText = light < 100 ? "⚠️ إضاءة ضعيفة" : "✅ إضاءة جيدة";
-            document.getElementById('liveDetection').style.display = "inline-block";
-            document.getElementById('liveDetection').innerText = aiAnalysis.acne || aiAnalysis.pig ? "رصد عيوب محتملة..." : "البشرة تبدو صافية";
+            const dMsg = document.getElementById('detectMsg');
+            dMsg.style.display = 'block';
+            dMsg.innerText = (data.acne || data.pig) ? "رصد: عيوب محتملة" : "رصد: بشرة صافية";
 
             drawConnectors(ctx, lm, FACEMESH_TESSELATION, {color: '#d4af3740', lineWidth: 1});
-            document.getElementById('liveStatus').innerText = "تم المسح! اضغط على زر النتيجة بالأسفل";
-            document.getElementById('showResultBtn').style.display = 'block'; // إظهار الزر
+            
+            // إظهار زر النتيجة بوضوح
+            document.getElementById('resBtn').style.display = 'block';
         }
     });
 
@@ -132,76 +126,47 @@
     }
 
     function startCam() { 
-        document.getElementById('userImg').style.display = 'none';
+        document.getElementById('userImg').style.display='none';
         new Camera(video, {onFrame: async () => await faceMesh.send({image: video}), width: 640, height: 480}).start(); 
     }
 
     function handleImage(e) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
+        const r = new FileReader();
+        r.onload = (ev) => {
             const img = document.getElementById('userImg');
-            img.src = event.target.result; img.style.display = 'block';
+            img.src = ev.target.result; img.style.display = 'block';
             img.onload = () => faceMesh.send({image: img});
         };
-        reader.readAsDataURL(e.target.files[0]);
+        r.readAsDataURL(e.target.files[0]);
     }
 
-    function openQuestions() {
-        document.getElementById('controls').style.display = 'none';
-        document.getElementById('scanResultCard').style.display = 'block';
-        
-        let found = [];
-        if(aiAnalysis.acne) found.push("حبوب ملتهبة");
-        if(aiAnalysis.pig) found.push("تصبغات جلدية");
-        if(aiAnalysis.circles) found.push("هالات سوداء");
-
-        document.getElementById('scanSummary').innerHTML = `لقد تم رصد: <b style="color:var(--gold)">${found.length > 0 ? found.join(" و ") : "بشرة صافية"}</b> ونوع بشرتك <b style="color:var(--gold)">${aiAnalysis.skinType}</b>. برجاء التحقق بالإجابة على الآتي:`;
-        
-        document.getElementById('qAcne').value = aiAnalysis.acne ? "yes" : "no";
-        document.getElementById('qPig').value = aiAnalysis.pig ? "yes" : "no";
+    function openScanResult() {
+        document.getElementById('mainControls').style.display = 'none';
+        document.getElementById('resultCard').style.display = 'block';
+        document.getElementById('summaryText').innerHTML = `تم رصد بشرة <b>${data.skin}</b> مع ${data.acne ? 'حبوب' : 'لا يوجد حبوب'} و ${data.pig ? 'تصبغات' : 'لا يوجد تصبغات'}.`;
+        document.getElementById('qAcne').value = data.acne ? "yes" : "no";
+        document.getElementById('qPig').value = data.pig ? "yes" : "no";
     }
 
-    function generateFinalReport() {
-        const acne = document.getElementById('qAcne').value === 'yes';
-        const pig = document.getElementById('qPig').value === 'yes';
-        const addGlow = document.getElementById('addGlow').checked;
-        const addWhite = document.getElementById('addWhite').checked;
-
-        document.getElementById('scanResultCard').style.display = 'none';
+    function showRoutine() {
+        document.getElementById('resultCard').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
-        document.getElementById('skinTypeDisplay').innerText = "روتين مخصص للبشرة " + aiAnalysis.skinType;
-
-        const container = document.getElementById('pkgContainer');
-        container.innerHTML = "";
-
-        [{id:'low', n:'الروتين الاقتصادي المقترح'}, {id:'high', n:'الروتين الألترا (نتائج أسرع)'}].forEach(lvl => {
-            let list = [];
-            if(aiAnalysis.skinType === "دهنية") list.push(lvl.id === 'high' ? "فيشي نورماديرم" : "أرجنتو كلير غسول");
-            else list.push("ستارفيل وايتنينج غسول");
-            
-            if(acne) list.push("أرجنتو كلير غسول");
-            if(pig || addWhite) list.push("ناتافيس فيتامين C");
-            if(aiAnalysis.circles) list.push("ستارفيل آي كونتور");
-            if(addGlow) list.push("لوريال هيالورونيك");
-            list.push("شان جيل", "بوباي جل شمس");
-
-            let html = `<div class="pkg-card"><div style="color:var(--gold); font-weight:bold; font-size:1.1rem; text-align:center;">${lvl.n}</div>`;
-            let total = 0;
-            [...new Set(list)].forEach(name => {
-                const d = productDB[name] || {p:0, ing:'--', ben:'--', use:'--', link:'#'};
-                total += d.p;
-                html += `<div class="product-item">
-                    <div style="display:flex; justify-content:space-between;"><b>${name}</b><a href="${d.link}" target="_blank">🛒</a></div>
-                    <span class="prod-info">🧪 المادة: ${d.ing} | ✨ الفائدة: ${d.ben}</span>
-                    <div class="usage-box">📝 طريقة الاستخدام: ${d.use}</div>
-                </div>`;
-            });
-            html += `<div class="total-row"><span>إجمالي التكلفة:</span><span>${total} ج.م</span></div></div>`;
-            container.innerHTML += html;
+        document.getElementById('skinDisplay').innerText = "روتينك المخصص - بشرة " + data.skin;
+        
+        const list = ["أرجنتو كلير", "شان جيل", "بوباي جل"];
+        let html = `<div class="pkg-card">`;
+        let total = 0;
+        list.forEach(n => {
+            const p = products[n]; total += p.p;
+            html += `<div class="product-item">
+                <b>${n}</b> <a href="${p.link}">🛒</a><br>
+                <small>🧪 المادة: ${p.ing}</small>
+                <div class="usage-box">📝 ${p.use}</div>
+            </div>`;
         });
+        html += `<div class="total-row"><span>الإجمالي:</span><span>${total} ج.م</span></div></div>`;
+        document.getElementById('pkgList').innerHTML = html;
     }
-
-    function sendToWhatsApp() { window.open(`https://wa.me/${myPhone}?text=أريد طلب روتين Verona AI الخاص بي.`, '_blank'); }
 </script>
 </body>
 </html>
