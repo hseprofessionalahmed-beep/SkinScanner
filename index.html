@@ -107,10 +107,41 @@ return `<p><strong>${name}</strong><br>
 
 function showPackages(){
 packages.innerHTML=`
+
 <div class='card'>
 <h3>الباقة الاقتصادية</h3>
 <div class='section'>صباحًا</div>
 ${product("غسول Garnier","Salicylic Acid","تنظيف المسام","تقليل الحبوب",120,"#")}
+${product("سيروم Eva","Vitamin C","تفتيح","إشراقة",150,"#")}
+<div class='section'>مساءً</div>
+${product("سيروم The Ordinary","Niacinamide","تقليل الدهون","تحسين الملمس",350,"#")}
+${product("مرطب Nivea","Hyaluronic Acid","ترطيب","منع الجفاف",90,"#")}
+</div>
+
+<div class='card'>
+<h3>الباقة السوبر</h3>
+<div class='section'>صباحًا</div>
+${product("غسول La Roche","Effaclar Gel","تنقية عميقة","تقليل الإفرازات",220,"#")}
+${product("سيروم Vichy","Vitamin C 15%","تفتيح قوي","تقليل التصبغات",600,"#")}
+<div class='section'>مساءً</div>
+${product("سيروم Bioderma","Niacinamide","تهدئة البشرة","تقليل الحبوب",500,"#")}
+${product("مرطب Cetaphil","Glycerin","ترطيب عميق","حماية الحاجز",250,"#")}
+</div>
+
+<div class='card'>
+<h3>الباقة الألترا</h3>
+<div class='section'>صباحًا</div>
+${product("غسول Skinceuticals","Gentle Cleanser","تنظيف احترافي","حماية البشرة",900,"#")}
+${product("سيروم Skinceuticals","CE Ferulic","مضاد أكسدة","تفتيح ونضارة",7500,"#")}
+<div class='section'>مساءً</div>
+${product("ريتينول Obagi","Retinol 1%","تحفيز الكولاجين","تقليل التجاعيد",1800,"#")}
+${product("مرطب Eucerin","Urea 5%","إصلاح البشرة","منع الجفاف",400,"#")}
+</div>
+
+`;
+packages.style.display="block";
+tips.style.display="block";
+}
 ${product("سيروم Eva","Vitamin C","تفتيح","إشراقة",150,"#")}
 <div class='section'>مساءً</div>
 ${product("سيروم The Ordinary","Niacinamide","تقليل الدهون","تحسين الملمس",350,"#")}
