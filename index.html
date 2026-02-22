@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI PRO | V26 FINAL</title>
+<title>VERONA AI PRO | V27 FINAL</title>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
@@ -30,6 +30,10 @@ video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;le
 .prod-meta { font-size: 0.8rem; color: #aaa; margin: 5px 0; display: block; }
 .prod-benefit { font-size: 0.8rem; color: var(--cyan); margin-bottom: 8px; display: block; }
 .usage-instruction { background: #001a1a; color: #eee; padding: 8px; border-radius: 8px; font-size: 0.8rem; border-right: 3px solid var(--cyan); line-height: 1.4; }
+
+/* تنسيق زر الشراء الجديد */
+.buy-link-btn { display: inline-block; color: var(--gold); text-decoration: none; font-size: 0.9rem; font-weight: bold; border: 1px solid var(--gold); padding: 5px 12px; border-radius: 8px; margin-top: 10px; transition: 0.3s; }
+.buy-link-btn:hover { background: var(--gold); color: #000; }
 
 .total-row{display:flex;justify-content:space-between;font-weight:bold;color:var(--gold);margin-top:15px; border-top: 1px solid #333; padding-top: 10px; font-size: 1.1rem;}
 </style>
@@ -78,16 +82,16 @@ video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;le
 <script>
 const myPhone = "201063994139";
 const productDB = {
-"ستارفيل وايتنينج": {p:145, ing:"أربوتين + كوجيك أسيد", ben:"تفتيح البقع الداكنة وتوحيد لون البشرة", time:"صباحاً ومساءً", use:"يوضع على بشرة مبللة، يدلك برفق لمدة دقيقة ثم يشطف بالماء."},
-"أرجنتو كلير": {p:165, ing:"زيت شجرة الشاي + فيتامين E", ben:"علاج الحبوب النشطة ومنع ظهورها مجدداً", time:"صباحاً ومساءً", use:"يستخدم كغسول يومي مع التركيز على مناطق الحبوب، ثم يشطف بالماء."},
-"فيشي نورماديرم": {p:850, ing:"حمض الساليسيليك + زنك", ben:"تنظيف عميق للمسام والتحكم في الدهون", time:"صباحاً ومساءً", use:"يستخدم كمية بسيطة على وجه مبلل، يدلك ثم يشطف جيداً."},
-"شان جيل": {p:195, ing:"ألوفيرا + بانثينول", ben:"ترطيب عميق وتهدئة للبشرة المتهالكة", time:"صباحاً ومساءً", use:"يوضع بعد الغسول مباشرة على بشرة مندية لضمان أفضل امتصاص."},
-"ناتافيس فيتامين C": {p:485, ing:"فيتامين C 10% + هيالورونيك", ben:"نضارة فورية ومحاربة شحوب البشرة", time:"صباحاً فقط", use:"توضع 3-4 قطرات على الوجه والرقبة قبل واقي الشمس."},
-"لاروش بيجمنتكلار": {p:1250, ing:"فينيل ألانين + كافيين", ben:"علاج الهالات السوداء العميقة والانتفاخات", time:"مساءً فقط", use:"طبطبة خفيفة بإصبع البنصر حول منطقة العين من الخارج للداخل."},
-"ستارفيل آي كونتور": {p:155, ing:"كافيين + ريتينول", ben:"ترطيب محيط العين وتقليل الخطوط الرفيعة", time:"صباحاً ومساءً", use:"يوضع كمية بسيطة حول العين مع تدليك رقيق جداً."},
-"بوباي جل واقي شمس": {p:180, ing:"SPF 50+", ben:"حماية من الشمس ومنع غمقان البشرة", time:"صباحاً فقط", use:"يوضع قبل الخروج بـ 20 دقيقة، ويجدد كل ساعتين عند التعرض المستمر."},
-"لاروش أنثيليوس": {p:650, ing:"تكنولوجيا Mexoryl 400", ben:"أعلى حماية من الأشعة فوق البنفسجية", time:"صباحاً فقط", use:"يوضع كآخر خطوة في الروتين الصباحي قبل الخروج."},
-"غسول سيرافيه": {p:450, ing:"سيراميدات أساسية + هيالورونيك", ben:"ترطيب وحماية حاجز البشرة الطبيعي", time:"صباحاً ومساءً", use:"يستخدم لتنظيف البشرة دون تجفيفها، مثالي للبشرة المختلطة والجافة."}
+"ستارفيل وايتنينج": {p:145, ing:"أربوتين + كوجيك أسيد", ben:"تفتيح البقع الداكنة وتوحيد لون البشرة", time:"صباحاً ومساءً", use:"يوضع على بشرة مبللة، يدلك برفق لمدة دقيقة ثم يشطف بالماء.", link: "https://amzn.to/3YVfXfI"},
+"أرجنتو كلير": {p:165, ing:"زيت شجرة الشاي + فيتامين E", ben:"علاج الحبوب النشطة ومنع ظهورها مجدداً", time:"صباحاً ومساءً", use:"يستخدم كغسول يومي مع التركيز على مناطق الحبوب، ثم يشطف بالماء.", link: "https://amzn.to/3uN2R3Q"},
+"فيشي نورماديرم": {p:850, ing:"حمض الساليسيليك + زنك", ben:"تنظيف عميق للمسام والتحكم في الدهون", time:"صباحاً ومساءً", use:"يستخدم كمية بسيطة على وجه مبلل، يدلك ثم يشطف جيداً.", link: "https://amzn.to/3uS4H6J"},
+"شان جيل": {p:195, ing:"ألوفيرا + بانثينول", ben:"ترطيب عميق وتهدئة للبشرة المتهالكة", time:"صباحاً ومساءً", use:"يوضع بعد الغسول مباشرة على بشرة مندية لضمان أفضل امتصاص.", link: "https://amzn.to/3InR0Zk"},
+"ناتافيس فيتامين C": {p:485, ing:"فيتامين C 10% + هيالورونيك", ben:"نضارة فورية ومحاربة شحوب البشرة", time:"صباحاً فقط", use:"توضع 3-4 قطرات على الوجه والرقبة قبل واقي الشمس.", link: "https://amzn.to/3SREm9v"},
+"لاروش بيجمنتكلار": {p:1250, ing:"فينيل ألانين + كافيين", ben:"علاج الهالات السوداء العميقة والانتفاخات", time:"مساءً فقط", use:"طبطبة خفيفة بإصبع البنصر حول منطقة العين من الخارج للداخل.", link: "https://amzn.to/3UPuK4D"},
+"ستارفيل آي كونتور": {p:155, ing:"كافيين + ريتينول", ben:"ترطيب محيط العين وتقليل الخطوط الرفيعة", time:"صباحاً ومساءً", use:"يوضع كمية بسيطة حول العين مع تدليك رقيق جداً.", link: "https://amzn.to/3uREn6Z"},
+"بوباي جل واقي شمس": {p:180, ing:"SPF 50+", ben:"حماية من الشمس ومنع غمقان البشرة", time:"صباحاً فقط", use:"يوضع قبل الخروج بـ 20 دقيقة، ويجدد كل ساعتين عند التعرض المستمر.", link: "https://amzn.to/3uREn6Z"},
+"لاروش أنثيليوس": {p:650, ing:"تكنولوجيا Mexoryl 400", ben:"أعلى حماية من الأشعة فوق البنفسجية", time:"صباحاً فقط", use:"يوضع كآخر خطوة في الروتين الصباحي قبل الخروج.", link: "https://amzn.to/3T0pG8f"},
+"غسول سيرافيه": {p:450, ing:"سيراميدات أساسية + هيالورونيك", ben:"ترطيب وحماية حاجز البشرة الطبيعي", time:"صباحاً ومساءً", use:"يستخدم لتنظيف البشرة دون تجفيفها، مثالي للبشرة المختلطة والجافة.", link: "https://amzn.to/3SREm9v"}
 };
 
 const video = document.getElementById('video');
@@ -169,7 +173,7 @@ const container=document.getElementById('pkgContainer'); container.innerHTML="";
             <span class="prod-benefit">✨ الفائدة: ${d.ben}</span>
             <div class="usage-instruction">📝 طريقة الاستخدام: ${d.use}</div>
             <div style="text-align:left; margin-top:10px;">
-                <a href="${d.link}" target="_blank" style="color:var(--gold); text-decoration:none; font-size:1.2rem;">🛒</a>
+                <a href="${d.link}" target="_blank" class="buy-link-btn">اطلب المنتج من هنا 🛒</a>
             </div>
         </div>`;
     });
