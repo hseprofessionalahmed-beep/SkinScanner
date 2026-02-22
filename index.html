@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI PRO | النهائية</title>
+<title>VERONA AI PRO | النسخة النهائية المطورة</title>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 <style>
-:root { --gold:#d4af37; --bg:#050505; --gold-soft:#f1d77a; }
+:root { --gold:#d4af37; --bg:#050505; --gold-soft:#f1d77a; --blue-dark: #001f3f; }
 body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;padding:10px;text-align:right;}
 .container{max-width:500px;margin:auto;}
 .preview-box{position:relative;border-radius:25px;overflow:hidden;border:2px solid var(--gold);aspect-ratio:4/5;margin-bottom:15px;background:#000;}
@@ -16,19 +16,30 @@ video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;le
 .live-overlay{position:absolute;top:15px;left:15px;right:15px;z-index:30;pointer-events:none;}
 .badge{background:rgba(0,0,0,0.7);padding:5px 12px;border-radius:20px;font-size:0.8rem;margin-bottom:5px;display:inline-block;border:1px solid var(--gold);}
 #lightLevel{font-weight:bold;}
-.btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer;width:100%;margin-bottom:10px;}
+
+/* أزرار التحكم */
+.flex-btns { display: flex; gap: 10px; margin-bottom: 10px; }
+.btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer;width:100%; transition: 0.3s;}
+.btn-secondary { background: #222; color: #fff; border: 1px solid #444; }
+
 .card{background:#111;border:1px solid #d4af3733;border-radius:20px;padding:15px;display:none;margin-top:15px;}
-.packages-vertical{display:flex;flex-direction:column;gap:20px;}
-.pkg-card{background:#1a1a1a;border:1px solid #333;border-radius:18px;padding:15px;border-top:4px solid var(--gold);}
-.product-line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #222;font-size:0.85rem;}
-.buy-link{color:var(--gold);text-decoration:none;font-size:1.1rem;}
-.total-row{display:flex;justify-content:space-between;font-weight:bold;color:var(--gold);margin-top:10px;}
+.pkg-card{background:#1a1a1a;border:1px solid #333;border-radius:18px;padding:15px;border-top:4px solid var(--gold); margin-bottom: 20px;}
+
+/* تصميم المنتج الجديد */
+.routine-section { margin-top: 15px; border-top: 1px dashed #444; padding-top: 10px; }
+.section-title { color: var(--gold); font-size: 0.95rem; font-weight: bold; margin-bottom: 8px; display: block; }
+.product-box { background: #222; padding: 10px; border-radius: 12px; margin-bottom: 10px; border-right: 3px solid var(--gold); }
+.prod-name { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.9rem; }
+.prod-info { font-size: 0.75rem; color: #aaa; margin-top: 4px; display: block; }
+.prod-benefit { font-size: 0.75rem; color: #00f2ff; margin-top: 4px; display: block; }
+
+.total-row{display:flex;justify-content:space-between;font-weight:bold;color:var(--gold);margin-top:10px; border-top: 1px solid #333; padding-top: 10px;}
 .disclaimer{font-size:0.7rem;color:#777;margin-top:20px;text-align:center;}
 </style>
 </head>
 <body>
 <div class="container">
-<h2 style="color:var(--gold);text-align:center;">VERONA AI PRO | النهائية</h2>
+<h2 style="color:var(--gold);text-align:center;">VERONA AI PRO | V25</h2>
 <div class="preview-box">
 <video id="video" playsinline hidden></video>
 <canvas id="canvas"></canvas>
@@ -40,53 +51,52 @@ video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;le
 </div>
 
 <div id="controls">
-<button class="btn" onclick="startCam()">بدء المسح الذكي 📸</button>
-<button class="btn" style="background:#222;color:#fff;" onclick="openQuestions()">تخصيص الروتين 🔬</button>
+<div class="flex-btns">
+    <button class="btn" onclick="startCam()">بدء المسح 📸</button>
+    <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">أضف صورة 🖼️</button>
+</div>
+<input type="file" id="fileInput" hidden accept="image/*" onchange="handleImage(event)">
+<button class="btn" style="background: #25d366; color: white;" onclick="openQuestions()">عرض وتحليل النتيجة 🔍</button>
 </div>
 
 <div id="questionsCard" class="card">
 <h3 style="color:var(--gold);text-align:center;">تأكيد التحليل</h3>
 <label>حبوب ملتهبة؟</label>
-<select id="qAcne"><option value="no">لا</option><option value="yes">نعم</option></select>
+<select id="qAcne" style="width:100%; padding:10px; margin-bottom:10px; background:#222; color:#fff; border-radius:8px;"><option value="no">لا</option><option value="yes">نعم</option></select>
 <label>تصبغات؟</label>
-<select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
+<select id="qPig" style="width:100%; padding:10px; margin-bottom:10px; background:#222; color:#fff; border-radius:8px;"><option value="no">لا</option><option value="yes">نعم</option></select>
 <label>هالات؟</label>
-<select id="qCircles"><option value="none">لا يوجد</option><option value="brown">بني</option></select>
-<label>نضارة / تفتيح؟</label>
-<select id="qBrighten"><option value="none">لا تحتاج</option><option value="bright">نضارة</option><option value="lighten">تفتيح</option></select>
-<button class="btn" onclick="generateFinalReport()">عرض الروتين النهائي ✨</button>
+<select id="qCircles" style="width:100%; padding:10px; margin-bottom:10px; background:#222; color:#fff; border-radius:8px;"><option value="none">لا يوجد</option><option value="brown">بني</option></select>
+<button class="btn" onclick="generateFinalReport()">استخراج الروتين المجدول ✨</button>
 </div>
 
 <div id="reportCard" class="card">
 <div id="skinTypeDisplay" style="text-align:center;color:#00f2ff;font-weight:bold;margin-bottom:15px;"></div>
-<div class="packages-vertical" id="pkgContainer"></div>
+<div id="pkgContainer"></div>
 <button class="btn" onclick="location.reload()" style="background:#333;color:#fff;margin-top:20px;">إعادة الفحص 🔄</button>
-<button class="btn" style="background:#25d366;color:white;" onclick="sendToWhatsApp()">طلب المنتجات 💬</button>
-<div class="disclaimer">⚠️ هذا التحليل استرشادي ذكي، يرجى استشارة المختص للحالات الحرجة.</div>
+<button class="btn" style="background:#25d366;color:white;" onclick="sendToWhatsApp()">طلب الروتين 💬</button>
 </div>
 </div>
 
 <script>
 const myPhone = "201063994139";
 const productDB = {
-"ستارفيل وايتنينج": {p:145,link:"https://www.amazon.eg/s?k=starville+whitening"},
-"أرجنتو كلير": {p:165,link:"https://www.amazon.eg/s?k=argento+clear"},
-"فيشي نورماديرم": {p:850,link:"https://www.amazon.eg/s?k=vichy+normaderm"},
-"شان جيل": {p:195,link:"https://www.amazon.eg/s?k=shaan+gel"},
-"لوريال هيالورونيك": {p:395,link:"https://www.amazon.eg/s?k=loreal+hyaluronic"},
-"ديرماتيك جيل": {p:260,link:"https://www.amazon.eg/s?k=dermatique+gel"},
-"ناتافيس فيتامين C": {p:485,link:"https://www.amazon.eg/s?k=natavis+vitamin+c"},
-"لاروش بيجمنتكلار": {p:1250,link:"https://www.amazon.eg/s?k=la+roche+pigmentclar"},
-"ستارفيل آي كونتور": {p:155,link:"https://www.amazon.eg/s?k=starville+eye+contour"},
-"بوباي جل واقي شمس": {p:180,link:"https://www.amazon.eg/s?k=bobai+sunscreen+gel"},
-"لاروش أنثيليوس": {p:650,link:"https://www.amazon.eg/s?k=la+roche+posay+anthelios"},
-"غسول سيرافيه": {p:450,link:"https://www.amazon.eg/s?k=cerave+cleanser"}
+"ستارفيل وايتنينج": {p:145, ing:"أربوتين + كوجيك أسيد", ben:"تفتيح البقع الداكنة", time:"صباحاً ومساءً", link:"https://www.amazon.eg/s?k=starville+whitening"},
+"أرجنتو كلير": {p:165, ing:"زيت شجرة الشاي", ben:"مضاد للبكتيريا وعلاج الحبوب", time:"صباحاً ومساءً", link:"https://www.amazon.eg/s?k=argento+clear"},
+"فيشي نورماديرم": {p:850, ing:"حمض الساليسيليك", ben:"تنظيف المسام بعمق", time:"صباحاً ومساءً", link:"https://www.amazon.eg/s?k=vichy+normaderm"},
+"شان جيل": {p:195, ing:"ألوفيرا + بانثينول", ben:"ترطيب مائي لا يسبب حبوب", time:"بعد الغسول", link:"https://www.amazon.eg/s?k=shaan+gel"},
+"ناتافيس فيتامين C": {p:485, ing:"فيتامين C 10%", ben:"نضارة وتوحيد لون", time:"صباحاً فقط", link:"https://www.amazon.eg/s?k=natavis+vitamin+c"},
+"لاروش بيجمنتكلار": {p:1250, ing:"فينيل ألانين", ben:"علاج الهالات العميقة", time:"مساءً", link:"https://www.amazon.eg/s?k=la+roche+pigmentclar"},
+"ستارفيل آي كونتور": {p:155, ing:"كافيين", ben:"تقليل الانتفاخات والهالات", time:"صباحاً ومساءً", link:"https://www.amazon.eg/s?k=starville+eye+contour"},
+"بوباي جل واقي شمس": {p:180, ing:"SPF 50", ben:"حماية من التصبغات", time:"صباحاً", link:"https://www.amazon.eg/s?k=bobai+sunscreen+gel"},
+"لاروش أنثيليوس": {p:650, ing:"Mexoryl 400", ben:"حماية فائقة من الشمس", time:"صباحاً", link:"https://www.amazon.eg/s?k=la+roche+posay+anthelios"},
+"غسول سيرافيه": {p:450, ing:"سيراميد + حمض هيالورونيك", ben:"ترطيب وحماية حاجز البشرة", time:"صباحاً ومساءً", link:"https://www.amazon.eg/s?k=cerave+cleanser"}
 };
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d',{willReadFrequently:true});
-let aiAnalysis = {acne:false,pig:false,circles:false,skinType:'مختلطة',bright:'none'};
+let aiAnalysis = {acne:false,pig:false,circles:false,skinType:'مختلطة'};
 
 const faceMesh = new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
 faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.6});
@@ -97,70 +107,83 @@ ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
 if(results.multiFaceLandmarks?.length>0){
 const lm=results.multiFaceLandmarks[0];
 drawConnectors(ctx,lm,FACEMESH_TESSELATION,{color:'#d4af3740',lineWidth:1});
-
-// قياس الإضاءة
 const fore=getPx(lm[10]); const cheek=getPx(lm[205]); const eye=getPx(lm[230]);
 const lightEl=document.getElementById('lightLevel');
-if(fore.v<100){lightEl.innerText="⚠️ الإضاءة ضعيفة"; lightEl.style.color="#ff4d4d";}
-else{lightEl.innerText="✅ الإضاءة جيدة"; lightEl.style.color="#25d366";}
-
-// تحليل لحظي
+lightEl.innerText = fore.v < 100 ? "⚠️ إضاءة ضعيفة" : "✅ إضاءة جيدة";
+lightEl.style.color = fore.v < 100 ? "#ff4d4d" : "#25d366";
 aiAnalysis.skinType=(fore.v>205)?"دهنية":(fore.v<115?"جافة":"مختلطة");
-aiAnalysis.acne=(cheek.r-cheek.g>35);
-aiAnalysis.pig=(cheek.v/fore.v<0.85);
-aiAnalysis.circles=(eye.v<fore.v*0.72);
-
-const detEl=document.getElementById('liveDetection');
-detEl.style.display="inline-block";
-let msgs=[];
-if(aiAnalysis.acne) msgs.push("حبوب ملتهبة 🔴");
-if(aiAnalysis.pig) msgs.push("تصبغات قوية 🟤");
-if(aiAnalysis.circles) msgs.push("هالات سوداء 👁️");
-detEl.innerText=msgs.length>0?"رصد: "+msgs.join(" | "):"البشرة تبدو صافية ✨";
-
-document.getElementById('liveStatus').innerText="تم الفحص بنجاح ✅";
+aiAnalysis.acne=(cheek.r - cheek.g > 35);
+aiAnalysis.pig=(cheek.v / fore.v < 0.85);
+aiAnalysis.circles=(eye.v < fore.v * 0.72);
+document.getElementById('liveDetection').style.display="inline-block";
+document.getElementById('liveStatus').innerText="تم الرصد بنجاح ✅";
 }
 });
 
 function getPx(p){const x=Math.floor(p.x*canvas.width); const y=Math.floor(p.y*canvas.height); const d=ctx.getImageData(x,y,1,1).data; return {r:d[0],g:d[1],v:(d[0]+d[1]+d[2])/3};}
 function startCam(){new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); canvas.width=640; canvas.height=480;}
+
+function handleImage(e) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => { canvas.width = img.width; canvas.height = img.height; faceMesh.send({image: img}); };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(e.target.files[0]);
+}
+
 function openQuestions(){
 document.getElementById('controls').style.display='none';
 document.getElementById('questionsCard').style.display='block';
 document.getElementById('qAcne').value=aiAnalysis.acne?"yes":"no";
 document.getElementById('qPig').value=aiAnalysis.pig?"yes":"no";
 document.getElementById('qCircles').value=aiAnalysis.circles?"brown":"none";
-document.getElementById('qBrighten').value=aiAnalysis.bright;
 }
-function generateFinalReport(){
-aiAnalysis.acne=document.getElementById('qAcne').value==="yes";
-aiAnalysis.pig=document.getElementById('qPig').value==="yes";
-aiAnalysis.circles=document.getElementById('qCircles').value!=="none";
-aiAnalysis.bright=document.getElementById('qBrighten').value;
 
+function generateFinalReport(){
 document.getElementById('questionsCard').style.display='none';
 document.getElementById('reportCard').style.display='block';
-document.getElementById('skinTypeDisplay').innerText="تحليل Verona: بشرة "+aiAnalysis.skinType;
+document.getElementById('skinTypeDisplay').innerText="روتين فيرونا للبشرة " + aiAnalysis.skinType;
+const container=document.getElementById('pkgContainer'); container.innerHTML="";
 
-const container=document.getElementById('pkgContainer');
-container.innerHTML="";
+[{id:'low', n:'الباقة الاقتصادية 🥉'}, {id:'high', n:'الباقة الألترا الفاخرة 🥇'}].forEach(lvl=>{
+    let am = [], pm = [];
+    let wash = aiAnalysis.skinType==="دهنية" ? (lvl.id==='high'?"فيشي نورماديرم":"أرجنتو كلير") : (lvl.id==='high'?"غسول سيرافيه":"ستارفيل وايتنينج");
+    am.push(wash); pm.push(wash);
+    if(aiAnalysis.pig) am.push("ناتافيس فيتامين C");
+    if(aiAnalysis.circles) { let e = lvl.id==='high'?"لاروش بيجمنتكلار":"ستارفيل آي كونتور"; am.push(e); pm.push(e); }
+    am.push("شان جيل"); pm.push("شان جيل");
+    am.push(lvl.id==='high'?"لاروش أنثيليوس":"بوباي جل واقي شمس");
 
-[ {id:'low', n:'الباقة الاقتصادية 🥉'}, {id:'high', n:'الباقة الألترا الفاخرة 🥇'} ].forEach(lvl=>{
-let list=[];
-if(aiAnalysis.skinType==="دهنية") list.push(lvl.id==='high'?"فيشي نورماديرم":"أرجنتو كلير");
-else list.push(lvl.id==='high'?"غسول سيرافيه":"ستارفيل وايتنينج");
-if(aiAnalysis.acne) list.push("أرجنتو كلير");
-if(aiAnalysis.pig) list.push("ناتافيس فيتامين C");
-if(aiAnalysis.circles) list.push(lvl.id==='high'?"لاروش بيجمنتكلار":"ستارفيل آي كونتور");
-list.push("شان جيل");
-list.push(lvl.id==='high'?"لاروش أنثيليوس":"بوباي جل واقي شمس");
+    let html = `<div class="pkg-card"><div style="color:var(--gold);font-weight:bold;text-align:center;margin-bottom:10px;">${lvl.n}</div>`;
+    let total = 0;
+    
+    // روتين الصباح
+    html += `<div class="routine-section"><span class="section-title">☀️ روتين الصباح:</span>`;
+    [...new Set(am)].forEach(name => {
+        const d = productDB[name]; total += d.p;
+        html += renderProduct(name, d);
+    });
+    html += `</div>`;
 
-let html=`<div class="pkg-card"><div style="color:var(--gold);font-weight:bold;margin-bottom:10px;text-align:center;">${lvl.n}</div>`;
-let total=0;
-[...new Set(list)].forEach(name=>{const d=productDB[name]; total+=d.p; html+=`<div class="product-line"><span>${name} <a href="${d.link}" target="_blank" class="buy-link">🛒</a></span><b>${d.p} ج.م</b></div>`;});
-html+=`<div class="total-row"><span>المجموع:</span><span>${total} ج.م</span></div></div>`;
-container.innerHTML+=html;
+    // روتين المساء
+    html += `<div class="routine-section"><span class="section-title">🌙 روتين المساء:</span>`;
+    [...new Set(pm)].forEach(name => {
+        const d = productDB[name];
+        html += renderProduct(name, d);
+    });
+    html += `</div><div class="total-row"><span>المجموع الكلي:</span><span>${total} ج.م</span></div></div>`;
+    container.innerHTML += html;
 });
+}
+
+function renderProduct(name, d) {
+    return `<div class="product-box">
+        <div class="prod-name"><span>${name}</span><a href="${d.link}" target="_blank" style="text-decoration:none;">🛒</a></div>
+        <span class="prod-info">🧪 المادة: ${d.ing}</span>
+        <span class="prod-benefit">✨ الفائدة: ${d.ben}</span>
+    </div>`;
 }
 
 function sendToWhatsApp(){window.open(`https://wa.me/${myPhone}?text=أريد طلب روتين Verona AI الخاص بي.`, '_blank');}
