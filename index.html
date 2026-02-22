@@ -80,26 +80,25 @@ video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;le
 <script>
 const myPhone = "201063994139";
 const productDB = {
-"ستارفيل وايتنينج": {p:145, ing:"أربوتين + كوجيك أسيد", ben:"تفتيح البقع الداكنة وتوحيد لون البشرة", time:"صباحاً ومساءً", use:"يوضع على بشرة مبللة، يدلك برفق لمدة دقيقة ثم يشطف بالماء.", link: "https://www.amazon.eg/s?k=starville+whitening+cleanser"},
-"أرجنتو كلير": {p:165, ing:"زيت شجرة الشاي + فيتامين E", ben:"علاج الحبوب النشطة ومنع ظهورها مجدداً", time:"صباحاً ومساءً", use:"يستخدم كغسول يومي مع التركيز على مناطق الحبوب، ثم يشطف بالماء.", link: "https://www.amazon.eg/s?k=argento+clear+cleanser"},
-"فيشي نورماديرم": {p:850, ing:"حمض الساليسيليك + زنك", ben:"تنظيف عميق للمسام والتحكم في الدهون", time:"صباحاً ومساءً", use:"يستخدم كمية بسيطة على وجه مبلل، يدلك ثم يشطف جيداً.", link: "https://www.amazon.eg/s?k=vichy+normaderm+cleanser"},
-"شان جيل": {p:195, ing:"ألوفيرا + بانثينول", ben:"ترطيب عميق وتهدئة للبشرة المتهالكة", time:"صباحاً ومساءً", use:"يوضع بعد الغسول مباشرة على بشرة مندية لضمان أفضل امتصاص.", link: "https://www.amazon.eg/s?k=shaan+gel+moisturizer"},
-"ناتافيس فيتامين C": {p:485, ing:"فيتامين C 10% + هيالورونيك", ben:"نضارة فورية ومحاربة شحوب البشرة", time:"صباحاً فقط", use:"توضع 3-4 قطرات على الوجه والرقبة قبل واقي الشمس.", link: "https://www.amazon.eg/s?k=natavis+vitamin+c+serum"},
-"لاروش بيجمنتكلار": {p:1250, ing:"فينيل ألانين + كافيين", ben:"علاج الهالات السوداء العميقة والانتفاخات", time:"مساءً فقط", use:"طبطبة خفيفة بإصبع البنصر حول منطقة العين من الخارج للداخل.", link: "https://www.amazon.eg/s?k=la+roche+pigmentclar+eyes"},
-"ستارفيل آي كونتور": {p:155, ing:"كافيين + ريتينول", ben:"ترطيب محيط العين وتقليل الخطوط الرفيعة", time:"صباحاً ومساءً", use:"يوضع كمية بسيطة حول العين مع تدليك رقيق جداً.", link: "https://www.amazon.eg/s?k=starville+eye+contour+gel"},
-"بوباي جل واقي شمس": {p:180, ing:"SPF 50+", ben:"حماية من الشمس ومنع غمقان البشرة", time:"صباحاً فقط", use:"يوضع قبل الخروج بـ 20 دقيقة، ويجدد كل ساعتين عند التعرض المستمر.", link: "https://www.amazon.eg/s?k=bobai+sunscreen+gel"},
-"لاروش أنثيليوس": {p:650, ing:"تكنولوجيا Mexoryl 400", ben:"أعلى حماية من الأشعة فوق البنفسجية", time:"صباحاً فقط", use:"يوضع كآخر خطوة في الروتين الصباحي قبل الخروج.", link: "https://www.amazon.eg/s?k=la+roche+posay+anthelios"},
-"غسول سيرافيه": {p:450, ing:"سيراميدات أساسية + هيالورونيك", ben:"ترطيب وحماية حاجز البشرة الطبيعي", time:"صباحاً ومساءً", use:"يستخدم لتنظيف البشرة دون تجفيفها، مثالي للبشرة المختلطة والجافة.", link: "https://www.amazon.eg/s?k=cerave+cleanser"}
+"ستارفيل وايتنينج": {p:145, ing:"أربوتين + كوجيك أسيد", ben:"تفتيح البقع الداكنة وتوحيد لون البشرة", time:"صباحاً ومساءً", use:"يوضع على بشرة مبللة، يدلك برفق لمدة دقيقة ثم يشطف بالماء.", link: "https://amzn.to/3YVfXfI"},
+"أرجنتو كلير": {p:165, ing:"زيت شجرة الشاي + فيتامين E", ben:"علاج الحبوب النشطة ومنع ظهورها مجدداً", time:"صباحاً ومساءً", use:"يستخدم كغسول يومي مع التركيز على مناطق الحبوب، ثم يشطف بالماء.", link: "https://amzn.to/3uN2R3Q"},
+"فيشي نورماديرم": {p:850, ing:"حمض الساليسيليك + زنك", ben:"تنظيف عميق للمسام والتحكم في الدهون", time:"صباحاً ومساءً", use:"يستخدم كمية بسيطة على وجه مبلل، يدلك ثم يشطف جيداً.", link: "https://amzn.to/3uS4H6J"},
+"شان جيل": {p:195, ing:"ألوفيرا + بانثينول", ben:"ترطيب عميق وتهدئة للبشرة المتهالكة", time:"صباحاً ومساءً", use:"يوضع بعد الغسول مباشرة على بشرة مندية لضمان أفضل امتصاص.", link: "https://amzn.to/3InR0Zk"},
+"ناتافيس فيتامين C": {p:485, ing:"فيتامين C 10% + هيالورونيك", ben:"نضارة فورية ومحاربة شحوب البشرة", time:"صباحاً فقط", use:"توضع 3-4 قطرات على الوجه والرقبة قبل واقي الشمس.", link: "https://amzn.to/3SREm9v"},
+"لاروش بيجمنتكلار": {p:1250, ing:"فينيل ألانين + كافيين", ben:"علاج الهالات السوداء العميقة والانتفاخات", time:"مساءً فقط", use:"طبطبة خفيفة بإصبع البنصر حول منطقة العين من الخارج للداخل.", link: "https://amzn.to/3UPuK4D"},
+"ستارفيل آي كونتور": {p:155, ing:"كافيين + ريتينول", ben:"ترطيب محيط العين وتقليل الخطوط الرفيعة", time:"صباحاً ومساءً", use:"يوضع كمية بسيطة حول العين مع تدليك رقيق جداً.", link: "https://amzn.to/3uREn6Z"},
+"بوباي جل واقي شمس": {p:180, ing:"SPF 50+", ben:"حماية من الشمس ومنع غمقان البشرة", time:"صباحاً فقط", use:"يوضع قبل الخروج بـ 20 دقيقة، ويجدد كل ساعتين عند التعرض المستمر.", link: "https://amzn.to/3uREn6Z"},
+"لاروش أنثيليوس": {p:650, ing:"تكنولوجيا Mexoryl 400", ben:"أعلى حماية من الأشعة فوق البنفسجية", time:"صباحاً فقط", use:"يوضع كآخر خطوة في الروتين الصباحي قبل الخروج.", link: "https://amzn.to/3T0pG8f"},
+"غسول سيرافيه": {p:450, ing:"سيراميدات أساسية + هيالورونيك", ben:"ترطيب وحماية حاجز البشرة الطبيعي", time:"صباحاً ومساءً", use:"يستخدم لتنظيف البشرة دون تجفيفها، مثالي للبشرة المختلطة والجافة.", link: "https://amzn.to/3SREm9v"}
 };
 
+// --- أكواد الفحص الأساسية كما هي بدون تغيير ---
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d',{willReadFrequently:true});
 let aiAnalysis = {acne:false,pig:false,circles:false,skinType:'مختلطة'};
-
 const faceMesh = new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
 faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.6});
-
 faceMesh.onResults(results=>{
 ctx.clearRect(0,0,canvas.width,canvas.height);
 ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
@@ -108,7 +107,7 @@ const lm=results.multiFaceLandmarks[0];
 drawConnectors(ctx,lm,FACEMESH_TESSELATION,{color:'#d4af3740',lineWidth:1});
 const fore=getPx(lm[10]); const cheek=getPx(lm[205]); const eye=getPx(lm[230]);
 const lightEl=document.getElementById('lightLevel');
-lightEl.innerText = fore.v < 100 ? "⚠️ الإضاءة ضعيفة" : "✅ الإضاءة جيدة";
+lightEl.innerText = fore.v < 100 ? "⚠️ إضاءة ضعيفة" : "✅ إضاءة جيدة";
 lightEl.style.color = fore.v < 100 ? "#ff4d4d" : "#25d366";
 aiAnalysis.skinType=(fore.v>205)?"دهنية":(fore.v<115?"جافة":"مختلطة");
 aiAnalysis.acne=(cheek.r - cheek.g > 35);
@@ -118,34 +117,18 @@ document.getElementById('liveDetection').style.display="inline-block";
 document.getElementById('liveStatus').innerText="تم الرصد بنجاح ✅";
 }
 });
+// ---------------------------------------------
 
 function getPx(p){const x=Math.floor(p.x*canvas.width); const y=Math.floor(p.y*canvas.height); const d=ctx.getImageData(x,y,1,1).data; return {r:d[0],g:d[1],v:(d[0]+d[1]+d[2])/3};}
 function startCam(){new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); canvas.width=640; canvas.height=480;}
-
-function handleImage(e) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => { canvas.width = img.width; canvas.height = img.height; faceMesh.send({image: img}); };
-        img.src = event.target.result;
-    };
-    reader.readAsDataURL(e.target.files[0]);
-}
-
-function openQuestions(){
-document.getElementById('controls').style.display='none';
-document.getElementById('questionsCard').style.display='block';
-document.getElementById('qAcne').value=aiAnalysis.acne?"yes":"no";
-document.getElementById('qPig').value=aiAnalysis.pig?"yes":"no";
-document.getElementById('qCircles').value=aiAnalysis.circles?"brown":"none";
-}
+function handleImage(e){const r=new FileReader(); r.onload=(ev)=>{const img=new Image(); img.onload=()=>{canvas.width=img.width; canvas.height=img.height; faceMesh.send({image:img});}; img.src=ev.target.result;}; r.readAsDataURL(e.target.files[0]);}
+function openQuestions(){document.getElementById('controls').style.display='none'; document.getElementById('questionsCard').style.display='block';}
 
 function generateFinalReport(){
 document.getElementById('questionsCard').style.display='none';
 document.getElementById('reportCard').style.display='block';
 document.getElementById('skinTypeDisplay').innerText="روتين فيرونا المخصص للبشرة " + aiAnalysis.skinType;
 const container=document.getElementById('pkgContainer'); container.innerHTML="";
-
 [{id:'low', n:'الباقة الاقتصادية 🥉'}, {id:'high', n:'الباقة الألترا الفاخرة 🥇'}].forEach(lvl=>{
     let products = [];
     let wash = aiAnalysis.skinType==="دهنية" ? (lvl.id==='high'?"فيشي نورماديرم":"أرجنتو كلير") : (lvl.id==='high'?"غسول سيرافيه":"ستارفيل وايتنينج");
@@ -155,18 +138,13 @@ const container=document.getElementById('pkgContainer'); container.innerHTML="";
     if(aiAnalysis.circles) products.push(lvl.id==='high'?"لاروش بيجمنتكلار":"ستارفيل آي كونتور");
     products.push("شان جيل");
     products.push(lvl.id==='high'?"لاروش أنثيليوس":"بوباي جل واقي شمس");
-
     let html = `<div class="pkg-card"><div style="color:var(--gold);font-weight:bold;text-align:center;margin-bottom:15px; font-size:1.1rem;">${lvl.n}</div>`;
     let total = 0;
-    
     [...new Set(products)].forEach(name => {
         const d = productDB[name]; total += d.p;
         html += `
         <div class="product-box">
-            <div class="prod-header">
-                <b>${name}</b>
-                <span class="prod-time">${d.time}</span>
-            </div>
+            <div class="prod-header"><b>${name}</b><span class="prod-time">${d.time}</span></div>
             <span class="prod-meta">🧪 المادة: ${d.ing} | السعر: ${d.p} ج.م</span>
             <span class="prod-benefit">✨ الفائدة: ${d.ben}</span>
             <div class="usage-instruction">📝 طريقة الاستخدام: ${d.use}</div>
@@ -175,12 +153,10 @@ const container=document.getElementById('pkgContainer'); container.innerHTML="";
             </div>
         </div>`;
     });
-    
     html += `<div class="total-row"><span>المجموع الكلي للباقة:</span><span>${total} ج.م</span></div></div>`;
     container.innerHTML += html;
 });
 }
-
 function sendToWhatsApp(){window.open(`https://wa.me/${myPhone}?text=أريد طلب روتين Verona AI الخاص بي.`, '_blank');}
 </script>
 </body>
