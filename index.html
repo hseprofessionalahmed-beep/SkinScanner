@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | FINAL V42</title>
+    <title>VERONA AI | FINAL V43</title>
     <style>
         :root { --gold:#d4af37; --bg:#0a0a0a; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 10px; text-align: right; }
@@ -42,7 +42,7 @@
 
     <div id="loading" class="loading-box">
         <div class="spinner"></div>
-        <p>جاري تحليل البشرة عبر محرك Gemini المحدث...</p>
+        <p>جاري تحليل البشرة عبر محرك Verona AI...</p>
     </div>
 
     <div id="reportCard" class="card">
@@ -53,6 +53,7 @@
 </div>
 
 <script>
+    // مفتاحك الصحيح
     const API_KEY = "AIzaSyA1G6Dgxz-ZmwdgQWZRUmhFEwFRufpxXXI";
 
     const video = document.getElementById('video');
@@ -87,10 +88,10 @@
         document.getElementById('controls').style.display = 'none';
         document.getElementById('loading').style.display = 'block';
 
-        const prompt = "أنت خبير جلدية. حلل الصورة المرفقة. اذكر نوع البشرة، ورصد المشاكل (خاصة التصبغات الواضحة والبقع)، ثم اقترح روتيناً من هذه المنتجات بروابطها: (ستارفيل وايتنينج: https://amzn.to/3YVfXfI)، (أرجنتو كلير: https://amzn.to/3uN2R3Q)، (شان جيل: https://amzn.to/3InR0Zk)، (ناتافيس فيتامين C: https://amzn.to/3SREm9v)، (بوباي جل: https://amzn.to/3uREn6Z).";
+        const prompt = "أنت خبير جلدية متخصص. حلل الصورة المرفقة. اذكر بوضوح نوع البشرة، ورصد كافة المشاكل (خاصة التصبغات الواضحة والبقع والخطوط)، ثم اقترح روتيناً علاجياً دقيقاً من المنتجات التالية حصراً: (ستارفيل وايتنينج: https://amzn.to/3YVfXfI)، (أرجنتو كلير: https://amzn.to/3uN2R3Q)، (شان جيل: https://amzn.to/3InR0Zk)، (ناتافيس فيتامين C: https://amzn.to/3SREm9v)، (بوباي جل: https://amzn.to/3uREn6Z).";
 
-        // التحديث الجوهري هنا: استخدام v1 بدلاً من v1beta
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        // التعديل الجوهري هنا: استخدام المسار الكامل الصحيح للموديل
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
 
         const requestBody = {
             contents: [{
