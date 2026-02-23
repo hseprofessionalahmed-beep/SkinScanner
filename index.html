@@ -22,14 +22,21 @@ video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;le
 .scope-wrapper { display: flex; flex-direction: column; align-items: center; }
 .scope-box { width: 48px; height: 48px; border: 1.5px solid var(--cyan); border-radius: 8px; overflow: hidden; background: #000; }
 .scope-box canvas { width: 100%; height: 100%; position: static; }
+.purity-bar { width: 45px; height: 3px; background: #333; border-radius: 2px; margin-top: 2px; overflow: hidden; }
+.purity-fill { height: 100%; background: var(--cyan); width: 100%; }
+
+.live-overlay{position:absolute;top:15px;right:10px;z-index:30;}
+.badge{background:rgba(0,0,0,0.8); padding:6px 12px; border-radius:20px; font-size:0.7rem; border:1px solid var(--gold); margin-bottom:5px; backdrop-filter:blur(5px);}
 
 .btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer;width:100%; margin-bottom:10px;}
-.card{background:#111; border:1px solid #d4af3733; border-radius:25px; padding:20px; display:none; margin-top:15px;}
-.product-box { background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #333; }
+.btn:disabled { background: #444; color: #777; cursor: not-allowed; }
 
-/* زر الشراء الجديد */
-.amazon-btn { display: block; background: var(--gold); color: #000; text-decoration: none; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
-.amazon-btn:hover { background: #fff; }
+.card{background:#111; border:1px solid #d4af3733; border-radius:25px; padding:20px; display:none; margin-top:15px;}
+.info-box { background: #001a1a; border-right: 4px solid var(--cyan); padding: 12px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 15px; line-height: 1.6; }
+.product-box { background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #333; position: relative; }
+
+/* أزرار الشراء الذهبية */
+.amazon-link { display: block; background: var(--gold); color: #000; text-decoration: none; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
 
 select { width:100%; padding:10px; margin-bottom:15px; background:#222; color:#fff; border:1px solid #444; border-radius:8px; }
 </style>
@@ -37,31 +44,58 @@ select { width:100%; padding:10px; margin-bottom:15px; background:#222; color:#f
 <body>
 
 <div class="container">
-    <div class="header-white"><img src="logo.png" alt="Verona AI" class="app-logo"></div>
+    <div class="header-white">
+        <img src="logo.png" alt="Verona AI" class="app-logo">
+    </div>
 
     <div class="preview-box">
         <video id="video" playsinline hidden></video>
         <canvas id="canvas"></canvas>
+        
         <div class="scopes-container">
-            <div class="scope-wrapper"><div class="scope-box"><canvas id="scopeForehead"></canvas></div></div>
-            <div class="scope-wrapper"><div class="scope-box"><canvas id="scopeEyes"></canvas></div></div>
-            <div class="scope-wrapper"><div class="scope-box"><canvas id="scopeRCheek"></canvas></div></div>
-            <div class="scope-wrapper"><div class="scope-box"><canvas id="scopeLCheek"></canvas></div></div>
-            <div class="scope-wrapper"><div class="scope-box"><canvas id="scopeMouth"></canvas></div></div>
+            <div class="scope-wrapper"><div class="scope-box"><canvas id="scopeForehead"></canvas></div><div class="purity-bar"><div id="bar1" class="purity-fill"></div></div></div>
+            <div class="scope-wrapper"><div class="scope-box"><canvas id="scopeEyes"></canvas></div><div class="purity-bar"><div id="bar2" class="purity-fill" style="background:var(--gold)"></div></div></div>
+            <div class="scope-wrapper"><div class="scope-box"><canvas id="scopeRCheek"></canvas></div><div class="purity-bar"><div id="bar3" class="purity-fill"></div></div></div>
+            <div class="scope-wrapper"><div class="scope-box"><canvas id="scopeLCheek"></canvas></div><div class="purity-bar"><div id="bar4" class="purity-fill"></div></div></div>
+            <div class="scope-wrapper"><div class="scope-box"><canvas id="scopeMouth"></canvas></div><div class="purity-bar"><div id="bar5" class="purity-fill"></div></div></div>
+        </div>
+
+        <div class="live-overlay">
+            <div id="lightLevel" class="badge">قياس الضوء...</div>
+            <div id="lockStatus" class="badge" style="color:var(--red); border-color:var(--red);">🔒 التحليل مقفل</div>
         </div>
     </div>
 
     <div id="controls">
-        <button class="btn" onclick="startCam()">تشغيل الكاميرا 📸</button>
-        <button id="analyzeBtn" class="btn" style="background: #25d366;" onclick="openQuestions()">تحليل البشرة 🔍</button>
+        <div style="display:flex; gap:10px;">
+            <button class="btn" onclick="startCam()">كاميرا لايف 📸</button>
+            <button class="btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">رفع صورة 🖼️</button>
+        </div>
+        <input type="file" id="fileInput" hidden accept="image/*" onchange="handleImage(event)">
+        <button id="analyzeBtn" class="btn" style="background: #25d366;" onclick="openQuestions()" disabled>بدء التحليل النهائي 🔍</button>
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">أسئلة تأكيد الفحص</h3>
+        <h3 style="color:var(--gold); text-align:center;">تأكيد الفحص</h3>
+        <label>هل تريد إضافة باقة (نضارة وتفتيح) للروتين؟</label>
+        <select id="qGlow"><option value="yes">نعم</option><option value="no">لا</option></select>
+
         <label>هل توجد هالات سوداء؟</label>
-        <select id="qCircles"><option value="none">لا يوجد</option><option value="yes">نعم، أريد علاج للهالات</option></select>
-        <label>هل توجد تصبغات وبقع؟</label>
-        <select id="qPig"><option value="yes">نعم</option><option value="no">لا</option></select>
+        <select id="qCircles">
+            <option value="none">لا يوجد</option>
+            <option value="brown">هالات بنية</option>
+            <option value="blue">هالات زرقاء</option>
+        </select>
+
+        <label>هل تعاني من حبوب نشطة؟</label>
+        <select id="qAcne"><option value="no">لا</option><option value="yes">نعم</option></select>
+
+        <label>هل يوجد تصبغات؟</label>
+        <select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
+
+        <label style="color:var(--red)">هل يوجد حمل أو رضاعة؟</label>
+        <select id="qPreg"><option value="no">لا</option><option value="yes">نعم</option></select>
+
         <button class="btn" onclick="generateFinalReport()">اعتماد الروتين ✨</button>
     </div>
 
@@ -73,14 +107,14 @@ select { width:100%; padding:10px; margin-bottom:15px; background:#222; color:#f
 </div>
 
 <script>
-// قاعدة البيانات مع روابط أمازون الخاصة بك
+// قاعدة البيانات الروابط الخاصة بك فقط
 const productDB = {
-    "ستارفيل وايتنينج": {t:"صباحاً ومساءً", b:"لتفتيح البقع والتصبغات", link: "https://amzn.to/3YVfXfI"},
     "أرجنتو كلير": {t:"صباحاً ومساءً", b:"غسول طبي للحبوب والمسام", link: "https://amzn.to/3uN2R3Q"},
-    "شان جيل": {t:"صباحاً ومساءً", b:"مرطب خفيف لجميع أنواع البشرة", link: "https://amzn.to/3InR0Zk"},
+    "شان جيل": {t:"صباحاً ومساءً", b:"مرطب سريع الامتصاص للبشرة", link: "https://amzn.to/3InR0Zk"},
+    "ستارفيل وايتنينج": {t:"مساءً فقط", b:"لتفتيح البقع الداكنة", link: "https://amzn.to/3YVfXfI"},
     "ناتافيس فيتامين C": {t:"صباحاً فقط", b:"لسيروم النضارة والإشراق", link: "https://amzn.to/3SREm9v"},
-    "ستارفيل آي كونتور": {t:"صباحاً ومساءً", b:"لعلاج الهالات السوداء", link: "https://amzn.to/3YVfXfI"}, // رابط بديل
-    "بوباي جل": {t:"صباحاً", b:"واقي شمس لحماية البشرة", link: "https://amzn.to/3uREn6Z"}
+    "ستارفيل آي كونتور": {t:"صباحاً ومساءً", b:"علاج الهالات وترطيب العين", link: "https://amzn.to/3YVfXfI"},
+    "بوباي جل": {t:"صباحاً", b:"واقي شمس جل للبشرة الدهنية", link: "https://amzn.to/3uREn6Z"}
 };
 
 const video = document.getElementById('video');
@@ -88,7 +122,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const scopes = { Forehead: document.getElementById('scopeForehead').getContext('2d'), Eyes: document.getElementById('scopeEyes').getContext('2d'), RCheek: document.getElementById('scopeRCheek').getContext('2d'), LCheek: document.getElementById('scopeLCheek').getContext('2d'), Mouth: document.getElementById('scopeMouth').getContext('2d') };
 
-let aiAnalysis = {skinType:'مختلطة'};
+let aiAnalysis = {acne:false, pig:false, skinType:'مختلطة'};
 const faceMesh = new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
 faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.75});
 
@@ -96,7 +130,16 @@ faceMesh.onResults(results=>{
     ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
     if(results.multiFaceLandmarks?.length>0){
         const lm=results.multiFaceLandmarks[0];
-        processScope(scopes.Forehead, lm[10]); processScope(scopes.Eyes, lm[230]); processScope(scopes.RCheek, lm[205]); processScope(scopes.LCheek, lm[425]); processScope(scopes.Mouth, lm[15]);
+        processScope(scopes.Forehead, lm[10]); processScope(scopes.Eyes, lm[230]); 
+        processScope(scopes.RCheek, lm[205]); processScope(scopes.LCheek, lm[425]); 
+        processScope(scopes.Mouth, lm[15]);
+
+        const fore=getPx(lm[10]);
+        aiAnalysis.skinType = (fore.v > 180) ? "دهنية" : (fore.v < 110 ? "جافة" : "مختلطة");
+        
+        document.getElementById('analyzeBtn').disabled = false;
+        document.getElementById('lockStatus').style.display="none";
+        document.getElementById('lightLevel').innerText="✅ جاهز للتحليل";
     }
 });
 
@@ -105,34 +148,34 @@ function processScope(sCtx, pt) {
     sCtx.canvas.width = 100; sCtx.canvas.height = 100;
     sCtx.drawImage(canvas, x, y, 50, 50, 0, 0, 100, 100);
 }
+function getPx(p){ const x=Math.floor(p.x*canvas.width); const y=Math.floor(p.y*canvas.height); const d=ctx.getImageData(x,y,1,1).data; return {v:(d[0]+d[1]+d[2])/3}; }
 function startCam(){ new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); canvas.width=640; canvas.height=480; }
+function handleImage(e) { const r=new FileReader(); r.onload=(ev)=>{ const img=new Image(); img.onload=()=>{ canvas.width=img.width; canvas.height=img.height; faceMesh.send({image:img}); }; img.src=ev.target.result; }; r.readAsDataURL(e.target.files[0]); }
 function openQuestions(){ document.getElementById('controls').style.display='none'; document.getElementById('questionsCard').style.display='block'; }
 
 function generateFinalReport(){
     document.getElementById('questionsCard').style.display='none'; 
     document.getElementById('reportCard').style.display='block';
-    document.getElementById('skinTypeDisplay').innerText = "تم تحليل البشرة بنجاح ✅";
+    document.getElementById('skinTypeDisplay').innerText = "نتائج الفحص: بشرة " + aiAnalysis.skinType;
 
     const container=document.getElementById('pkgContainer'); 
     container.innerHTML="";
-    
-    // بناء قائمة المنتجات المقترحة
+
     let list = ["أرجنتو كلير", "شان جيل", "بوباي جل"];
-    if(document.getElementById('qPig').value === 'yes') list.push("ستارفيل وايتنينج", "ناتافيس فيتامين C");
-    if(document.getElementById('qCircles').value === 'yes') list.push("ستارفيل آي كونتور");
+    if(document.getElementById('qGlow').value==='yes' || document.getElementById('qPig').value==='yes') list.push("ناتافيس فيتامين C", "ستارفيل وايتنينج");
+    if(document.getElementById('qCircles').value !== 'none') list.push("ستارفيل آي كونتور");
 
     list.forEach(name => {
         const d = productDB[name];
         container.innerHTML += `
             <div class="product-box">
                 <b>${name}</b><br>
-                <small style="color:var(--gold)">الاستخدام: ${d.t}</small><br>
+                <small style="color:var(--gold)">${d.t}</small><br>
                 <small>${d.b}</small>
-                <a href="${d.link}" target="_blank" class="amazon-btn">شراء المنتج من أمازون 🛒</a>
+                <a href="${d.link}" target="_blank" class="amazon-link">شراء المنتج 🛒</a>
             </div>`;
     });
 }
 </script>
 </body>
 </html>
-
