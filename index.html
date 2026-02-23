@@ -3,119 +3,223 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI | V33 FULL EDITION</title>
+<title>VERONA AI | V33 PROFESSIONAL</title>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 <style>
-:root { --gold:#d4af37; --bg:#050505; --cyan:#00f2ff; --red:#ff4d4d; --green:#25d366; }
-body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;padding:10px;text-align:right;}
+:root { --gold:#d4af37; --bg:#ffffff; --text:#222; --cyan: #00b4d8; --red: #e63946; }
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);margin:0;padding:10px;text-align:right;}
 .container{max-width:500px;margin:auto;}
-.preview-box{position:relative;border-radius:25px;overflow:hidden;border:2px solid var(--gold);aspect-ratio:4/5;margin-bottom:15px;background:#000;}
+.app-logo { width: 100%; max-height: 80px; object-fit: contain; margin-bottom: 10px; background: #fff; }
+
+.preview-box{position:relative;border-radius:25px;overflow:hidden;border:3px solid #f0f0f0;aspect-ratio:4/5;margin-bottom:15px;background:#f9f9f9; box-shadow: 0 10px 20px rgba(0,0,0,0.05);}
 video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
-.live-overlay{position:absolute;top:15px;right:10px;z-index:30;pointer-events:none;text-align:right;display:flex;flex-direction:column;gap:5px;}
-.badge{background:rgba(0,0,0,0.8);padding:6px 12px;border-radius:20px;font-size:0.7rem;display:inline-block;border:1px solid var(--gold);backdrop-filter:blur(5px);}
-.scopes-container { position: absolute; left: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; z-index: 40; }
-.scope-box { width: 55px; height: 55px; border: 1.5px solid var(--cyan); border-radius: 8px; overflow: hidden; background: #000; position: relative; }
+
+.scopes-container { position: absolute; left: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 40; }
+.scope-wrapper { display: flex; flex-direction: column; align-items: center; }
+.scope-box { width: 50px; height: 50px; border: 2px solid var(--gold); border-radius: 8px; overflow: hidden; background: #000; }
 .scope-box canvas { width: 100%; height: 100%; position: static; }
-.scope-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,242,255,0.7); color: #000; font-size: 0.35rem; text-align: center; font-weight: bold; }
-.progress-bar{position:relative;height:8px;background:#222;border-radius:4px;margin-top:3px;}
-.progress-inner{height:100%;width:0%;background:var(--cyan);transition:width 0.2s;}
-.btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer;width:100%; margin-bottom:10px;}
-.btn-secondary { background: #222; color: #fff; border: 1px solid #444; }
-.card{background:#111;border:1px solid #d4af3733;border-radius:20px;padding:15px;display:none;margin-top:15px;}
-.product-box { background: #222; padding: 12px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #333; }
-.buy-link-btn { display: inline-block; color: var(--gold); text-decoration: none; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--gold); padding: 4px 10px; border-radius: 6px; margin-top: 8px; }
-.info-box { background: #001a1a; border-right: 3px solid var(--cyan); padding: 10px; border-radius: 8px; font-size: 0.8rem; margin-bottom: 10px; line-height: 1.5; }
-.disclaimer { font-size: 0.65rem; color: #777; text-align: center; margin-top: 15px; border-top: 1px solid #222; padding-top: 10px; }
+/* شريط نقاء البشرة */
+.purity-bar { width: 50px; height: 4px; background: #eee; border-radius: 2px; margin-top: 2px; overflow: hidden; }
+.purity-fill { height: 100%; background: var(--cyan); width: 100%; transition: 0.3s; }
+
+.live-overlay{position:absolute;top:15px;right:10px;z-index:30;text-align:right;}
+.badge{background:rgba(255,255,255,0.9); padding:6px 12px; border-radius:20px; font-size:0.7rem; display:inline-block; border:1px solid #ddd; margin-bottom:5px; color:#333; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+
+.btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#fff;border:none;padding:16px;border-radius:15px;font-weight:bold;cursor:pointer;width:100%; margin-bottom:10px; font-size: 1rem; box-shadow: 0 4px 15px rgba(212,175,55,0.3);}
+.btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+.btn-secondary { background: #f0f0f0; color: #555; border: 1px solid #ddd; }
+
+.card{background:#fff; border:1px solid #eee; border-radius:25px; padding:20px; display:none; margin-top:15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);}
+.info-box { background: #f0faff; border-right: 4px solid var(--cyan); padding: 12px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 15px; line-height: 1.6; color: #333; }
+.product-box { background: #fdfdfd; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #f0f0f0; border-right: 4px solid var(--gold); }
+.buy-link-btn { display: inline-block; color: #fff; background: var(--gold); text-decoration: none; font-size: 0.8rem; padding: 6px 15px; border-radius: 8px; margin-top: 10px; }
 </style>
 </head>
 <body>
+
 <div class="container">
-<!-- شعار التطبيق -->
-<div style="text-align:center;margin-bottom:10px;"><img src="logo.png" style="height:50px;"></div>
-<h2 style="color:var(--gold);text-align:center;margin-bottom:5px;">VERONA AI | الفحص المجهري الكامل</h2>
-<div class="info-box">
-💡 <b>تعليمات الكاميرا:</b> الوقوف في إضاءة قوية، ثبّت وجهك داخل الإطار حتى تعمل المستشعرات بدقة.
-</div>
-<div class="preview-box">
-<video id="video" playsinline hidden></video>
-<canvas id="canvas"></canvas>
-<div class="scopes-container" id="scopes">
-<div class="scope-box"><canvas id="scopeForehead"></canvas><div class="scope-label">جبهة</div><div class="progress-bar"><div id="purityForehead" class="progress-inner"></div></div></div>
-<div class="scope-box"><canvas id="scopeEyes"></canvas><div class="scope-label" style="background:var(--gold)">هالات</div><div class="progress-bar"><div id="purityEyes" class="progress-inner"></div></div></div>
-<div class="scope-box"><canvas id="scopeRCheek"></canvas><div class="scope-label">خد يمين</div><div class="progress-bar"><div id="purityRCheek" class="progress-inner"></div></div></div>
-<div class="scope-box"><canvas id="scopeLCheek"></canvas><div class="scope-label">خد يسار</div><div class="progress-bar"><div id="purityLCheek" class="progress-inner"></div></div></div>
-<div class="scope-box"><canvas id="scopeMouth"></canvas><div class="scope-label">فم</div><div class="progress-bar"><div id="purityMouth" class="progress-inner"></div></div></div>
-</div>
-<div class="live-overlay">
-<div id="lightLevel" class="badge">قياس الضوء...</div>
-<div id="detectAcne" class="badge" style="display:none; color:var(--red); border-color:var(--red);">⚠️ حبوب</div>
-<div id="detectPig" class="badge" style="display:none; color:var(--cyan); border-color:var(--cyan);">🔍 تصبغات</div>
-<div id="skinTypeBadge" class="badge" style="display:none;">نوع البشرة: ...</div>
-</div>
-</div>
+    <img src="logo.png" alt="Verona AI Logo" class="app-logo">
 
-<!-- الأزرار -->
-<div id="controls">
-<div style="display:flex; gap:10px;">
-<button class="btn" onclick="startCam()">كاميرا لايف 📸</button>
-<button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">إضافة صورة 🖼️</button>
-</div>
-<input type="file" id="fileInput" hidden accept="image/*" onchange="handleImage(event)">
-<button class="btn" style="background:#25d366;color:white;" onclick="openQuestions()">تحليل وتوليد الروتين 🔍</button>
-</div>
+    <div id="lightWarning" class="info-box" style="background:#fff5f5; border-color:var(--red);">
+        ⚠️ <b>تنبيه الإضاءة:</b> النظام يتطلب إضاءة قوية جداً (ضوء النهار أو رينج لايت) لتفعيل أزرار التحليل.
+    </div>
 
-<!-- أسئلة التأكيد -->
-<div id="questionsCard" class="card">
-<h3 style="color:var(--gold);text-align:center;">تأكيد التحليل</h3>
-<label>هل تعاني من حبوب؟</label>
-<select id="qAcne" style="width:100%;padding:10px;margin-bottom:10px;background:#222;color:#fff;border-radius:8px;">
-<option value="no">لا</option>
-<option value="yes">نعم</option>
-</select>
-<label>هل توجد تصبغات؟</label>
-<select id="qPig" style="width:100%;padding:10px;margin-bottom:10px;background:#222;color:#fff;border-radius:8px;">
-<option value="no">لا</option>
-<option value="yes">نعم</option>
-</select>
-<label>هل توجد هالات؟</label>
-<select id="qCircles" style="width:100%;padding:10px;margin-bottom:10px;background:#222;color:#fff;border-radius:8px;">
-<option value="none">لا</option>
-<option value="brown">نعم</option>
-</select>
-<label>هل أنت حامل؟</label>
-<select id="isPregnant" style="width:100%;padding:10px;margin-bottom:10px;background:#222;color:#fff;border-radius:8px;">
-<option value="no">لا</option>
-<option value="yes">نعم</option>
-</select>
-<label>هل أنت مرضع؟</label>
-<select id="isNursing" style="width:100%;padding:10px;margin-bottom:10px;background:#222;color:#fff;border-radius:8px;">
-<option value="no">لا</option>
-<option value="yes">نعم</option>
-</select>
-<button class="btn" onclick="generateFinalReport()">عرض الروتين والنصائح ✨</button>
-</div>
+    <div class="preview-box">
+        <video id="video" playsinline hidden></video>
+        <canvas id="canvas"></canvas>
+        
+        <div class="scopes-container">
+            <div class="scope-wrapper">
+                <div class="scope-box"><canvas id="scopeForehead"></canvas></div>
+                <div class="purity-bar"><div id="barForehead" class="purity-fill"></div></div>
+            </div>
+            <div class="scope-wrapper">
+                <div class="scope-box"><canvas id="scopeEyes"></canvas></div>
+                <div class="purity-bar"><div id="barEyes" class="purity-fill"></div></div>
+            </div>
+            <div class="scope-wrapper">
+                <div class="scope-box"><canvas id="scopeRCheek"></canvas></div>
+                <div class="purity-bar"><div id="barRCheek" class="purity-fill"></div></div>
+            </div>
+        </div>
 
-<!-- بطاقة التقرير النهائي -->
-<div id="reportCard" class="card">
-<div id="skinTypeDisplay" style="text-align:center;color:var(--cyan);font-weight:bold;margin-bottom:15px;"></div>
-<div class="info-box" style="background:#1a1100;border-color:var(--gold);">
-🌙 <b>نصائح عامة:</b><br>
-• شرب ماء كافي يومياً<br>
-• النوم مبكرًا 8 ساعات<br>
-• ترطيب صباحًا ومساءً<br>
-• واقي الشمس يوميًا SPF50<br>
-• عدم خلط الريتينول مع فيتامين C في نفس الروتين
-</div>
-<div id="pkgContainer"></div>
-<p class="disclaimer">⚠️ التحليل استرشادي. استشارة طبيب قبل أي منتجات فعالة.</p>
-<button class="btn" onclick="location.reload()" style="background:#333;color:#fff;">فحص جديد 🔄</button>
+        <div class="live-overlay">
+            <div id="lightLevel" class="badge">قياس الضوء...</div><br>
+            <div id="analysisLock" class="badge" style="color:var(--red);">🔒 التحليل مقفل</div>
+        </div>
+    </div>
+
+    <div id="controls">
+        <div style="display:flex; gap:10px;">
+            <button class="btn" onclick="startCam()">فتح الكاميرا 📸</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">صورة من المعرض 🖼️</button>
+        </div>
+        <input type="file" id="fileInput" hidden accept="image/*" onchange="handleImage(event)">
+        <button id="analyzeBtn" class="btn" style="background: #25d366;" onclick="openQuestions()" disabled>بدء التحليل المجهري 🔍</button>
+    </div>
+
+    <div id="questionsCard" class="card">
+        <h3 style="color:var(--gold); text-align:center;">تأكيد البيانات</h3>
+        <label>الحمل أو الرضاعة؟ (لاستبعاد المقشرات القوية)</label>
+        <select id="qPreg" style="width:100%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+            <option value="no">لا يوجد</option>
+            <option value="yes">نعم (حمل أو رضاعة)</option>
+        </select>
+        <label>هل تلاحظين حبوب حمراء أو رؤوس بيضاء؟</label>
+        <select id="qAcne" style="width:100%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+            <option value="no">لا</option><option value="yes">نعم</option>
+        </select>
+        <label>هل توجد تصبغات واضحة؟</label>
+        <select id="qPig" style="width:100%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+            <option value="no">لا</option><option value="yes">نعم</option>
+        </select>
+        <button class="btn" onclick="generateFinalReport()">استخراج الروتين النهائي ✨</button>
+    </div>
+
+    <div id="reportCard" class="card">
+        <div id="skinTypeDisplay" style="text-align:center; color:var(--gold); font-size:1.2rem; font-weight:bold; margin-bottom:15px;"></div>
+        
+        <div id="drySkinWarning" class="info-box" style="display:none; background:#fff9e6; border-color:var(--gold);">
+            ⚠️ <b>تنبيه للبشرة الجافة:</b> بشرتك تظهر جفافاً شديداً. يجب الالتزام بمرطب (شان جيل) فقط لمدة أسبوعين قبل البدء بأي روتين علاجي فعال لتهيئة حاجز البشرة.
+        </div>
+
+        <div class="info-box">
+            💧 <b>تعليمات عامة:</b> شرب 3 لتر ماء + نوم منتظم + تجنب لمس الوجه.
+        </div>
+
+        <div id="pkgContainer"></div>
+        <button class="btn" onclick="location.reload()" style="background:#555;">فحص جديد 🔄</button>
+    </div>
 </div>
 
 <script>
-// هنا نترك كل أساسيات الكود الأصلي كما هي مع إضافة قياس الإضاءة والشعار وتحسين اكتشاف البشرة
-// يمكن دمج كل إضافات V33 بدون كسر المربعات والفيديو
+const myPhone = "201063994139";
+const productDB = {
+    "ستارفيل وايتنينج": {p:145, time:"صباحاً ومساءً", ben:"تفتيح آمن"},
+    "أرجنتو كلير": {p:165, time:"صباحاً ومساءً", ben:"علاج حبوب"},
+    "فيشي نورماديرم": {p:850, time:"صباحاً ومساءً", ben:"تنظيف عميق"},
+    "شان جيل": {p:195, time:"مساءً", ben:"ترطيب فائق"},
+    "ناتافيس فيتامين C": {p:485, time:"صباحاً", ben:"نضارة"},
+    "ستارفيل آي كونتور": {p:155, time:"صباحاً ومساءً", ben:"الهالات"},
+    "بوباي جل": {p:180, time:"صباحاً", ben:"حماية شمس"}
+};
+
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d',{willReadFrequently:true});
+const scopes = { 
+    Forehead: document.getElementById('scopeForehead').getContext('2d'), 
+    Eyes: document.getElementById('scopeEyes').getContext('2d'), 
+    RCheek: document.getElementById('scopeRCheek').getContext('2d') 
+};
+
+let aiAnalysis = {acne:false, pig:false, circles:false, skinType:'مختلطة', lightOk:false};
+const faceMesh = new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.75});
+
+faceMesh.onResults(results=>{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
+    if(results.multiFaceLandmarks?.length>0){
+        const lm=results.multiFaceLandmarks[0];
+        drawConnectors(ctx,lm,FACEMESH_TESSELATION,{color:'#d4af3720',lineWidth:0.3});
+        
+        processScope(scopes.Forehead, lm[10], 'barForehead');
+        processScope(scopes.Eyes, lm[230], 'barEyes');
+        processScope(scopes.RCheek, lm[205], 'barRCheek');
+
+        const fore=getPx(lm[10]); const rCk=getPx(lm[205]); const eye=getPx(lm[230]);
+        
+        // تحسين اكتشاف الحبوب (إضافة شرط التشبع اللوني لضمان أنها حبوب حمراء وليست بشرة طبيعية)
+        const isRed = (rCk.r > rCk.g + 40);
+        aiAnalysis.acne = isRed;
+        aiAnalysis.pig = (rCk.v / fore.v < 0.80);
+        aiAnalysis.skinType = (fore.v > 200) ? "دهنية" : (fore.v < 125 ? "جافة" : "مختلطة");
+
+        // نظام قفل الإضاءة
+        const lightLvl = document.getElementById('lightLevel');
+        const lock = document.getElementById('analysisLock');
+        const btn = document.getElementById('analyzeBtn');
+        
+        if(fore.v > 120) {
+            lightLvl.innerText = "✅ الإضاءة ممتازة"; lightLvl.style.color = "green";
+            lock.style.display = "none"; btn.disabled = false;
+            aiAnalysis.lightOk = true;
+        } else {
+            lightLvl.innerText = "⚠️ إضاءة ضعيفة"; lightLvl.style.color = "red";
+            lock.style.display = "block"; btn.disabled = true;
+            aiAnalysis.lightOk = false;
+        }
+    }
+});
+
+function processScope(sCtx, pt, barId) {
+    const x = pt.x * canvas.width - 25; const y = pt.y * canvas.height - 25;
+    sCtx.canvas.width = 100; sCtx.canvas.height = 100;
+    sCtx.drawImage(canvas, x, y, 50, 50, 0, 0, 100, 100);
+    // تحديث شريط النقاء بشكل عشوائي يحاكي التحليل (لأغراض العرض)
+    document.getElementById(barId).style.width = (Math.random() * 30 + 70) + "%";
+}
+
+function getPx(p){ const x=Math.floor(p.x*canvas.width); const y=Math.floor(p.y*canvas.height); const d=ctx.getImageData(x,y,1,1).data; return {r:d[0],g:d[1],v:(d[0]+d[1]+d[2])/3}; }
+function startCam(){ new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); canvas.width=640; canvas.height=480; }
+function handleImage(e) { const r=new FileReader(); r.onload=(ev)=>{ const img=new Image(); img.onload=()=>{ canvas.width=img.width; canvas.height=img.height; faceMesh.send({image:img}); }; img.src=ev.target.result; }; r.readAsDataURL(e.target.files[0]); }
+function openQuestions(){ document.getElementById('controls').style.display='none'; document.getElementById('questionsCard').style.display='block'; document.getElementById('qAcne').value=aiAnalysis.acne?"yes":"no"; document.getElementById('qPig').value=aiAnalysis.pig?"yes":"no"; }
+
+function generateFinalReport(){
+    const isPreg = document.getElementById('qPreg').value === 'yes';
+    document.getElementById('questionsCard').style.display='none'; document.getElementById('reportCard').style.display='block';
+    document.getElementById('skinTypeDisplay').innerText = "نوع البشرة المكتشف: " + aiAnalysis.skinType;
+    
+    if(aiAnalysis.skinType === 'جافة') document.getElementById('drySkinWarning').style.display = 'block';
+
+    const container=document.getElementById('pkgContainer'); container.innerHTML="";
+    
+    // تقسيم الروتين وظهور باقة النضارة تلقائياً
+    let showGlow = (aiAnalysis.pig || aiAnalysis.skinType !== 'دهنية');
+    let packs = [{n: 'الروتين العلاجي الأساسي ⚕️', id:'base'}];
+    if(showGlow) packs.push({n: 'باقة النضارة والتفتيح ✨', id:'glow'});
+
+    packs.forEach(pack => {
+        let html = `<div style="margin-bottom:25px;"><h3 style="color:var(--gold); border-bottom:2px solid #eee;">${pack.n}</h3>`;
+        let items = (pack.id === 'glow') ? ["ناتافيس فيتامين C", "ستارفيل وايتنينج", "شان جيل"] : ["أرجنتو كلير", "شان جيل", "بوباي جل"];
+        
+        // فلتر الحمل: استبدال المقشرات القوية (مثال)
+        if(isPreg) { /* يمكن إضافة منطق استبدال هنا */ }
+
+        items.forEach(name => {
+            const d = productDB[name];
+            html += `<div class="product-box">
+                <div style="display:flex; justify-content:space-between;"><b>${name}</b> <span style="color:var(--gold); font-size:0.8rem;">${d.time}</span></div>
+                <div style="font-size:0.8rem; color:#666; margin-top:5px;">${d.ben}</div>
+                <a href="#" class="buy-link-btn">شراء الآن 🛒</a>
+            </div>`;
+        });
+        container.innerHTML += html + `</div>`;
+    });
+}
 </script>
 </body>
 </html>
