@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | ULTIMATE V44</title>
+    <title>VERONA AI | FINAL V45</title>
     <style>
         :root { --gold:#d4af37; --bg:#0a0a0a; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 10px; text-align: right; }
@@ -34,19 +34,19 @@
 
     <div id="controls">
         <div style="display:flex; gap:10px;">
-            <button class="btn" onclick="capturePhoto()">التقاط وتحليل 📸</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">رفع صورة 🖼️</button>
+            <button class="btn" onclick="capturePhoto()">تحليل مجهري فوراً 📸</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">رفع من المعرض 🖼️</button>
         </div>
         <input type="file" id="fileInput" hidden accept="image/*" onchange="handleFileUpload(event)">
     </div>
 
     <div id="loading" class="loading-box">
         <div class="spinner"></div>
-        <p>جاري فحص مجهري للبشرة عبر Verona AI...</p>
+        <p>جاري استشارة خبير الجلدية الرقمي...</p>
     </div>
 
     <div id="reportCard" class="card">
-        <h3 style="color:var(--gold); text-align:center; margin-top:0;">تقرير التشخيص الذكي</h3>
+        <h3 style="color:var(--gold); text-align:center; margin-top:0;">تقرير Verona AI للتشخيص</h3>
         <div id="aiAnalysisResult" class="status-msg"></div>
         <button class="btn" onclick="location.reload()" style="background:#333; color:#fff;">فحص جديد 🔄</button>
     </div>
@@ -86,18 +86,27 @@
         document.getElementById('controls').style.display = 'none';
         document.getElementById('loading').style.display = 'block';
 
-        const prompt = "أنت طبيب جلدية خبير. حلل الصورة المرفقة. اذكر نوع البشرة، ورصد كافة المشاكل (تصبغات، بقع، تجاعيد)، ثم اقترح روتيناً من هذه المنتجات بروابطها: (ستارفيل وايتنينج: https://amzn.to/3YVfXfI)، (أرجنتو كلير: https://amzn.to/3uN2R3Q)، (شان جيل: https://amzn.to/3InR0Zk)، (ناتافيس فيتامين C: https://amzn.to/3SREm9v)، (بوباي جل: https://amzn.to/3uREn6Z).";
+        const prompt = "أنت خبير جلدية. حلل الصورة. اذكر نوع البشرة، المشاكل المرصودة (تصبغات، مسام، إلخ)، والروتين المقترح مع الروابط: (ستارفيل وايتنينج: https://amzn.to/3YVfXfI)، (أرجنتو كلير: https://amzn.to/3uN2R3Q)، (شان جيل: https://amzn.to/3InR0Zk)، (ناتافيس فيتامين C: https://amzn.to/3SREm9v)، (بوباي جل: https://amzn.to/3uREn6Z).";
 
-        // هذا هو الرابط المصحح وفقاً لأحدث تحديثات جوجل
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        // المحاولة باستخدام الموديل الأكثر شمولية لتجنب خطأ الصور السابقة
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${API_KEY}`;
+        // ملاحظة: إذا لم يعمل pro-vision، استبدل الرابط بـ:
+        // https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}
+
+        const payload = {
+            contents: [{
+                parts: [
+                    { text: prompt },
+                    { inline_data: { mime_type: "image/jpeg", data: base64Data } }
+                ]
+            }]
+        };
 
         try {
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64Data } }] }]
-                })
+                body: JSON.stringify(payload)
             });
 
             const result = await response.json();
@@ -108,7 +117,7 @@
 
         } catch (error) {
             console.error(error);
-            alert("حدث خطأ: " + error.message);
+            alert("تنبيه برمجي: " + error.message);
             document.getElementById('controls').style.display = 'block';
             document.getElementById('loading').style.display = 'none';
         }
@@ -117,7 +126,7 @@
     function showReport(text) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
-        let formattedText = text.replace(/(https?:\/\/[^\s\)]+)/g, '<br><a href="$1" target="_blank" class="buy-link">طلب المنتج 🛒</a>');
+        let formattedText = text.replace(/(https?:\/\/[^\s\)]+)/g, '<br><a href="$1" target="_blank" class="buy-link">شراء المنتج 🛒</a>');
         document.getElementById('aiAnalysisResult').innerHTML = formattedText;
     }
 </script>
