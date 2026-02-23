@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | RESCUE V46</title>
+    <title>VERONA AI | V47 STABLE</title>
     <style>
         :root { --gold:#d4af37; --bg:#0a0a0a; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 10px; text-align: right; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 10px; text-align: right; overflow-x: hidden; }
         .container { max-width: 500px; margin: auto; }
         .header-white { width: calc(100% + 20px); margin: -10px -10px 15px -10px; background: #fff; padding: 15px 0; text-align: center; border-bottom: 3px solid var(--gold); }
-        .app-logo { width: 85%; max-height: 60px; object-fit: contain; }
-        .preview-box { position: relative; border-radius: 25px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; background: #000; margin-bottom: 15px; }
+        .app-logo { width: 80%; max-height: 55px; object-fit: contain; }
+        .preview-box { position: relative; border-radius: 25px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; background: #111; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(212,175,55,0.2); }
         #video, #canvas { width: 100%; height: 100%; object-fit: cover; }
-        .btn { background: linear-gradient(135deg,#a67c00,#ffbf00); color: #000; border: none; padding: 16px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
-        .card { background: #111; border: 1px solid #d4af3733; border-radius: 25px; padding: 20px; display: none; margin-top: 15px; }
-        .loading-box { text-align: center; padding: 20px; display: none; }
-        .status-msg { background: #1a1a1a; padding: 15px; border-radius: 12px; border-right: 4px solid var(--gold); margin-bottom: 15px; line-height: 1.8; white-space: pre-wrap; }
-        .buy-link { display: inline-block; background: var(--gold); color: #000; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; margin: 5px 0; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+        .btn { background: linear-gradient(135deg,#a67c00,#ffbf00); color: #000; border: none; padding: 18px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(212,175,55,0.3); transition: 0.3s; }
+        .btn:active { transform: scale(0.98); }
+        .loading-box { text-align: center; padding: 30px; display: none; }
+        .card { background: #111; border: 1px solid var(--gold); border-radius: 25px; padding: 20px; display: none; margin-top: 15px; animation: slideUp 0.5s ease; }
+        .status-msg { background: #1a1a1a; padding: 15px; border-radius: 12px; border-right: 5px solid var(--gold); margin-bottom: 15px; line-height: 1.8; color: #eee; }
+        .buy-link { display: block; background: #fff; color: #000; text-decoration: none; padding: 12px; border-radius: 10px; font-weight: bold; text-align: center; margin-top: 10px; border: 1px solid var(--gold); }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -25,21 +27,25 @@
 
 <div class="container">
     <div class="header-white"><img src="logo.png" alt="Verona AI" class="app-logo"></div>
+    
     <div class="preview-box">
         <video id="video" playsinline autoplay muted></video>
         <canvas id="canvas" style="display:none;"></canvas>
     </div>
-    <div id="controls">
-        <button class="btn" onclick="captureAndAnalyze()">فحص البشرة بـ Verona AI 🔍</button>
+
+    <div id="ui-controls">
+        <button class="btn" onclick="runVeronaAI()">بدء التحليل المجهري 🔬</button>
     </div>
+
     <div id="loading" class="loading-box">
         <div class="spinner"></div>
-        <p>جاري محاولة الاتصال بمحرك الذكاء الاصطناعي...</p>
+        <p style="color:var(--gold);">جاري فحص التصبغات والمشاكل بذكاء Gemini...</p>
     </div>
+
     <div id="reportCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">تقرير التشخيص النهائي</h3>
-        <div id="aiResult" class="status-msg"></div>
-        <button class="btn" onclick="location.reload()" style="background:#333; color:#fff;">محاولة مرة أخرى 🔄</button>
+        <h3 style="color:var(--gold); text-align:center; margin-top:0;">التقرير الطبي الذكي</h3>
+        <div id="aiResponseText" class="status-msg"></div>
+        <button class="btn" onclick="location.reload()" style="background:#222; color:#fff;">فحص بشرة أخرى 🔄</button>
     </div>
 </div>
 
@@ -48,57 +54,67 @@
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(s => video.srcObject = s);
+    // تشغيل الكاميرا فوراً
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+        .then(stream => { video.srcObject = stream; })
+        .catch(err => alert("يرجى السماح بالوصول للكاميرا"));
 
-    async function captureAndAnalyze() {
-        const ctx = canvas.getContext('2d');
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
-        const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
-        
-        document.getElementById('controls').style.display = 'none';
+    async function runVeronaAI() {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0);
+        const base64Img = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+        document.getElementById('ui-controls').style.display = 'none';
         document.getElementById('loading').style.display = 'block';
 
-        // محاولة استخدام الموديل البديل المباشر لحل مشكلة "Not Found"
-        const endpoints = [
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
-            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`
-        ];
+        // الرابط المحدث الذي يحل مشكلة "Model Not Found" في الصور السابقة
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-        let success = false;
-        for (let url of endpoints) {
-            try {
-                const res = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [
-                            { text: "أنت خبير جلدية. حلل الصورة بدقة. اذكر نوع البشرة، والمشاكل (تصبغات، بقع)، والروتين: (ستارفيل وايتنينج: https://amzn.to/3YVfXfI)، (أرجنتو كلير: https://amzn.to/3uN2R3Q)، (شان جيل: https://amzn.to/3InR0Zk)." },
-                            { inline_data: { mime_type: "image/jpeg", data: base64 } }
-                        ]}]
-                    })
-                });
-                const data = await res.json();
-                if (data.candidates) {
-                    showReport(data.candidates[0].content.parts[0].text);
-                    success = true;
-                    break;
-                }
-            } catch (e) { console.log("فشلت محاولة، جاري تجربة رابط آخر..."); }
-        }
+        const payload = {
+            contents: [{
+                parts: [
+                    { text: "أنت خبير جلدية محترف في براند Verona AI. حلل هذه الصورة بدقة شديدة. ركز على التصبغات (Hyperpigmentation) والبقع الداكنة. اذكر: 1. نوع البشرة. 2. المشاكل المرصودة بدقة. 3. الروتين المناسب حصراً من: (أرجنتو كلير غسول: https://amzn.to/3uN2R3Q)، (ستارفيل وايتنينج سيروم: https://amzn.to/3YVfXfI)، (شان جيل مرطب: https://amzn.to/3InR0Zk)." },
+                    { inline_data: { mime_type: "image/jpeg", data: base64Img } }
+                ]
+            }]
+        };
 
-        if (!success) {
-            alert("لا يزال الموديل غير مستجيب. يرجى التأكد من تفعيل Gemini API في Google Cloud Console.");
-            document.getElementById('controls').style.display = 'block';
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            
+            if (result.error) {
+                // إذا ظهر الخطأ الموجود في صورك
+                throw new Error(result.error.message);
+            }
+
+            const aiText = result.candidates[0].content.parts[0].text;
+            displayResults(aiText);
+
+        } catch (error) {
+            console.error(error);
+            alert("خطأ: " + error.message + "\nتأكد من تفعيل Gemini API في Google AI Studio.");
+            document.getElementById('ui-controls').style.display = 'block';
             document.getElementById('loading').style.display = 'none';
         }
     }
 
-    function showReport(t) {
+    function displayResults(text) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
-        document.getElementById('aiResult').innerHTML = t.replace(/(https?:\/\/[^\s\)]+)/g, '<br><a href="$1" target="_blank" class="buy-link">شراء 🛒</a>');
+        
+        // تنسيق الروابط لتصبح أزراراً بيضاء فخمة
+        let formatted = text.replace(/(https?:\/\/[^\s\)]+)/g, '<a href="$1" target="_blank" class="buy-link">اطلب المنتج الآن 🛒</a>');
+        document.getElementById('aiResponseText').innerHTML = formatted;
     }
 </script>
+
 </body>
 </html>
