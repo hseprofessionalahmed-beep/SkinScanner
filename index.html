@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | FINAL V45</title>
+    <title>VERONA AI | RESCUE V46</title>
     <style>
         :root { --gold:#d4af37; --bg:#0a0a0a; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 10px; text-align: right; }
@@ -12,12 +12,11 @@
         .app-logo { width: 85%; max-height: 60px; object-fit: contain; }
         .preview-box { position: relative; border-radius: 25px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; background: #000; margin-bottom: 15px; }
         #video, #canvas { width: 100%; height: 100%; object-fit: cover; }
-        .btn { background: linear-gradient(135deg,#a67c00,#ffbf00); color: #000; border: none; padding: 16px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; font-size: 1rem; }
-        .btn-secondary { background: #222; color: #fff; border: 1px solid #444; }
+        .btn { background: linear-gradient(135deg,#a67c00,#ffbf00); color: #000; border: none; padding: 16px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; }
         .card { background: #111; border: 1px solid #d4af3733; border-radius: 25px; padding: 20px; display: none; margin-top: 15px; }
         .loading-box { text-align: center; padding: 20px; display: none; }
         .status-msg { background: #1a1a1a; padding: 15px; border-radius: 12px; border-right: 4px solid var(--gold); margin-bottom: 15px; line-height: 1.8; white-space: pre-wrap; }
-        .buy-link { display: inline-block; background: var(--gold); color: #000; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; margin: 5px 0; font-size: 0.85rem; }
+        .buy-link { display: inline-block; background: var(--gold); color: #000; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; margin: 5px 0; }
         .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -26,108 +25,79 @@
 
 <div class="container">
     <div class="header-white"><img src="logo.png" alt="Verona AI" class="app-logo"></div>
-
     <div class="preview-box">
         <video id="video" playsinline autoplay muted></video>
         <canvas id="canvas" style="display:none;"></canvas>
     </div>
-
     <div id="controls">
-        <div style="display:flex; gap:10px;">
-            <button class="btn" onclick="capturePhoto()">تحليل مجهري فوراً 📸</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">رفع من المعرض 🖼️</button>
-        </div>
-        <input type="file" id="fileInput" hidden accept="image/*" onchange="handleFileUpload(event)">
+        <button class="btn" onclick="captureAndAnalyze()">فحص البشرة بـ Verona AI 🔍</button>
     </div>
-
     <div id="loading" class="loading-box">
         <div class="spinner"></div>
-        <p>جاري استشارة خبير الجلدية الرقمي...</p>
+        <p>جاري محاولة الاتصال بمحرك الذكاء الاصطناعي...</p>
     </div>
-
     <div id="reportCard" class="card">
-        <h3 style="color:var(--gold); text-align:center; margin-top:0;">تقرير Verona AI للتشخيص</h3>
-        <div id="aiAnalysisResult" class="status-msg"></div>
-        <button class="btn" onclick="location.reload()" style="background:#333; color:#fff;">فحص جديد 🔄</button>
+        <h3 style="color:var(--gold); text-align:center;">تقرير التشخيص النهائي</h3>
+        <div id="aiResult" class="status-msg"></div>
+        <button class="btn" onclick="location.reload()" style="background:#333; color:#fff;">محاولة مرة أخرى 🔄</button>
     </div>
 </div>
 
 <script>
     const API_KEY = "AIzaSyA1G6Dgxz-ZmwdgQWZRUmhFEwFRufpxXXI";
-
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
 
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-            .then(stream => { video.srcObject = stream; });
-    }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(s => video.srcObject = s);
 
-    function capturePhoto() {
-        const context = canvas.getContext('2d');
+    async function captureAndAnalyze() {
+        const ctx = canvas.getContext('2d');
         canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0);
-        const base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-        sendToGemini(base64Image);
-    }
-
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const base64Image = e.target.result.split(',')[1];
-            sendToGemini(base64Image);
-        };
-        reader.readAsDataURL(file);
-    }
-
-    async function sendToGemini(base64Data) {
+        ctx.drawImage(video, 0, 0);
+        const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+        
         document.getElementById('controls').style.display = 'none';
         document.getElementById('loading').style.display = 'block';
 
-        const prompt = "أنت خبير جلدية. حلل الصورة. اذكر نوع البشرة، المشاكل المرصودة (تصبغات، مسام، إلخ)، والروتين المقترح مع الروابط: (ستارفيل وايتنينج: https://amzn.to/3YVfXfI)، (أرجنتو كلير: https://amzn.to/3uN2R3Q)، (شان جيل: https://amzn.to/3InR0Zk)، (ناتافيس فيتامين C: https://amzn.to/3SREm9v)، (بوباي جل: https://amzn.to/3uREn6Z).";
+        // محاولة استخدام الموديل البديل المباشر لحل مشكلة "Not Found"
+        const endpoints = [
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`
+        ];
 
-        // المحاولة باستخدام الموديل الأكثر شمولية لتجنب خطأ الصور السابقة
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${API_KEY}`;
-        // ملاحظة: إذا لم يعمل pro-vision، استبدل الرابط بـ:
-        // https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}
+        let success = false;
+        for (let url of endpoints) {
+            try {
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [
+                            { text: "أنت خبير جلدية. حلل الصورة بدقة. اذكر نوع البشرة، والمشاكل (تصبغات، بقع)، والروتين: (ستارفيل وايتنينج: https://amzn.to/3YVfXfI)، (أرجنتو كلير: https://amzn.to/3uN2R3Q)، (شان جيل: https://amzn.to/3InR0Zk)." },
+                            { inline_data: { mime_type: "image/jpeg", data: base64 } }
+                        ]}]
+                    })
+                });
+                const data = await res.json();
+                if (data.candidates) {
+                    showReport(data.candidates[0].content.parts[0].text);
+                    success = true;
+                    break;
+                }
+            } catch (e) { console.log("فشلت محاولة، جاري تجربة رابط آخر..."); }
+        }
 
-        const payload = {
-            contents: [{
-                parts: [
-                    { text: prompt },
-                    { inline_data: { mime_type: "image/jpeg", data: base64Data } }
-                ]
-            }]
-        };
-
-        try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            if (result.error) throw new Error(result.error.message);
-
-            const aiResponse = result.candidates[0].content.parts[0].text;
-            showReport(aiResponse);
-
-        } catch (error) {
-            console.error(error);
-            alert("تنبيه برمجي: " + error.message);
+        if (!success) {
+            alert("لا يزال الموديل غير مستجيب. يرجى التأكد من تفعيل Gemini API في Google Cloud Console.");
             document.getElementById('controls').style.display = 'block';
             document.getElementById('loading').style.display = 'none';
         }
     }
 
-    function showReport(text) {
+    function showReport(t) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('reportCard').style.display = 'block';
-        let formattedText = text.replace(/(https?:\/\/[^\s\)]+)/g, '<br><a href="$1" target="_blank" class="buy-link">شراء المنتج 🛒</a>');
-        document.getElementById('aiAnalysisResult').innerHTML = formattedText;
+        document.getElementById('aiResult').innerHTML = t.replace(/(https?:\/\/[^\s\)]+)/g, '<br><a href="$1" target="_blank" class="buy-link">شراء 🛒</a>');
     }
 </script>
 </body>
