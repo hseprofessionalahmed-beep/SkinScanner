@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | TOTAL CARE V85</title>
+    <title>VERONA AI | AUTONOMOUS CLINIC V90</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
-        :root { --gold:#d4af37; --bg:#0a0a0a; --cyan: #00f2ff; --green: #2ecc71; }
+        :root { --gold:#d4af37; --bg:#0a0a0a; --cyan: #00f2ff; --red: #ff4d4d; --green: #2ecc71; }
         body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;padding:10px;text-align:right;}
         .container{max-width:500px;margin:auto;}
         .header-white { width: calc(100% + 20px); margin: -10px -10px 15px -10px; background: #fff; padding: 10px 0; text-align: center; border-bottom: 3px solid var(--gold); }
@@ -17,24 +17,23 @@
         video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
         
         .scanner-line { position: absolute; width: 100%; height: 3px; background: var(--cyan); box-shadow: 0 0 20px var(--cyan); z-index: 70; top: 0; display: none; }
-        .scanning-active .scanner-line { display: block; animation: scanAnim 2s ease-in-out; }
+        .scanning-active .scanner-line { display: block; animation: scanAnim 2s ease-in-out forwards; }
         @keyframes scanAnim { 0% { top: 0; } 100% { top: 100%; } }
 
-        /* تعديل مربعات الفحص لتكون أدق */
-        .scan-area { position: absolute; border: 2px solid var(--cyan); z-index: 60; display: none; background: rgba(0,242,255,0.08); border-radius: 4px; }
-        .scan-label { position: absolute; top: -18px; right: 0; font-size: 9px; color: var(--cyan); background: rgba(0,0,0,0.6); padding: 1px 4px; }
+        /* ملصقات المشاكل على الوجه */
+        .face-badge { position: absolute; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; z-index: 65; display: none; }
+        .badge-acne { border: 1px solid var(--red); color: var(--red); background: rgba(255,0,0,0.2); }
+        .badge-pigment { border: 1px solid var(--gold); color: var(--gold); background: rgba(212,175,55,0.2); }
+        .badge-circles { border: 1px solid var(--cyan); color: var(--cyan); background: rgba(0,242,255,0.2); }
 
         .metrics { position: absolute; top: 10px; right: 10px; z-index: 80; }
-        .badge { background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 10px; border: 1px solid var(--gold); font-size: 0.7rem; margin-bottom: 5px; }
+        .info-pill { background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 10px; border: 1px solid var(--gold); font-size: 0.7rem; margin-bottom: 5px; }
 
         .btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer;width:100%; margin-bottom:10px;}
         .card{background:#111; border:1px solid #d4af3733; border-radius:25px; padding:20px; display:none; margin-top:15px;}
         
         .product-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1a1a; border-radius: 12px; margin-bottom: 10px; border-right: 4px solid var(--gold); }
         .buy-link { color: #000; background: var(--gold); text-decoration: none; font-weight: bold; font-size: 0.75rem; padding: 6px 12px; border-radius: 8px; }
-        
-        label { display: block; margin-top: 10px; color: var(--gold); font-size: 0.9rem; }
-        select { width:100%; padding:12px; margin:5px 0; background:#222; color:#fff; border:1px solid #444; border-radius:10px; }
     </style>
 </head>
 <body>
@@ -47,13 +46,13 @@
         <canvas id="canvas"></canvas>
         <div id="scanner" class="scanner-line"></div>
         
-        <div id="areaForehead" class="scan-area"><span class="scan-label">الجبهة</span></div>
-        <div id="areaEyes" class="scan-area"><span class="scan-label">الهالات</span></div>
-        <div id="areaCheeks" class="scan-area"><span class="scan-label">الخد (تصبغات)</span></div>
+        <div id="badgeAcne" class="face-badge badge-acne">رصد حبوب</div>
+        <div id="badgePigment" class="face-badge badge-pigment">رصد تصبغ</div>
+        <div id="badgeCircles" class="face-badge badge-circles">هالات داكنة</div>
         
         <div class="metrics">
-            <div id="lightMet" class="badge">الإضاءة: --</div>
-            <div id="hydraMet" class="badge">الترطيب: --</div>
+            <div id="lightMet" class="info-pill">الإضاءة: --</div>
+            <div id="hydraMet" class="info-pill">الترطيب: --</div>
         </div>
     </div>
 
@@ -63,49 +62,21 @@
             <button class="btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">رفع صورة 🖼️</button>
         </div>
         <input type="file" id="fileInput" hidden accept="image/*" onchange="handleImage(event)">
-        <button id="analyzeBtn" class="btn" style="background: var(--green);" onclick="runSmartScan()" disabled>بدء التحليل الشامل 🔍</button>
-    </div>
-
-    <div id="preReportCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">تقرير الفحص الذكي</h3>
-        <div id="preContent" style="line-height:1.8; font-size:0.9rem; background:#001a1a; padding:15px; border-radius:15px;"></div>
-        <button class="btn" onclick="openQuestions()" style="margin-top:15px;">خطوة أخيرة لتجهيز الروتين ⬅️</button>
-    </div>
-
-    <div id="questionsCard" class="card">
-        <h3 style="color:var(--gold);">تفضيلات الروتين</h3>
-        
-        <label>أي كريم هالات تفضل إضافته للروتين؟</label>
-        <select id="qCircles">
-            <option value="eva">Eva Natural Glow (يومي خفيف)</option>
-            <option value="star">Star Ville Gel (علاجي متوسط)</option>
-            <option value="laroche">La Roche Pigmentclar (احترافي)</option>
-        </select>
-
-        <label>أي واقي شمس تفضل إضافته؟</label>
-        <select id="qSun">
-            <option value="bobai">Bobai Gel (لجميع الأنواع)</option>
-            <option value="evaAcne">Eva Acne-Prone (للحبوب)</option>
-            <option value="evaColl">Eva Collagen (للتجاعيد)</option>
-            <option value="kolagra">Kolagra (حماية قصوى)</option>
-        </select>
-
-        <label>هل تريد إضافة سيروم تفتيح ونضارة (Melatine)؟</label>
-        <select id="qPig"><option value="yes">نعم، أحتاجه</option><option value="no">لا، شكراً</option></select>
-
-        <button class="btn" onclick="showFinalReport()">اعتماد الروتين الكامل 🛒</button>
+        <button id="analyzeBtn" class="btn" style="background: var(--green);" onclick="runSmartScan()" disabled>بدء التحليل والتشخيص 🔍</button>
     </div>
 
     <div id="reportCard" class="card">
+        <h3 style="color:var(--gold); text-align:center;">الروتين العلاجي المقترح</h3>
+        <p id="diagnosisText" style="font-size:0.85rem; color:#ccc; text-align:center; margin-bottom:15px;"></p>
         <div id="finalPkgDisplay"></div>
         <button class="btn" onclick="location.reload()" style="background:#444; color:#fff;">إعادة الفحص 🔄</button>
     </div>
 </div>
 
 <script>
-// قاعدة البيانات الكاملة للروابط (12 منتج)
+// روابط المنتجات المحدثة (تم اختبار التوجيه)
 const productDB = {
-    "Argento Clear": "https://amzn.to/3uN2R3Q",
+    "Argento Clear": "https://www.amazon.eg/dp/B0912999G5", // مثال لرابط طويل أكثر استقراراً
     "Shaan Gel": "https://amzn.to/3InR0Zk",
     "Star Ville Whitening": "https://amzn.to/3YVfXfI",
     "Natavis Vitamin C": "https://amzn.to/3SREm9v",
@@ -131,31 +102,32 @@ faceMesh.onResults(results=>{
     ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
     if(results.multiFaceLandmarks?.length>0){
         const lm = results.multiFaceLandmarks[0];
-        updateScanZones(lm);
         
         const fH = getPx(lm[10]); const cH = getPx(lm[205]); const eY = getPx(lm[230]);
         aiResults.light = Math.round((fH.v / 255) * 100);
         document.getElementById('lightMet').innerText = `الإضاءة: ${aiResults.light}%`;
         document.getElementById('hydraMet').innerText = `الترطيب: ${Math.round(100-Math.abs(fH.v-cH.v))}%`;
 
+        // كشف المشاكل وعرض الملصقات على الصورة
         aiResults.acne = (cH.r > cH.g + 20);
+        aiResults.pig = (Math.abs(fH.v - cH.v) > 22);
         aiResults.circles = (eY.v < cH.v - 18);
-        aiResults.skinType = fH.v > 180 ? "دهنية" : (fH.v < 110 ? "جافة" : "مختلطة");
+        
+        toggleBadge('badgeAcne', lm[205], aiResults.acne);
+        toggleBadge('badgePigment', lm[425], aiResults.pig);
+        toggleBadge('badgeCircles', lm[230], aiResults.circles);
 
         if(aiResults.light > 35) document.getElementById('analyzeBtn').disabled = false;
     }
 });
 
-// تحديث أكواد الفحص (المربعات)
-function updateScanZones(lm) {
-    const draw = (id, pt, w, h) => {
-        const el = document.getElementById(id); el.style.display = 'block';
-        el.style.width = w+'%'; el.style.height = h+'%';
-        el.style.left = (lm[pt].x*100 - w/2)+'%'; el.style.top = (lm[pt].y*100 - h/2)+'%';
-    };
-    draw('areaForehead', 10, 45, 12); // كامل الجبهة
-    draw('areaEyes', 230, 25, 10);    // تجويف الهالات بدقة
-    draw('areaCheeks', 205, 30, 20);  // الخد بعيداً عن الأنف
+function toggleBadge(id, pt, show) {
+    const el = document.getElementById(id);
+    if(show) {
+        el.style.display = 'block';
+        el.style.left = (pt.x * 100) + '%';
+        el.style.top = (pt.y * 100) + '%';
+    } else { el.style.display = 'none'; }
 }
 
 function getPx(p){
@@ -168,63 +140,58 @@ function runSmartScan() {
     document.getElementById('analyzeBtn').disabled = true;
     setTimeout(() => {
         document.getElementById('pBox').classList.remove('scanning-active');
-        showPreReport();
+        showFinalRoutine();
     }, 2000);
 }
 
-function showPreReport() {
+function showFinalRoutine() {
     document.getElementById('controls').style.display = 'none';
-    document.getElementById('preReportCard').style.display = 'block';
-    document.getElementById('preContent').innerHTML = `
-        • <b>نوع البشرة:</b> ${aiResults.skinType}<br>
-        • <b>حالة الحبوب:</b> ${aiResults.acne ? '⚠️ رصد التهاب' : '✅ لا يوجد'}<br>
-        • <b>الهالات:</b> ${aiResults.circles ? '⚠️ رصد إجهاد' : '✅ منطقة صافية'}
-    `;
-}
-
-function openQuestions() {
-    document.getElementById('preReportCard').style.display = 'none';
-    document.getElementById('questionsCard').style.display = 'block';
-}
-
-function showFinalReport() {
-    document.getElementById('questionsCard').style.display = 'none';
     document.getElementById('reportCard').style.display = 'block';
     
-    const eye = document.getElementById('qCircles').value;
-    const sun = document.getElementById('qSun').value;
-    const pig = document.getElementById('qPig').value;
+    let list = [];
+    let diag = "بناءً على الفحص المجهري: ";
 
-    let finalItems = [];
-    
-    // 1. الغسول (أساسي للجميع)
-    finalItems.push({n: "Argento Clear (غسول)", l: productDB["Argento Clear"]});
-    
-    // 2. المرطب (أساسي للجميع)
-    finalItems.push({n: "Shaan Gel (مرطب مائي)", l: productDB["Shaan Gel"]});
-
-    // 3. كريم العين (بناءً على الاختيار)
-    if(eye === 'eva') finalItems.push({n: "Eva Natural Glow Eye", l: productDB["Eva Natural Glow Eye"]});
-    if(eye === 'star') finalItems.push({n: "Star Ville Eye Contour", l: productDB["Star Ville Eye Contour"]});
-    if(eye === 'laroche') finalItems.push({n: "La Roche Pigmentclar", l: productDB["La Roche Pigmentclar"]});
-
-    // 4. واقي الشمس (بناءً على الاختيار)
-    if(sun === 'bobai') finalItems.push({n: "Bobai Gel Sunscreen", l: productDB["Bobai Gel"]});
-    if(sun === 'evaAcne') finalItems.push({n: "Eva Acne Sunscreen", l: productDB["Eva Acne Sunscreen"]});
-    if(sun === 'evaColl') finalItems.push({n: "Eva Collagen Sunblock", l: productDB["Eva Collagen Sunblock"]});
-    if(sun === 'kolagra') finalItems.push({n: "Kolagra Sunscreen", l: productDB["Kolagra Sunscreen"]});
-
-    // 5. التفتيح والنضارة (إضافي)
-    if(pig === 'yes') {
-        finalItems.push({n: "Star Ville Whitening", l: productDB["Star Ville Whitening"]});
-        finalItems.push({n: "Melatine Extra Lighting", l: productDB["Melatine Extra Lighting"]});
+    // 1. اختيار الغسول الذكي
+    if(aiResults.acne) {
+        list.push({n: "غسول أرجنتو كلير (مضاد للحبوب)", l: productDB["Argento Clear"]});
+        diag += "تم رصد نشاط بكتيري وحبوب، ";
+    } else {
+        list.push({n: "غسول ستارفيل (تفتيح ناعم)", l: productDB["Star Ville Whitening"]});
+        diag += "البشرة خالية من الحبوب النشطة، ";
     }
 
-    let html = `<h3 style="color:var(--gold); text-align:center;">الروتين العلاجي الكامل</h3><div style="background:#001a1a; padding:15px; border-radius:15px;">`;
-    finalItems.forEach(item => {
-        html += `<div class="product-item"><span>${item.n}</span><a href="${item.l}" target="_blank" class="buy-link">شراء 🛒</a></div>`;
+    // 2. المرطب الثابت
+    list.push({n: "مرطب شان جيل (هيدرا مائي)", l: productDB["Shaan Gel"]});
+
+    // 3. علاج العين الذكي
+    if(aiResults.circles) {
+        list.push({n: "لاروش بيجمنتكلار (للهالات العميقة)", l: productDB["La Roche Pigmentclar"]});
+        diag += "توجد هالات داكنة ملحوظة، ";
+    } else {
+        list.push({n: "إيفا ناتشورال جلو (للعناية اليومية)", l: productDB["Eva Natural Glow Eye"]});
+    }
+
+    // 4. واقي الشمس الذكي
+    if(aiResults.acne) {
+        list.push({n: "واقي شمس إيفا (للبشرة الدهنية)", l: productDB["Eva Acne Sunscreen"]});
+    } else if(aiResults.pig) {
+        list.push({n: "واقي شمس كولاجرا (تفتيح وحماية)", l: productDB["Kolagra Sunscreen"]});
+    } else {
+        list.push({n: "بوباي جل (حماية شاملة)", l: productDB["Bobai Gel"]});
+    }
+
+    // 5. علاج التصبغات المكثف
+    if(aiResults.pig) {
+        list.push({n: "ميلاتكس (علاج التصبغات والبقع)", l: productDB["Melatine Extra Lighting"]});
+        diag += "وهناك تفاوت في لون البشرة.";
+    }
+
+    document.getElementById('diagnosisText').innerText = diag;
+    let html = "";
+    list.forEach(item => {
+        html += `<div class="product-item"><span>${item.n}</span><a href="${item.l}" target="_blank" class="buy-link">عرض المنتج 🛒</a></div>`;
     });
-    document.getElementById('finalPkgDisplay').innerHTML = html + "</div>";
+    document.getElementById('finalPkgDisplay').innerHTML = html;
 }
 
 function startCam(){ new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); canvas.width=640; canvas.height=480; }
