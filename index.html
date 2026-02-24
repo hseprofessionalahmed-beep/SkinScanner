@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERONA AI | ULTIMATE PRO V60</title>
+<title>VERONA AI | CLINICAL V65</title>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <style>
-:root { --gold:#d4af37; --bg:#0a0a0a; --cyan: #00f2ff; --red: #ff4d4d; }
+:root { --gold:#d4af37; --bg:#0a0a0a; --cyan: #00f2ff; --red: #ff4d4d; --green: #2ecc71; }
 body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;padding:10px;text-align:right;}
 .container{max-width:500px;margin:auto;}
 
@@ -19,26 +19,21 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;
 .preview-box{position:relative;border-radius:25px;overflow:hidden;border:2px solid var(--gold);aspect-ratio:4/5;margin-bottom:15px;background:#000;}
 video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
 
-/* مربعات الفحص المحدثة */
-.scan-area { position: absolute; border: 1.5px dashed var(--cyan); z-index: 60; display: none; transition: 0.1s; background: rgba(0, 242, 255, 0.05); }
-.scan-label { position: absolute; top: -18px; right: 0; font-size: 9px; color: var(--cyan); font-weight: bold; background: rgba(0,0,0,0.5); padding: 2px 4px; }
+/* مربعات الفحص المحدثة V65 */
+.scan-area { position: absolute; border: 2px solid var(--cyan); z-index: 60; display: none; background: rgba(0, 242, 255, 0.08); }
+.scan-label { position: absolute; bottom: -20px; right: 0; font-size: 10px; color: var(--cyan); font-weight: bold; white-space: nowrap; }
 
-/* مؤشر السكانر (الخط المتحرك) */
-.scanner-line { position: absolute; width: 100%; height: 2px; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); z-index: 70; top: 0; display: none; animation: scanAnim 3s linear infinite; }
-@keyframes scanAnim { 0% { top: 0; } 100% { top: 100%; } }
+/* مؤشر السكانر */
+.scanner-line { position: absolute; width: 100%; height: 3px; background: var(--cyan); box-shadow: 0 0 20px var(--cyan); z-index: 70; top: 0; display: none; }
+.scanning-active .scanner-line { display: block; animation: scanAnim 2s ease-in-out infinite; }
+@keyframes scanAnim { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
 
-.badge-float { position: absolute; top: 10px; right: 10px; z-index: 80; background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 15px; border: 1px solid var(--gold); font-size: 0.7rem; }
-
-/* الباقات والكروت */
+/* التنبيهات والبصريات */
+.loading-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
 .btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:15px;border-radius:12px;font-weight:bold;cursor:pointer;width:100%; margin-bottom:10px;}
 .card{background:#111; border:1px solid #d4af3733; border-radius:25px; padding:20px; display:none; margin-top:15px;}
-.info-box { background: #001a1a; border-right: 4px solid var(--cyan); padding: 15px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 15px; line-height: 1.6; }
-
-.package-card { border: 1px solid var(--gold); border-radius: 20px; padding: 15px; margin-bottom: 15px; background: #161616; }
-.product-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #333; }
-.buy-link { color: var(--gold); text-decoration: none; font-weight: bold; font-size: 0.8rem; border: 1px solid var(--gold); padding: 4px 8px; border-radius: 5px; }
-
-select, input { width:100%; padding:10px; margin:8px 0; background:#222; color:#fff; border:1px solid #444; border-radius:8px; }
+.product-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1a1a; border-radius: 10px; margin-bottom: 10px; border-left: 3px solid var(--gold); }
+.buy-link { color: var(--gold); text-decoration: none; font-weight: bold; border: 1px solid var(--gold); padding: 5px 10px; border-radius: 6px; }
 </style>
 </head>
 <body>
@@ -51,83 +46,66 @@ select, input { width:100%; padding:10px; margin:8px 0; background:#222; color:#
         <canvas id="canvas"></canvas>
         <div id="scanner" class="scanner-line"></div>
         
-        <div id="areaForehead" class="scan-area"><span class="scan-label">تحليل الجبهة (واسع)</span></div>
-        <div id="areaEyes" class="scan-area"><span class="scan-label">تجويف العين (الهالات)</span></div>
-        <div id="areaCheeks" class="scan-area"><span class="scan-label">منطقة الخد (التصبغات)</span></div>
+        <div id="areaForehead" class="scan-area"><span class="scan-label">مسح التجاعيد والجبهة</span></div>
+        <div id="areaEyes" class="scan-area"><span class="scan-label">تحليل الهالات العميقة</span></div>
+        <div id="areaCheeks" class="scan-area"><span class="scan-label">رصد الحبوب والتصبغات</span></div>
         
-        <div id="lightBadge" class="badge-float">قياس الضوء...</div>
+        <div id="loadingScreen" class="loading-overlay">
+            <div style="color:var(--cyan); margin-bottom:10px;">جاري تحليل خلايا البشرة...</div>
+            <div style="width:50px; height:50px; border:3px solid var(--cyan); border-top-color:transparent; border-radius:50%; animation: spin 1s linear infinite;"></div>
+        </div>
     </div>
 
     <div id="controls">
-        <div style="display:flex; gap:10px;">
-            <button class="btn" onclick="startCam()">كاميرا لايف 📸</button>
-            <button class="btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">رفع صورة 🖼️</button>
-        </div>
-        <input type="file" id="fileInput" hidden accept="image/*" onchange="handleImage(event)">
-        <button id="analyzeBtn" class="btn" style="background: #25d366;" onclick="showInitialReport()" disabled>بدء التحليل النهائي 🔍</button>
+        <button class="btn" onclick="startCam()">فتح الكاميرا المجهرية 📸</button>
+        <button id="analyzeBtn" class="btn" style="background: var(--green);" onclick="runSmartScan()" disabled>تحليل المشاكل (2 ثانية) 🔍</button>
     </div>
 
     <div id="preReportCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">نتائج المسح المجهري</h3>
-        <div id="preContent" class="info-box"></div>
-        <button class="btn" onclick="openQuestions()">متابعة لتحديد الباقة ⬅️</button>
+        <h3 style="color:var(--gold); text-align:center;">تقرير المختبر المبدئي</h3>
+        <div id="preContent" style="background:#001a1a; padding:15px; border-radius:12px; font-size:0.9rem; line-height:1.7;"></div>
+        <button class="btn" onclick="openQuestions()" style="margin-top:15px;">انتقل لتحديد روتينك ⬅️</button>
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">أسئلة تأكيد الحالة</h3>
-        
-        <label>عمق ولون الهالات؟</label>
-        <select id="qCirclesDeep">
-            <option value="none">لا يوجد</option>
-            <option value="brown">بنية (تصبغات خارجية)</option>
-            <option value="dark">داكنة جداً (وراثية/إرهاق)</option>
+        <h3 style="color:var(--gold);">تخصيص الخطة</h3>
+        <label>عمق الهالات ولونها؟</label>
+        <select id="qCircles">
+            <option value="none">لا يوجد</option><option value="brown">بنية (تصبغ)</option><option value="blue">زرقاء (أوعية)</option>
         </select>
-
         <label>نوع التصبغات؟</label>
-        <select id="qPigType">
-            <option value="none">لا يوجد</option>
-            <option value="sun">بقع شمس/نمش</option>
-            <option value="marks">آثار حبوب قديمة</option>
+        <select id="qPig">
+            <option value="none">لا يوجد</option><option value="acne">آثار حبوب</option><option value="sun">كلف/بقع شمس</option>
         </select>
-
-        <label>حالة الحبوب؟</label>
-        <select id="qAcneType">
-            <option value="no">لا يوجد</option>
-            <option value="active">حبوب حمراء نشطة</option>
-            <option value="heads">رؤوس سوداء/بيضاء</option>
+        <label>اختر الباقة:</label>
+        <select id="qPkg">
+            <option value="eco">الاقتصادية</option><option value="super">سوبر</option><option value="ultra">ألترا</option>
         </select>
-
-        <label>اختر فئة الروتين:</label>
-        <select id="qPackage">
-            <option value="economy">الاقتصادية (الأساسيات)</option>
-            <option value="super">سوبر (علاج مكثف)</option>
-            <option value="ultra">ألترا (الرفاهية والنضارة)</option>
-        </select>
-
-        <button class="btn" onclick="generateFinalReport()">اعتماد الروتين النهائي ✨</button>
+        <button class="btn" onclick="showFinalReport()">عرض الروتين النهائي ✨</button>
     </div>
 
     <div id="reportCard" class="card">
         <div id="finalPkgDisplay"></div>
-        <button class="btn" onclick="location.reload()" style="background:#444; color:#fff;">فحص جديد 🔄</button>
+        <button class="btn" onclick="location.reload()" style="background:#333; color:#fff;">إعادة الفحص 🔄</button>
     </div>
 </div>
 
 <script>
-// روابط أمازون المباشرة (استبدل الـ ID بما يناسب منتجك الفعلي)
+// الروابط المحدثة المربوطة بالمنتجات
 const productDB = {
-    "أرجنتو كلير": "https://www.amazon.eg/dp/B091295D3W",
-    "شان جيل": "https://www.amazon.eg/dp/B08W5GDB2P",
-    "ستارفيل وايتنينج": "https://www.amazon.eg/dp/B09129N6H5",
-    "ناتافيس فيتامين C": "https://www.amazon.eg/dp/B09B13GTR7",
-    "ستارفيل آي كونتور": "https://www.amazon.eg/dp/B08YDB1X3W",
-    "بوباي جل": "https://www.amazon.eg/dp/B08W5L37Y8"
+    "أرجنتو كلير": "https://amzn.to/3ZNJnMs",
+    "شان جيل": "https://amzn.to/46M1PZC",
+    "ستارفيل وايتنينج": "https://amzn.to/3MyNZD9",
+    "ناتافيس فيتامين C": "https://amzn.to/3OuGhKM",
+    "ستارفيل آي كونتور": "https://amzn.to/3ORZvKm",
+    "بوباي جل": "https://amzn.to/4rU6pgo",
+    "ميلاتكس للتفتيح": "https://amzn.to/4kSzJSu"
 };
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-let aiResults = { skinType: 'جاري التحليل', acne: false, circles: false, pig: false, lightOk: false };
+let aiResults = { skinType: 'جاري الفحص', acne: false, circles: false, pig: false };
 
 const faceMesh = new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
 faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.75});
@@ -136,55 +114,55 @@ faceMesh.onResults(results=>{
     ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
     if(results.multiFaceLandmarks?.length>0){
         const lm = results.multiFaceLandmarks[0];
-        document.getElementById('scanner').style.display = 'block';
         updateScanAreas(lm);
-
-        // قياس الضوء
-        const p = getPx(lm[10]);
-        aiResults.lightOk = p.v > 120;
-        document.getElementById('lightBadge').innerText = aiResults.lightOk ? "✅ إضاءة ممتازة" : "⚠️ حسن الإضاءة";
-        document.getElementById('lightBadge').style.color = aiResults.lightOk ? "#2ecc71" : "#ff4d4d";
         
-        if(aiResults.lightOk) {
-            document.getElementById('analyzeBtn').disabled = false;
-            // تحليل منطقي للمشاكل
-            aiResults.skinType = p.v > 185 ? "دهنية" : (p.v < 110 ? "جافة" : "مختلطة");
-            aiResults.circles = getPx(lm[230]).v < getPx(lm[205]).v - 20;
-            aiResults.pig = Math.abs(getPx(lm[10]).v - getPx(lm[205]).v) > 25;
-        }
+        // التحليل اللوني (رصد الحبوب الحمراء)
+        const cheekData = getPixelData(lm[205]);
+        aiResults.acne = (cheekData.r > cheekData.g + 30); // لو اللون الأحمر طاغي في الخد
+        aiResults.circles = getPixelData(lm[230]).v < cheekData.v - 15;
+        aiResults.pig = Math.abs(getPixelData(lm[10]).v - cheekData.v) > 20;
+        
+        document.getElementById('analyzeBtn').disabled = false;
     }
 });
 
 function updateScanAreas(lm) {
-    const drawArea = (id, pts, w, h) => {
-        const el = document.getElementById(id);
-        el.style.display = 'block';
-        el.style.width = w + '%'; el.style.height = h + '%';
-        el.style.left = (lm[pts].x * 100 - (w/2)) + '%';
-        el.style.top = (lm[pts].y * 100 - (h/2)) + '%';
+    const box = (id, pt, w, h) => {
+        const el = document.getElementById(id); el.style.display = 'block';
+        el.style.width = w+'%'; el.style.height = h+'%';
+        el.style.left = (lm[pt].x*100 - w/2)+'%'; el.style.top = (lm[pt].y*100 - h/2)+'%';
     };
-    drawArea('areaForehead', 10, 40, 15); // جبهة واسعة
-    drawArea('areaEyes', 230, 25, 10);    // منطقة الهالات
-    drawArea('areaCheeks', 205, 30, 20);  // الخدين بعيداً عن الأنف
+    box('areaForehead', 10, 45, 12); // جبهة واسعة
+    box('areaEyes', 230, 30, 8);    // تحت العين بدقة
+    box('areaCheeks', 205, 35, 20); // الخد - مركز الحبوب والتصبغات
 }
 
-function getPx(p){ 
-    const x=Math.floor(p.x*canvas.width); const y=Math.floor(p.y*canvas.height); 
-    const d=ctx.getImageData(x,y,1,1).data; return {v:(d[0]+d[1]+d[2])/3}; 
+function getPixelData(p){
+    const x=Math.floor(p.x*canvas.width); const y=Math.floor(p.y*canvas.height);
+    const d=ctx.getImageData(x,y,1,1).data;
+    return {r:d[0], g:d[1], b:d[2], v:(d[0]+d[1]+d[2])/3};
 }
 
-function startCam(){ new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); canvas.width=640; canvas.height=480; }
-function handleImage(e) { const r=new FileReader(); r.onload=(ev)=>{ const img=new Image(); img.onload=()=>{ canvas.width=img.width; canvas.height=img.height; faceMesh.send({image:img}); }; img.src=ev.target.result; }; r.readAsDataURL(e.target.files[0]); }
+function runSmartScan() {
+    document.getElementById('pBox').classList.add('scanning-active');
+    document.getElementById('loadingScreen').style.display = 'flex';
+    document.getElementById('analyzeBtn').disabled = true;
+
+    // التوقف لمدة ثانيتين لتعزيز تجربة المستخدم
+    setTimeout(() => {
+        document.getElementById('loadingScreen').style.display = 'none';
+        document.getElementById('pBox').classList.remove('scanning-active');
+        showInitialReport();
+    }, 2000);
+}
 
 function showInitialReport() {
     document.getElementById('controls').style.display = 'none';
     document.getElementById('preReportCard').style.display = 'block';
     
-    let report = `<b>نوع البشرة:</b> ${aiResults.skinType}<br><br>`;
-    report += `<b>المواد الفعالة المطلوبة:</b><br>`;
-    if(aiResults.skinType === 'دهنية') report += "• سالسليك أسيد (لتنظيف المسام)<br>";
-    if(aiResults.circles) report += "• كافيين + هيالورونيك (لترطيب العين)<br>";
-    if(aiResults.pig) report += "• أربوتين + فيتامين C (للتفتيح والنضارة)<br>";
+    let report = `• <b>الحبوب:</b> ${aiResults.acne ? "⚠️ رصد التهاب نشط" : "✅ لا يوجد حبوب نشطة"}<br>`;
+    report += `• <b>الهالات:</b> ${aiResults.circles ? "⚠️ تصبغ داكن مكتشف" : "✅ منطقة العين صافية"}<br>`;
+    report += `• <b>المواد المرشحة:</b> ${aiResults.acne ? "سالسليك أسيد" : "فيتامين C وأربوتين"}`;
     
     document.getElementById('preContent').innerHTML = report;
 }
@@ -194,28 +172,24 @@ function openQuestions() {
     document.getElementById('questionsCard').style.display = 'block';
 }
 
-function generateFinalReport() {
+function showFinalReport() {
     document.getElementById('questionsCard').style.display = 'none';
     document.getElementById('reportCard').style.display = 'block';
+    const pkg = document.getElementById('qPkg').value;
     
-    const pkgType = document.getElementById('qPackage').value;
-    const container = document.getElementById('finalPkgDisplay');
-    
-    let items = ["أرجنتو كلير", "شان جيل", "بوباي جل"]; // الأساسية
-    if(pkgType === 'super') items.push("ستارفيل وايتنينج");
-    if(pkgType === 'ultra') items.push("ستارفيل وايتنينج", "ناتافيس فيتامين C", "ستارفيل آي كونتور");
+    let list = ["أرجنتو كلير", "شان جيل", "بوباي جل"];
+    if(pkg === 'super') list.push("ستارفيل وايتنينج");
+    if(pkg === 'ultra') list.push("ستارفيل وايتنينج", "ناتافيس فيتامين C", "ستارفيل آي كونتور", "ميلاتكس للتفتيح");
 
-    let html = `<h3 style="color:var(--gold); text-align:center;">باقة Verona الـ ${pkgType.toUpperCase()}</h3><div class="package-card">`;
-    items.forEach(name => {
-        html += `
-        <div class="product-item">
-            <span><b>${name}</b></span>
-            <a href="${productDB[name]}" target="_blank" class="buy-link">عرض المنتج 🛒</a>
-        </div>`;
+    let html = `<h3>روتينك المخصص - باقة ${pkg.toUpperCase()}</h3>`;
+    list.forEach(name => {
+        html += `<div class="product-item"><span>${name}</span><a href="${productDB[name]}" target="_blank" class="buy-link">شراء 🛒</a></div>`;
     });
-    container.innerHTML = html + "</div>";
+    document.getElementById('finalPkgDisplay').innerHTML = html;
 }
+
+function startCam(){ new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); canvas.width=640; canvas.height=480; }
 </script>
+<style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
 </body>
 </html>
-
