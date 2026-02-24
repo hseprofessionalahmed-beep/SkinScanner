@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | CLINICAL SYSTEM V80</title>
+    <title>VERONA AI | TOTAL CARE V85</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
@@ -17,10 +17,13 @@
         video, canvas{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
         
         .scanner-line { position: absolute; width: 100%; height: 3px; background: var(--cyan); box-shadow: 0 0 20px var(--cyan); z-index: 70; top: 0; display: none; }
-        .scanning-active .scanner-line { display: block; animation: scanAnim 2s ease-in-out forwards; }
+        .scanning-active .scanner-line { display: block; animation: scanAnim 2s ease-in-out; }
         @keyframes scanAnim { 0% { top: 0; } 100% { top: 100%; } }
 
-        .scan-area { position: absolute; border: 1.5px solid var(--cyan); z-index: 60; display: none; background: rgba(0,242,255,0.05); }
+        /* تعديل مربعات الفحص لتكون أدق */
+        .scan-area { position: absolute; border: 2px solid var(--cyan); z-index: 60; display: none; background: rgba(0,242,255,0.08); border-radius: 4px; }
+        .scan-label { position: absolute; top: -18px; right: 0; font-size: 9px; color: var(--cyan); background: rgba(0,0,0,0.6); padding: 1px 4px; }
+
         .metrics { position: absolute; top: 10px; right: 10px; z-index: 80; }
         .badge { background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 10px; border: 1px solid var(--gold); font-size: 0.7rem; margin-bottom: 5px; }
 
@@ -28,9 +31,10 @@
         .card{background:#111; border:1px solid #d4af3733; border-radius:25px; padding:20px; display:none; margin-top:15px;}
         
         .product-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1a1a; border-radius: 12px; margin-bottom: 10px; border-right: 4px solid var(--gold); }
-        .buy-link { color: #000; background: var(--gold); text-decoration: none; font-weight: bold; font-size: 0.8rem; padding: 7px 14px; border-radius: 8px; }
+        .buy-link { color: #000; background: var(--gold); text-decoration: none; font-weight: bold; font-size: 0.75rem; padding: 6px 12px; border-radius: 8px; }
         
-        select, input { width:100%; padding:12px; margin:8px 0; background:#222; color:#fff; border:1px solid #444; border-radius:10px; }
+        label { display: block; margin-top: 10px; color: var(--gold); font-size: 0.9rem; }
+        select { width:100%; padding:12px; margin:5px 0; background:#222; color:#fff; border:1px solid #444; border-radius:10px; }
     </style>
 </head>
 <body>
@@ -43,14 +47,13 @@
         <canvas id="canvas"></canvas>
         <div id="scanner" class="scanner-line"></div>
         
-        <div id="areaForehead" class="scan-area"></div>
-        <div id="areaEyes" class="scan-area"></div>
-        <div id="areaCheeks" class="scan-area"></div>
+        <div id="areaForehead" class="scan-area"><span class="scan-label">الجبهة</span></div>
+        <div id="areaEyes" class="scan-area"><span class="scan-label">الهالات</span></div>
+        <div id="areaCheeks" class="scan-area"><span class="scan-label">الخد (تصبغات)</span></div>
         
         <div class="metrics">
             <div id="lightMet" class="badge">الإضاءة: --</div>
             <div id="hydraMet" class="badge">الترطيب: --</div>
-            <div id="wrinkleMet" class="badge">التجاعيد: --</div>
         </div>
     </div>
 
@@ -60,51 +63,47 @@
             <button class="btn" style="background:#333; color:#fff;" onclick="document.getElementById('fileInput').click()">رفع صورة 🖼️</button>
         </div>
         <input type="file" id="fileInput" hidden accept="image/*" onchange="handleImage(event)">
-        <button id="analyzeBtn" class="btn" style="background: var(--green);" onclick="runSmartScan()" disabled>بدء التحليل النهائي (2 ثانية) 🔍</button>
+        <button id="analyzeBtn" class="btn" style="background: var(--green);" onclick="runSmartScan()" disabled>بدء التحليل الشامل 🔍</button>
     </div>
 
     <div id="preReportCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">تقرير الفحص المجهري</h3>
+        <h3 style="color:var(--gold); text-align:center;">تقرير الفحص الذكي</h3>
         <div id="preContent" style="line-height:1.8; font-size:0.9rem; background:#001a1a; padding:15px; border-radius:15px;"></div>
-        <button class="btn" onclick="openQuestions()" style="margin-top:15px;">تخصيص الروتين ⬅️</button>
+        <button class="btn" onclick="openQuestions()" style="margin-top:15px;">خطوة أخيرة لتجهيز الروتين ⬅️</button>
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="color:var(--gold);">تأكيد بيانات الحالة</h3>
+        <h3 style="color:var(--gold);">تفضيلات الروتين</h3>
         
-        <label>عمق الهالات ولونها؟</label>
+        <label>أي كريم هالات تفضل إضافته للروتين؟</label>
         <select id="qCircles">
-            <option value="none">لا يوجد هالات</option>
-            <option value="eva">بسيطة (Eva Natural Glow)</option>
-            <option value="star">متوسطة (Star Ville Gel)</option>
-            <option value="laroche">عميقة (La Roche Pigmentclar)</option>
+            <option value="eva">Eva Natural Glow (يومي خفيف)</option>
+            <option value="star">Star Ville Gel (علاجي متوسط)</option>
+            <option value="laroche">La Roche Pigmentclar (احترافي)</option>
         </select>
 
-        <label>واقي الشمس المناسب لبشرتك؟</label>
+        <label>أي واقي شمس تفضل إضافته؟</label>
         <select id="qSun">
-            <option value="bobai">جل خفيف (Bobai)</option>
-            <option value="evaAcne">للبشرة المعرضة للحبوب (Eva)</option>
-            <option value="evaColl">مضاد للتجاعيد (Eva Collagen)</option>
-            <option value="kolagra">حماية قصوى (Kolagra)</option>
+            <option value="bobai">Bobai Gel (لجميع الأنواع)</option>
+            <option value="evaAcne">Eva Acne-Prone (للحبوب)</option>
+            <option value="evaColl">Eva Collagen (للتجاعيد)</option>
+            <option value="kolagra">Kolagra (حماية قصوى)</option>
         </select>
 
-        <label>الميزانية:</label>
-        <select id="qPkg">
-            <option value="eco">الاقتصادية (الأساسيات)</option>
-            <option value="ultra">الألترا (الروتين المتكامل + تفتيح)</option>
-        </select>
-        
-        <button class="btn" onclick="showFinalReport()">اعتماد الروتين وشراء المنتجات ✨</button>
+        <label>هل تريد إضافة سيروم تفتيح ونضارة (Melatine)؟</label>
+        <select id="qPig"><option value="yes">نعم، أحتاجه</option><option value="no">لا، شكراً</option></select>
+
+        <button class="btn" onclick="showFinalReport()">اعتماد الروتين الكامل 🛒</button>
     </div>
 
     <div id="reportCard" class="card">
         <div id="finalPkgDisplay"></div>
-        <button class="btn" onclick="location.reload()" style="background:#444; color:#fff;">فحص جديد 🔄</button>
+        <button class="btn" onclick="location.reload()" style="background:#444; color:#fff;">إعادة الفحص 🔄</button>
     </div>
 </div>
 
 <script>
-// قاعدة البيانات النهائية للروابط المظبوطة
+// قاعدة البيانات الكاملة للروابط (12 منتج)
 const productDB = {
     "Argento Clear": "https://amzn.to/3uN2R3Q",
     "Shaan Gel": "https://amzn.to/3InR0Zk",
@@ -123,7 +122,7 @@ const productDB = {
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-let aiResults = { skinType: '', acne: false, circles: false, pig: false, light: 0, hydra: 0, wrinkle: 0 };
+let aiResults = { skinType: '', acne: false, circles: false, pig: false, light: 0 };
 
 const faceMesh = new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
 faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.75});
@@ -132,19 +131,14 @@ faceMesh.onResults(results=>{
     ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(results.image,0,0,canvas.width,canvas.height);
     if(results.multiFaceLandmarks?.length>0){
         const lm = results.multiFaceLandmarks[0];
-        updateAreas(lm);
+        updateScanZones(lm);
         
         const fH = getPx(lm[10]); const cH = getPx(lm[205]); const eY = getPx(lm[230]);
         aiResults.light = Math.round((fH.v / 255) * 100);
-        aiResults.hydra = Math.round(100 - (Math.abs(fH.v - cH.v)));
-        aiResults.wrinkle = aiResults.light < 45 ? 20 : 5;
-
         document.getElementById('lightMet').innerText = `الإضاءة: ${aiResults.light}%`;
-        document.getElementById('hydraMet').innerText = `الترطيب: ${aiResults.hydra}%`;
-        document.getElementById('wrinkleMet').innerText = `التجاعيد: ${aiResults.wrinkle}%`;
+        document.getElementById('hydraMet').innerText = `الترطيب: ${Math.round(100-Math.abs(fH.v-cH.v))}%`;
 
         aiResults.acne = (cH.r > cH.g + 20);
-        aiResults.pig = (Math.abs(fH.v - cH.v) > 22);
         aiResults.circles = (eY.v < cH.v - 18);
         aiResults.skinType = fH.v > 180 ? "دهنية" : (fH.v < 110 ? "جافة" : "مختلطة");
 
@@ -152,15 +146,16 @@ faceMesh.onResults(results=>{
     }
 });
 
-function updateAreas(lm) {
+// تحديث أكواد الفحص (المربعات)
+function updateScanZones(lm) {
     const draw = (id, pt, w, h) => {
         const el = document.getElementById(id); el.style.display = 'block';
         el.style.width = w+'%'; el.style.height = h+'%';
         el.style.left = (lm[pt].x*100 - w/2)+'%'; el.style.top = (lm[pt].y*100 - h/2)+'%';
     };
-    draw('areaForehead', 10, 45, 12);
-    draw('areaEyes', 230, 30, 10);
-    draw('areaCheeks', 205, 35, 20);
+    draw('areaForehead', 10, 45, 12); // كامل الجبهة
+    draw('areaEyes', 230, 25, 10);    // تجويف الهالات بدقة
+    draw('areaCheeks', 205, 30, 20);  // الخد بعيداً عن الأنف
 }
 
 function getPx(p){
@@ -182,9 +177,8 @@ function showPreReport() {
     document.getElementById('preReportCard').style.display = 'block';
     document.getElementById('preContent').innerHTML = `
         • <b>نوع البشرة:</b> ${aiResults.skinType}<br>
-        • <b>حالة الحبوب:</b> ${aiResults.acne ? '⚠️ التهاب مكتشف' : '✅ صافية'}<br>
-        • <b>التصبغات:</b> ${aiResults.pig ? '⚠️ تفاوت في اللون' : '✅ لون موحد'}<br>
-        • <b>الهالات:</b> ${aiResults.circles ? '⚠️ إجهاد تحت العين' : '✅ منطقة سليمة'}
+        • <b>حالة الحبوب:</b> ${aiResults.acne ? '⚠️ رصد التهاب' : '✅ لا يوجد'}<br>
+        • <b>الهالات:</b> ${aiResults.circles ? '⚠️ رصد إجهاد' : '✅ منطقة صافية'}
     `;
 }
 
@@ -199,35 +193,38 @@ function showFinalReport() {
     
     const eye = document.getElementById('qCircles').value;
     const sun = document.getElementById('qSun').value;
-    const pkg = document.getElementById('qPkg').value;
+    const pig = document.getElementById('qPig').value;
 
-    let list = [];
-    // الغسول والمرطب (أساسي)
-    list.push({n:"Argento Clear", l:productDB["Argento Clear"]});
-    list.push({n:"Shaan Gel", l:productDB["Shaan Gel"]});
+    let finalItems = [];
+    
+    // 1. الغسول (أساسي للجميع)
+    finalItems.push({n: "Argento Clear (غسول)", l: productDB["Argento Clear"]});
+    
+    // 2. المرطب (أساسي للجميع)
+    finalItems.push({n: "Shaan Gel (مرطب مائي)", l: productDB["Shaan Gel"]});
 
-    // العين
-    if(eye === 'eva') list.push({n:"Eva Natural Glow Eye", l:productDB["Eva Natural Glow Eye"]});
-    if(eye === 'star') list.push({n:"Star Ville Eye Contour", l:productDB["Star Ville Eye Contour"]});
-    if(eye === 'laroche') list.push({n:"La Roche Pigmentclar", l:productDB["La Roche Pigmentclar"]});
+    // 3. كريم العين (بناءً على الاختيار)
+    if(eye === 'eva') finalItems.push({n: "Eva Natural Glow Eye", l: productDB["Eva Natural Glow Eye"]});
+    if(eye === 'star') finalItems.push({n: "Star Ville Eye Contour", l: productDB["Star Ville Eye Contour"]});
+    if(eye === 'laroche') finalItems.push({n: "La Roche Pigmentclar", l: productDB["La Roche Pigmentclar"]});
 
-    // الشمس
-    if(sun === 'bobai') list.push({n:"Bobai Gel", l:productDB["Bobai Gel"]});
-    if(sun === 'evaAcne') list.push({n:"Eva Acne Sunscreen", l:productDB["Eva Acne Sunscreen"]});
-    if(sun === 'evaColl') list.push({n:"Eva Collagen Sunblock", l:productDB["Eva Collagen Sunblock"]});
-    if(sun === 'kolagra') list.push({n:"Kolagra Sunscreen", l:productDB["Kolagra Sunscreen"]});
+    // 4. واقي الشمس (بناءً على الاختيار)
+    if(sun === 'bobai') finalItems.push({n: "Bobai Gel Sunscreen", l: productDB["Bobai Gel"]});
+    if(sun === 'evaAcne') finalItems.push({n: "Eva Acne Sunscreen", l: productDB["Eva Acne Sunscreen"]});
+    if(sun === 'evaColl') finalItems.push({n: "Eva Collagen Sunblock", l: productDB["Eva Collagen Sunblock"]});
+    if(sun === 'kolagra') finalItems.push({n: "Kolagra Sunscreen", l: productDB["Kolagra Sunscreen"]});
 
-    // باقة الألترا / التفتيح
-    if(pkg === 'ultra' || aiResults.pig) {
-        list.push({n:"Star Ville Whitening", l:productDB["Star Ville Whitening"]});
-        list.push({n:"Melatine Extra Lighting", l:productDB["Melatine Extra Lighting"]});
+    // 5. التفتيح والنضارة (إضافي)
+    if(pig === 'yes') {
+        finalItems.push({n: "Star Ville Whitening", l: productDB["Star Ville Whitening"]});
+        finalItems.push({n: "Melatine Extra Lighting", l: productDB["Melatine Extra Lighting"]});
     }
 
-    let html = `<h3>الروتين المقترح من Verona</h3>`;
-    list.forEach(item => {
+    let html = `<h3 style="color:var(--gold); text-align:center;">الروتين العلاجي الكامل</h3><div style="background:#001a1a; padding:15px; border-radius:15px;">`;
+    finalItems.forEach(item => {
         html += `<div class="product-item"><span>${item.n}</span><a href="${item.l}" target="_blank" class="buy-link">شراء 🛒</a></div>`;
     });
-    document.getElementById('finalPkgDisplay').innerHTML = html;
+    document.getElementById('finalPkgDisplay').innerHTML = html + "</div>";
 }
 
 function startCam(){ new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); canvas.width=640; canvas.height=480; }
