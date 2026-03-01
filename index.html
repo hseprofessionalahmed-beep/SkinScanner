@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | CLINIC V100</title>
+    <title>VERONA AI | CLINIC V101</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
         :root { --gold:#d4af37; --bg:#050505; --cyan: #00f2ff; --red: #ff4d4d; --safe: #2ecc71; }
-        body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;padding:10px;text-align:right; overflow-x:hidden;}
+        body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;padding:10px;text-align:right;}
         .container{max-width:500px;margin:auto;}
         
         .header-white { width: 100%; background: #fff; padding: 15px 0; text-align: center; border-bottom: 4px solid var(--gold); border-radius: 0 0 20px 20px; margin-bottom: 20px;}
         .app-logo { width: 180px; height: auto; }
 
-        .preview-box { position: relative; border-radius: 30px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; background: #000; box-shadow: 0 0 20px rgba(212,175,55,0.2); }
+        .preview-box { position: relative; border-radius: 30px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; background: #000; }
         video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; position: absolute; }
         #upImg { display: none; z-index: 5; }
 
@@ -24,13 +24,13 @@
         .scope-box canvas { width: 100%; height: 100%; }
         .scope-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); font-size: 9px; text-align: center; color: var(--gold); }
 
-        .light-meter { position: absolute; top: 15px; right: 15px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 110; }
-        .light-bad { background: var(--red); color: #fff; }
-        .light-good { background: var(--safe); color: #000; }
+        /* العلامات الحية */
+        .live-tag { position: absolute; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; z-index: 120; pointer-events: none; white-space: nowrap; }
 
-        .btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:16px;border-radius:15px;font-weight:900;cursor:pointer;width:100%; margin-bottom:10px; font-size: 1rem;}
-        .card{background:#111; border:1px solid #d4af3733; border-radius:25px; padding:20px; display:none; margin-top:15px; animation: slideUp 0.4s ease-out;}
+        .btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:16px;border-radius:15px;font-weight:900;cursor:pointer;width:100%; margin-bottom:10px;}
+        .card{background:#111; border:1px solid #d4af3733; border-radius:25px; padding:20px; display:none; margin-top:15px;}
         
+        .diag-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 10px; border-right: 3px solid var(--cyan); }
         .product-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1a1a; border-radius: 12px; margin-bottom: 8px; border-right: 4px solid var(--gold); }
         .buy-link { color: #000; background: var(--gold); text-decoration: none; font-weight: bold; font-size: 11px; padding: 7px 14px; border-radius: 8px; }
         
@@ -47,53 +47,51 @@
         <video id="video" playsinline hidden></video>
         <img id="upImg">
         <canvas id="canvas"></canvas>
+        <div id="liveTags" style="position:absolute; width:100%; height:100%; z-index:110; pointer-events:none;"></div>
         
         <div class="scopes-container">
             <div class="scope-box"><canvas id="scopeForehead"></canvas><div class="scope-label">الجبهة</div></div>
             <div class="scope-box"><canvas id="scopeEye"></canvas><div class="scope-label">العين</div></div>
             <div class="scope-box"><canvas id="scopeCheek"></canvas><div class="scope-label">الخد</div></div>
         </div>
-
-        <div id="lightMeter" class="light-meter light-bad">بانتظار الصورة ⚠️</div>
     </div>
 
     <div id="controls" style="margin-top:15px;">
         <div style="display: flex; gap: 10px;">
             <button class="btn" onclick="startCam()">الكاميرا 📸</button>
             <label class="btn" style="background:#333; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                رفع صورة 🖼️ <input type="file" hidden accept="image/*" onchange="handleFile(event)">
+                صورة 🖼️ <input type="file" hidden accept="image/*" onchange="handleFile(event)">
             </label>
         </div>
-        <button id="analyzeBtn" class="btn" style="background: #888;" onclick="runSmartScan()" disabled>بدء التحليل 🔬</button>
+        <button id="analyzeBtn" class="btn" onclick="runSmartScan()">بدء التحليل 🔬</button>
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="color:var(--gold);">بيانات الحالة</h3>
-        <label>هل يوجد حمل أو رضاعة؟</label>
-        <select id="qMoms"><option value="no">لا</option><option value="yes">نعم</option></select>
+        <h3 style="color:var(--gold);">تأكيد الطبيب الذكي</h3>
+        <label>1. هل توجد حبوب/رؤوس ملتهبة؟</label>
+        <select id="qAcne"><option value="no">لا</option><option value="yes">نعم</option></select>
 
-        <label>الهدف المطلوب:</label>
-        <select id="qGoal">
-            <option value="glow">نضارة وإشراقة</option>
-            <option value="white">تفتيح وتوحيد لون</option>
-            <option value="both">نضارة + تفتيح</option>
-        </select>
+        <label>2. هل تلاحظ تصبغات أو كلف؟</label>
+        <select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
 
-        <label>نوع الواقي المفضل:</label>
-        <select id="qSun"><option value="oily">دهنية (جل)</option><option value="dry">جافة/عادية (كريم)</option></select>
+        <label>3. هل تلاحظ تجاعيد أو خطوط؟</label>
+        <select id="qWrinkles"><option value="no">لا</option><option value="yes">نعم</option></select>
+
+        <label>4. حالة خاصة:</label>
+        <select id="qMoms"><option value="no">لا يوجد حمل/رضاعة</option><option value="yes">حمل أو رضاعة</option></select>
         
-        <button class="btn" onclick="showFinalRoutine()">استخراج الروتين النهائي ✨</button>
+        <button class="btn" onclick="showFinalRoutine()">استخراج التقرير والروتين ✨</button>
     </div>
 
     <div id="reportCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">الروتين الطبي المقترح</h3>
+        <h3 style="color:var(--gold); text-align:center;">التشخيص الطبي والروتين</h3>
+        <div id="diagList"></div>
         <div id="routineDisplay"></div>
-        <button class="btn" onclick="location.reload()" style="background:#333; color:#fff; margin-top:20px;">فحص جديد 🔄</button>
+        <button class="btn" onclick="location.reload()" style="background:#333; color:#fff;">فحص جديد 🔄</button>
     </div>
 </div>
 
 <script>
-// التأكد من روابط أمازون (تعمل بشكل مباشر)
 const productDB = {
     "غسول أرجنتو كلير": "https://amzn.to/3uN2R3Q",
     "غسول ستارفيل وايتنينج": "https://amzn.to/3YVfXfI",
@@ -108,52 +106,60 @@ const productDB = {
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
-const upImg = document.getElementById('upImg');
 const ctx = canvas.getContext('2d', {willReadFrequently: true});
-let aiResults = { acne:0, pig:0, circles:0, wrinkles:0 };
+let aiRes = { acne:false, pig:false, circles:false, wrinkles:false };
 
 const faceMesh = new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
 faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.75});
 
 faceMesh.onResults(results => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
     if(results.multiFaceLandmarks?.length > 0){
         const lm = results.multiFaceLandmarks[0];
-        analyzePhysics(lm);
+        
+        // التحليل الفيزيائي
+        const fH = getPx(lm[10]); 
+        const cH = getPx(lm[205]); 
+        const eY = getPx(lm[230]); 
+        const fSide = getPx(lm[67]);
+
+        aiRes.acne = (cH.r > cH.g + 20);
+        aiRes.pig = (Math.abs(fH.v - cH.v) > 20);
+        aiRes.circles = (eY.v < fH.v * 0.78);
+        aiRes.wrinkles = (Math.abs(fH.v - fSide.v) > 15);
+
+        // رسم المربعات والعلامات
         drawScopes(results.image, lm);
+        drawTags(lm);
     }
 });
 
-function analyzePhysics(lm) {
-    const fH = getPx(lm[10]); 
-    const cH = getPx(lm[205]); 
-    const eY = getPx(lm[230]); 
+function drawTags(lm) {
+    const container = document.getElementById('liveTags');
+    container.innerHTML = "";
+    if(aiRes.acne) createTag("حبوب", lm[205], "var(--red)");
+    if(aiRes.pig) createTag("تصبغ", lm[425], "var(--gold)");
+    if(aiRes.circles) createTag("هالات", lm[230], "var(--cyan)");
+    if(aiRes.wrinkles) createTag("تجاعيد", lm[10], "#fff");
+}
 
-    const meter = document.getElementById('lightMeter');
-    const btn = document.getElementById('analyzeBtn');
-    
-    if(fH.v < 100) {
-        meter.innerText = "الإضاءة ضعيفة ❌"; meter.className = "light-meter light-bad";
-        btn.disabled = true;
-    } else {
-        meter.innerText = "الإضاءة ممتازة ✅"; meter.className = "light-meter light-good";
-        btn.disabled = false; btn.style.background = "#2ecc71";
-    }
-
-    aiResults.acne = (cH.r > cH.g + 20);
-    aiResults.pig = (Math.abs(fH.v - cH.v) > 20);
-    aiResults.circles = (eY.v < fH.v * 0.80);
+function createTag(txt, pt, color) {
+    const d = document.createElement('div');
+    d.className = 'live-tag';
+    d.style.left = (pt.x*100)+'%'; d.style.top = (pt.y*100)+'%';
+    d.style.color = color; d.style.border = `1px solid ${color}`;
+    d.style.background = 'rgba(0,0,0,0.7)';
+    d.innerText = "⚠️ " + txt;
+    document.getElementById('liveTags').appendChild(d);
 }
 
 function drawScopes(img, lm) {
-    const scopes = [['scopeForehead', 10], ['scopeEye', 230], ['scopeCheek', 205]];
-    scopes.forEach(s => {
-        const sCanvas = document.getElementById(s[0]);
+    const points = [['scopeForehead', 10], ['scopeEye', 230], ['scopeCheek', 205]];
+    points.forEach(p => {
+        const sCanvas = document.getElementById(p[0]);
         const sCtx = sCanvas.getContext('2d');
-        const pt = lm[s[1]];
-        const sw = canvas.width * 0.15;
-        const sh = canvas.height * 0.15;
+        const pt = lm[p[1]];
+        const sw = canvas.width * 0.15; const sh = canvas.height * 0.15;
         sCtx.drawImage(canvas, pt.x*canvas.width - sw/2, pt.y*canvas.height - sh/2, sw, sh, 0, 0, sCanvas.width, sCanvas.height);
     });
 }
@@ -163,66 +169,66 @@ function getPx(p){
     const d=ctx.getImageData(x,y,1,1).data; return {r:d[0], g:d[1], v:(d[0]+d[1]+d[2])/3};
 }
 
+function handleFile(e) {
+    const r = new FileReader();
+    r.onload = (f) => {
+        upImg.src = f.target.result; upImg.style.display = 'block'; video.style.display = 'none';
+        upImg.onload = () => { canvas.width=upImg.naturalWidth; canvas.height=upImg.naturalHeight; faceMesh.send({image:upImg}); };
+    };
+    r.readAsDataURL(e.target.files[0]);
+}
+
 function startCam(){ 
     upImg.style.display='none'; video.style.display='block';
     new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); 
     canvas.width=640; canvas.height=480; 
 }
 
-function handleFile(e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        upImg.src = ev.target.result;
-        upImg.style.display = 'block';
-        video.style.display = 'none';
-        upImg.onload = () => {
-            canvas.width = upImg.naturalWidth;
-            canvas.height = upImg.naturalHeight;
-            faceMesh.send({image: upImg});
-        };
-    };
-    reader.readAsDataURL(file);
-}
-
 function runSmartScan() {
-    document.getElementById('analyzeBtn').innerText = "جاري التحليل...";
-    setTimeout(() => {
-        document.getElementById('controls').style.display = 'none';
-        document.getElementById('questionsCard').style.display = 'block';
-    }, 1500);
+    document.getElementById('controls').style.display = 'none';
+    document.getElementById('questionsCard').style.display = 'block';
+    document.getElementById('qAcne').value = aiRes.acne ? "yes" : "no";
+    document.getElementById('qPig').value = aiRes.pig ? "yes" : "no";
+    document.getElementById('qWrinkles').value = aiRes.wrinkles ? "yes" : "no";
 }
 
 function showFinalRoutine() {
+    const acne = document.getElementById('qAcne').value === 'yes';
+    const pig = document.getElementById('qPig').value === 'yes';
+    const wrinkles = document.getElementById('qWrinkles').value === 'yes';
     const isMom = document.getElementById('qMoms').value === 'yes';
-    const goal = document.getElementById('qGoal').value;
-    const sunType = document.getElementById('qSun').value;
 
     document.getElementById('questionsCard').style.display = 'none';
     document.getElementById('reportCard').style.display = 'block';
 
+    let diagHtml = "";
+    if(acne) diagHtml += `<div class="diag-item"><b>المشكلة:</b> حبوب ملتهبة ومسام.<br><b>المادة الفعالة:</b> حمض الساليسيليك وزيت الشاي.</div>`;
+    if(pig) diagHtml += `<div class="diag-item" style="border-right-color:var(--gold)"><b>المشكلة:</b> تصبغات أو كلف.<br><b>المادة الفعالة:</b> كوجيك أسيد وفيتامين C.</div>`;
+    if(wrinkles) diagHtml += `<div class="diag-item" style="border-right-color:#fff"><b>المشكلة:</b> خطوط تعبيرية.<br><b>المادة الفعالة:</b> ريتينول وكولاجين.</div>`;
+    if(aiRes.circles) diagHtml += `<div class="diag-item" style="border-right-color:var(--cyan)"><b>المشكلة:</b> هالات سوداء.<br><b>المادة الفعالة:</b> كافيين وعرق سوس.</div>`;
+    
+    document.getElementById('diagList').innerHTML = diagHtml;
+
+    // بناء الروتين
     let am = [], pm = [];
-
-    // الغسول
-    let wash = aiResults.acne ? "غسول أرجنتو كلير" : "غسول ستارفيل وايتنينج";
+    let wash = acne ? "غسول أرجنتو كلير" : "غسول ستارفيل وايتنينج";
     am.push(wash); pm.push(wash);
-
-    // العلاجات
-    if(goal !== 'none') am.push("سيروم ناتافيس فيتامين C");
-    if(aiResults.pig && !isMom) pm.push("كريم ميلاتكس");
-    if(aiResults.circles) am.push("ستارفيل آي كونتور");
-
-    // الترطيب والحماية
-    am.push(sunType === 'oily' ? "واقي شمس بوباي جل" : "واقي شمس إيفا كولاجين");
+    
+    if(pig) am.push("سيروم ناتافيس فيتامين C");
+    if(pig && !isMom) pm.push("كريم ميلاتكس");
+    if(wrinkles && !isMom) pm.push("سيروم ريتينول");
+    if(aiRes.circles) am.push("ستارفيل آي كونتور");
+    
+    am.push("واقي شمس بوباي جل");
     pm.push("مرطب شان جيل");
 
     renderRoutine(am, pm);
 }
 
 function renderRoutine(am, pm) {
-    let html = `<div class="routine-header">☀️ الروتين الصباحي</div>`;
+    let html = `<div class="routine-header">☀️ الصباح</div>`;
     am.forEach(p => html += `<div class="product-item"><span>${p}</span><a href="${productDB[p] || '#'}" target="_blank" class="buy-link">شراء 🛒</a></div>`);
-    html += `<div class="routine-header">🌙 الروتين المسائي</div>`;
+    html += `<div class="routine-header">🌙 المساء</div>`;
     pm.forEach(p => html += `<div class="product-item"><span>${p}</span><a href="${productDB[p] || '#'}" target="_blank" class="buy-link">شراء 🛒</a></div>`);
     document.getElementById('routineDisplay').innerHTML = html;
 }
