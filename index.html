@@ -3,38 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | CLINIC V101</title>
+    <title>VERONA AI | CLINIC V102</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
         :root { --gold:#d4af37; --bg:#050505; --cyan: #00f2ff; --red: #ff4d4d; --safe: #2ecc71; }
         body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;padding:10px;text-align:right;}
         .container{max-width:500px;margin:auto;}
-        
         .header-white { width: 100%; background: #fff; padding: 15px 0; text-align: center; border-bottom: 4px solid var(--gold); border-radius: 0 0 20px 20px; margin-bottom: 20px;}
         .app-logo { width: 180px; height: auto; }
-
         .preview-box { position: relative; border-radius: 30px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; background: #000; }
         video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; position: absolute; }
         #upImg { display: none; z-index: 5; }
-
-        /* المربعات المكبرة */
         .scopes-container { position: absolute; left: 10px; top: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 100; }
-        .scope-box { width: 75px; height: 75px; border: 2px solid var(--gold); border-radius: 12px; overflow: hidden; background: #000; position: relative; }
+        .scope-box { width: 75px; height: 75px; border: 1px solid var(--gold); border-radius: 12px; overflow: hidden; background: #000; }
         .scope-box canvas { width: 100%; height: 100%; }
-        .scope-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); font-size: 9px; text-align: center; color: var(--gold); }
-
-        /* العلامات الحية */
-        .live-tag { position: absolute; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; z-index: 120; pointer-events: none; white-space: nowrap; }
-
-        .btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:16px;border-radius:15px;font-weight:900;cursor:pointer;width:100%; margin-bottom:10px;}
+        .live-tag { position: absolute; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; z-index: 120; white-space: nowrap; }
+        .btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:16px;border-radius:15px;font-weight:bold;cursor:pointer;width:100%; margin-bottom:10px;}
         .card{background:#111; border:1px solid #d4af3733; border-radius:25px; padding:20px; display:none; margin-top:15px;}
-        
-        .diag-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 10px; border-right: 3px solid var(--cyan); }
+        .diag-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; border-right: 4px solid var(--cyan); }
         .product-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1a1a; border-radius: 12px; margin-bottom: 8px; border-right: 4px solid var(--gold); }
         .buy-link { color: #000; background: var(--gold); text-decoration: none; font-weight: bold; font-size: 11px; padding: 7px 14px; border-radius: 8px; }
-        
-        .routine-header { background: var(--gold); color: #000; padding: 5px 15px; border-radius: 10px; font-weight: bold; margin: 15px 0 10px 0; display: inline-block; }
         select { width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #444; border-radius: 10px; margin-bottom: 15px; }
     </style>
 </head>
@@ -42,49 +31,41 @@
 
 <div class="container">
     <div class="header-white"><img src="logo.png" alt="Verona AI" class="app-logo"></div>
-
     <div class="preview-box">
         <video id="video" playsinline hidden></video>
         <img id="upImg">
         <canvas id="canvas"></canvas>
-        <div id="liveTags" style="position:absolute; width:100%; height:100%; z-index:110; pointer-events:none;"></div>
-        
+        <div id="liveTags" style="position:absolute; width:100%; height:100%; z-index:110;"></div>
         <div class="scopes-container">
-            <div class="scope-box"><canvas id="scopeForehead"></canvas><div class="scope-label">الجبهة</div></div>
-            <div class="scope-box"><canvas id="scopeEye"></canvas><div class="scope-label">العين</div></div>
-            <div class="scope-box"><canvas id="scopeCheek"></canvas><div class="scope-label">الخد</div></div>
+            <div class="scope-box"><canvas id="scopeForehead"></canvas></div>
+            <div class="scope-box"><canvas id="scopeEye"></canvas></div>
+            <div class="scope-box"><canvas id="scopeCheek"></canvas></div>
         </div>
     </div>
 
     <div id="controls" style="margin-top:15px;">
         <div style="display: flex; gap: 10px;">
             <button class="btn" onclick="startCam()">الكاميرا 📸</button>
-            <label class="btn" style="background:#333; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <label class="btn" style="background:#333; color:#fff; display:flex; align-items:center; justify-content:center;">
                 صورة 🖼️ <input type="file" hidden accept="image/*" onchange="handleFile(event)">
             </label>
         </div>
-        <button id="analyzeBtn" class="btn" onclick="runSmartScan()">بدء التحليل 🔬</button>
+        <button class="btn" onclick="runSmartScan()">بدء التحليل 🔬</button>
     </div>
 
     <div id="questionsCard" class="card">
-        <h3 style="color:var(--gold);">تأكيد الطبيب الذكي</h3>
-        <label>1. هل توجد حبوب/رؤوس ملتهبة؟</label>
+        <h3 style="color:var(--gold);">تأكيد التشخيص</h3>
+        <label>هل توجد حبوب/رؤوس ملتهبة؟</label>
         <select id="qAcne"><option value="no">لا</option><option value="yes">نعم</option></select>
-
-        <label>2. هل تلاحظ تصبغات أو كلف؟</label>
+        <label>هل تلاحظ بقع داكنة/كلف؟</label>
         <select id="qPig"><option value="no">لا</option><option value="yes">نعم</option></select>
-
-        <label>3. هل تلاحظ تجاعيد أو خطوط؟</label>
-        <select id="qWrinkles"><option value="no">لا</option><option value="yes">نعم</option></select>
-
-        <label>4. حالة خاصة:</label>
-        <select id="qMoms"><option value="no">لا يوجد حمل/رضاعة</option><option value="yes">حمل أو رضاعة</option></select>
-        
-        <button class="btn" onclick="showFinalRoutine()">استخراج التقرير والروتين ✨</button>
+        <label>هل تريد نضارة إضافية (باقة الـ Glow)؟</label>
+        <select id="qGlow"><option value="yes">نعم، أريد إشراقة</option><option value="no">لا، روتين علاجي فقط</option></select>
+        <button class="btn" onclick="showFinalRoutine()">عرض التقرير النهائي ✨</button>
     </div>
 
     <div id="reportCard" class="card">
-        <h3 style="color:var(--gold); text-align:center;">التشخيص الطبي والروتين</h3>
+        <h3 style="color:var(--gold); text-align:center;">التشخيص والمواد الفعالة</h3>
         <div id="diagList"></div>
         <div id="routineDisplay"></div>
         <button class="btn" onclick="location.reload()" style="background:#333; color:#fff;">فحص جديد 🔄</button>
@@ -95,19 +76,18 @@
 const productDB = {
     "غسول أرجنتو كلير": "https://amzn.to/3uN2R3Q",
     "غسول ستارفيل وايتنينج": "https://amzn.to/3YVfXfI",
-    "سيروم ناتافيس فيتامين C": "https://amzn.to/3SREm9v",
-    "واقي شمس بوباي جل": "https://amzn.to/3uREn6Z",
-    "واقي شمس إيفا كولاجين": "https://amzn.to/3ORZvKm",
-    "ستارفيل آي كونتور": "https://amzn.to/46M1PZC",
+    "سيروم ناتافيس C": "https://amzn.to/3SREm9v",
     "مرطب شان جيل": "https://amzn.to/3InR0Zk",
+    "واقي شمس بوباي": "https://amzn.to/3uREn6Z",
     "كريم ميلاتكس": "https://amzn.to/4kSzJSu",
-    "سيروم ريتينول": "https://amzn.to/3AR7PqW"
+    "ستارفيل آي كونتور": "https://amzn.to/46M1PZC",
+    "نانو جولد نضارة": "https://amzn.to/4fWqZ1A"
 };
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d', {willReadFrequently: true});
-let aiRes = { acne:false, pig:false, circles:false, wrinkles:false };
+let aiRes = { acne:false, pig:false, circles:false, wrinkles:false, isChild:false };
 
 const faceMesh = new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
 faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.75});
@@ -116,19 +96,19 @@ faceMesh.onResults(results => {
     ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
     if(results.multiFaceLandmarks?.length > 0){
         const lm = results.multiFaceLandmarks[0];
+        const fH = getPx(lm[10]); const cH = getPx(lm[205]); const eY = getPx(lm[230]);
         
-        // التحليل الفيزيائي
-        const fH = getPx(lm[10]); 
-        const cH = getPx(lm[205]); 
-        const eY = getPx(lm[230]); 
-        const fSide = getPx(lm[67]);
+        // قفل أمان الأطفال: إذا كان الخد ساطعاً جداً، البشرة مثالية
+        aiRes.isChild = (cH.v > 195); 
 
-        aiRes.acne = (cH.r > cH.g + 20);
-        aiRes.pig = (Math.abs(fH.v - cH.v) > 20);
-        aiRes.circles = (eY.v < fH.v * 0.78);
-        aiRes.wrinkles = (Math.abs(fH.v - fSide.v) > 15);
+        if(!aiRes.isChild) {
+            aiRes.acne = (cH.r > cH.g + 30);
+            aiRes.pig = (fH.v - cH.v > 25);
+            aiRes.circles = (eY.v < fH.v * 0.75);
+        } else {
+            aiRes.acne = aiRes.pig = aiRes.circles = false;
+        }
 
-        // رسم المربعات والعلامات
         drawScopes(results.image, lm);
         drawTags(lm);
     }
@@ -137,29 +117,23 @@ faceMesh.onResults(results => {
 function drawTags(lm) {
     const container = document.getElementById('liveTags');
     container.innerHTML = "";
+    if(aiRes.isChild) return; // لا تظهر علامات للأطفال
     if(aiRes.acne) createTag("حبوب", lm[205], "var(--red)");
     if(aiRes.pig) createTag("تصبغ", lm[425], "var(--gold)");
     if(aiRes.circles) createTag("هالات", lm[230], "var(--cyan)");
-    if(aiRes.wrinkles) createTag("تجاعيد", lm[10], "#fff");
 }
 
 function createTag(txt, pt, color) {
-    const d = document.createElement('div');
-    d.className = 'live-tag';
+    const d = document.createElement('div'); d.className = 'live-tag';
     d.style.left = (pt.x*100)+'%'; d.style.top = (pt.y*100)+'%';
     d.style.color = color; d.style.border = `1px solid ${color}`;
-    d.style.background = 'rgba(0,0,0,0.7)';
-    d.innerText = "⚠️ " + txt;
-    document.getElementById('liveTags').appendChild(d);
+    d.innerText = "⚠️ " + txt; document.getElementById('liveTags').appendChild(d);
 }
 
 function drawScopes(img, lm) {
-    const points = [['scopeForehead', 10], ['scopeEye', 230], ['scopeCheek', 205]];
-    points.forEach(p => {
-        const sCanvas = document.getElementById(p[0]);
-        const sCtx = sCanvas.getContext('2d');
-        const pt = lm[p[1]];
-        const sw = canvas.width * 0.15; const sh = canvas.height * 0.15;
+    [['scopeForehead', 10], ['scopeEye', 230], ['scopeCheek', 205]].forEach(p => {
+        const sCanvas = document.getElementById(p[0]); const sCtx = sCanvas.getContext('2d');
+        const pt = lm[p[1]]; const sw = canvas.width * 0.15; const sh = canvas.height * 0.15;
         sCtx.drawImage(canvas, pt.x*canvas.width - sw/2, pt.y*canvas.height - sh/2, sw, sh, 0, 0, sCanvas.width, sCanvas.height);
     });
 }
@@ -169,68 +143,55 @@ function getPx(p){
     const d=ctx.getImageData(x,y,1,1).data; return {r:d[0], g:d[1], v:(d[0]+d[1]+d[2])/3};
 }
 
-function handleFile(e) {
-    const r = new FileReader();
-    r.onload = (f) => {
-        upImg.src = f.target.result; upImg.style.display = 'block'; video.style.display = 'none';
-        upImg.onload = () => { canvas.width=upImg.naturalWidth; canvas.height=upImg.naturalHeight; faceMesh.send({image:upImg}); };
-    };
-    r.readAsDataURL(e.target.files[0]);
-}
-
-function startCam(){ 
-    upImg.style.display='none'; video.style.display='block';
-    new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); 
-    canvas.width=640; canvas.height=480; 
-}
-
 function runSmartScan() {
     document.getElementById('controls').style.display = 'none';
     document.getElementById('questionsCard').style.display = 'block';
     document.getElementById('qAcne').value = aiRes.acne ? "yes" : "no";
     document.getElementById('qPig').value = aiRes.pig ? "yes" : "no";
-    document.getElementById('qWrinkles').value = aiRes.wrinkles ? "yes" : "no";
 }
 
 function showFinalRoutine() {
     const acne = document.getElementById('qAcne').value === 'yes';
     const pig = document.getElementById('qPig').value === 'yes';
-    const wrinkles = document.getElementById('qWrinkles').value === 'yes';
-    const isMom = document.getElementById('qMoms').value === 'yes';
+    const glow = document.getElementById('qGlow').value === 'yes';
 
     document.getElementById('questionsCard').style.display = 'none';
     document.getElementById('reportCard').style.display = 'block';
 
-    let diagHtml = "";
-    if(acne) diagHtml += `<div class="diag-item"><b>المشكلة:</b> حبوب ملتهبة ومسام.<br><b>المادة الفعالة:</b> حمض الساليسيليك وزيت الشاي.</div>`;
-    if(pig) diagHtml += `<div class="diag-item" style="border-right-color:var(--gold)"><b>المشكلة:</b> تصبغات أو كلف.<br><b>المادة الفعالة:</b> كوجيك أسيد وفيتامين C.</div>`;
-    if(wrinkles) diagHtml += `<div class="diag-item" style="border-right-color:#fff"><b>المشكلة:</b> خطوط تعبيرية.<br><b>المادة الفعالة:</b> ريتينول وكولاجين.</div>`;
-    if(aiRes.circles) diagHtml += `<div class="diag-item" style="border-right-color:var(--cyan)"><b>المشكلة:</b> هالات سوداء.<br><b>المادة الفعالة:</b> كافيين وعرق سوس.</div>`;
+    let diag = "";
+    if(acne) diag += `<div class="diag-item"><b>الحبوب:</b> التهاب نشط. <br><b>المادة الفعالة:</b> حمض الساليسيليك (Salicylic Acid).</div>`;
+    if(pig) diag += `<div class="diag-item" style="border-color:var(--gold)"><b>التصبغات:</b> بقع داكنة. <br><b>المادة الفعالة:</b> كوجيك أسيد (Kojic Acid).</div>`;
+    if(aiRes.circles) diag += `<div class="diag-item" style="border-color:var(--cyan)"><b>الهالات:</b> إجهاد تحت العين. <br><b>المادة الفعالة:</b> كافيين (Caffeine).</div>`;
+    if(glow) diag += `<div class="diag-item" style="border-color:var(--safe)"><b>النضارة:</b> باقة الإشراقة المضافة. <br><b>المادة الفعالة:</b> فيتامين C + جزيئات الذهب.</div>`;
     
-    document.getElementById('diagList').innerHTML = diagHtml;
+    document.getElementById('diagList').innerHTML = diag || "<p>البشرة ممتازة، ننصح بالروتين الوقائي.</p>";
 
-    // بناء الروتين
     let am = [], pm = [];
     let wash = acne ? "غسول أرجنتو كلير" : "غسول ستارفيل وايتنينج";
     am.push(wash); pm.push(wash);
-    
-    if(pig) am.push("سيروم ناتافيس فيتامين C");
-    if(pig && !isMom) pm.push("كريم ميلاتكس");
-    if(wrinkles && !isMom) pm.push("سيروم ريتينول");
+    if(pig || glow) am.push("سيروم ناتافيس C");
+    if(pig) pm.push("كريم ميلاتكس");
     if(aiRes.circles) am.push("ستارفيل آي كونتور");
-    
-    am.push("واقي شمس بوباي جل");
-    pm.push("مرطب شان جيل");
+    if(glow) pm.push("نانو جولد نضارة");
+    am.push("واقي شمس بوباي"); pm.push("مرطب شان جيل");
 
-    renderRoutine(am, pm);
+    let h = `<div style="background:var(--gold); color:#000; padding:5px 15px; border-radius:8px; margin:10px 0;">☀️ الصباح</div>`;
+    am.forEach(p => h += `<div class="product-item"><span>${p}</span><a href="${productDB[p]}" target="_blank" class="buy-link">شراء 🛒</a></div>`);
+    h += `<div style="background:var(--gold); color:#000; padding:5px 15px; border-radius:8px; margin:10px 0;">🌙 المساء</div>`;
+    pm.forEach(p => h += `<div class="product-item"><span>${p}</span><a href="${productDB[p]}" target="_blank" class="buy-link">شراء 🛒</a></div>`);
+    document.getElementById('routineDisplay').innerHTML = h;
 }
 
-function renderRoutine(am, pm) {
-    let html = `<div class="routine-header">☀️ الصباح</div>`;
-    am.forEach(p => html += `<div class="product-item"><span>${p}</span><a href="${productDB[p] || '#'}" target="_blank" class="buy-link">شراء 🛒</a></div>`);
-    html += `<div class="routine-header">🌙 المساء</div>`;
-    pm.forEach(p => html += `<div class="product-item"><span>${p}</span><a href="${productDB[p] || '#'}" target="_blank" class="buy-link">شراء 🛒</a></div>`);
-    document.getElementById('routineDisplay').innerHTML = html;
+function startCam(){ 
+    document.getElementById('upImg').style.display='none'; video.style.display='block';
+    new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); 
+}
+function handleFile(e) {
+    const r = new FileReader(); r.onload = (f) => {
+        const img = document.getElementById('upImg'); img.src = f.target.result; 
+        img.style.display = 'block'; video.style.display = 'none';
+        img.onload = () => { canvas.width=img.naturalWidth; canvas.height=img.naturalHeight; faceMesh.send({image:img}); };
+    }; r.readAsDataURL(e.target.files[0]);
 }
 </script>
 </body>
