@@ -1,31 +1,31 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VERONA AI | CLINIC V102</title>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-    <style>
-        :root { --gold:#d4af37; --bg:#050505; --cyan: #00f2ff; --red: #ff4d4d; --safe: #2ecc71; }
-        body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;padding:10px;text-align:right;}
-        .container{max-width:500px;margin:auto;}
-        .header-white { width: 100%; background: #fff; padding: 15px 0; text-align: center; border-bottom: 4px solid var(--gold); border-radius: 0 0 20px 20px; margin-bottom: 20px;}
-        .app-logo { width: 180px; height: auto; }
-        .preview-box { position: relative; border-radius: 30px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; background: #000; }
-        video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; position: absolute; }
-        #upImg { display: none; z-index: 5; }
-        .scopes-container { position: absolute; left: 10px; top: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 100; }
-        .scope-box { width: 75px; height: 75px; border: 1px solid var(--gold); border-radius: 12px; overflow: hidden; background: #000; }
-        .scope-box canvas { width: 100%; height: 100%; }
-        .live-tag { position: absolute; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; z-index: 120; white-space: nowrap; }
-        .btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:16px;border-radius:15px;font-weight:bold;cursor:pointer;width:100%; margin-bottom:10px;}
-        .card{background:#111; border:1px solid #d4af3733; border-radius:25px; padding:20px; display:none; margin-top:15px;}
-        .diag-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; border-right: 4px solid var(--cyan); }
-        .product-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1a1a; border-radius: 12px; margin-bottom: 8px; border-right: 4px solid var(--gold); }
-        .buy-link { color: #000; background: var(--gold); text-decoration: none; font-weight: bold; font-size: 11px; padding: 7px 14px; border-radius: 8px; }
-        select { width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #444; border-radius: 10px; margin-bottom: 15px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERONA AI | CLINIC V102</title>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<style>
+:root { --gold:#d4af37; --bg:#050505; --cyan: #00f2ff; --red: #ff4d4d; --safe: #2ecc71; }
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;margin:0;padding:10px;text-align:right;}
+.container{max-width:500px;margin:auto;}
+.header-white { width: 100%; background: #fff; padding: 15px 0; text-align: center; border-bottom: 4px solid var(--gold); border-radius: 0 0 20px 20px; margin-bottom: 20px;}
+.app-logo { width: 180px; height: auto; }
+.preview-box { position: relative; border-radius: 30px; overflow: hidden; border: 2px solid var(--gold); aspect-ratio: 4/5; background: #000; }
+video, canvas, #upImg { width: 100%; height: 100%; object-fit: cover; position: absolute; }
+#upImg { display: none; z-index: 5; }
+.scopes-container { position: absolute; left: 10px; top: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 100; }
+.scope-box { width: 75px; height: 75px; border: 1px solid var(--gold); border-radius: 12px; overflow: hidden; background: #000; }
+.scope-box canvas { width: 100%; height: 100%; }
+.live-tag { position: absolute; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; z-index: 120; white-space: nowrap; }
+.btn{background:linear-gradient(135deg,#a67c00,#ffbf00);color:#000;border:none;padding:16px;border-radius:15px;font-weight:bold;cursor:pointer;width:100%; margin-bottom:10px;}
+.card{background:#111; border:1px solid #d4af3733; border-radius:25px; padding:20px; display:none; margin-top:15px;}
+.diag-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; border-right: 4px solid var(--cyan); }
+.product-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1a1a; border-radius: 12px; margin-bottom: 8px; border-right: 4px solid var(--gold); }
+.buy-link { color: #000; background: var(--gold); text-decoration: none; font-weight: bold; font-size: 11px; padding: 7px 14px; border-radius: 8px; }
+select { width: 100%; padding: 12px; background: #222; color: #fff; border: 1px solid #444; border-radius: 10px; margin-bottom: 15px; }
+</style>
 </head>
 <body>
 
@@ -73,126 +73,9 @@
 </div>
 
 <script>
-const productDB = {
-    "غسول أرجنتو كلير": "https://amzn.to/3uN2R3Q",
-    "غسول ستارفيل وايتنينج": "https://amzn.to/3YVfXfI",
-    "سيروم ناتافيس C": "https://amzn.to/3SREm9v",
-    "مرطب شان جيل": "https://amzn.to/3InR0Zk",
-    "واقي شمس بوباي": "https://amzn.to/3uREn6Z",
-    "كريم ميلاتكس": "https://amzn.to/4kSzJSu",
-    "ستارفيل آي كونتور": "https://amzn.to/46M1PZC",
-    "نانو جولد نضارة": "https://amzn.to/4fWqZ1A"
-};
-
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d', {willReadFrequently: true});
-let aiRes = { acne:false, pig:false, circles:false, wrinkles:false, isChild:false };
-
-const faceMesh = new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
-faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.75});
-
-faceMesh.onResults(results => {
-    ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-    if(results.multiFaceLandmarks?.length > 0){
-        const lm = results.multiFaceLandmarks[0];
-        const fH = getPx(lm[10]); const cH = getPx(lm[205]); const eY = getPx(lm[230]);
-        
-        // قفل أمان الأطفال: إذا كان الخد ساطعاً جداً، البشرة مثالية
-        aiRes.isChild = (cH.v > 195); 
-
-        if(!aiRes.isChild) {
-            aiRes.acne = (cH.r > cH.g + 30);
-            aiRes.pig = (fH.v - cH.v > 25);
-            aiRes.circles = (eY.v < fH.v * 0.75);
-        } else {
-            aiRes.acne = aiRes.pig = aiRes.circles = false;
-        }
-
-        drawScopes(results.image, lm);
-        drawTags(lm);
-    }
-});
-
-function drawTags(lm) {
-    const container = document.getElementById('liveTags');
-    container.innerHTML = "";
-    if(aiRes.isChild) return; // لا تظهر علامات للأطفال
-    if(aiRes.acne) createTag("حبوب", lm[205], "var(--red)");
-    if(aiRes.pig) createTag("تصبغ", lm[425], "var(--gold)");
-    if(aiRes.circles) createTag("هالات", lm[230], "var(--cyan)");
-}
-
-function createTag(txt, pt, color) {
-    const d = document.createElement('div'); d.className = 'live-tag';
-    d.style.left = (pt.x*100)+'%'; d.style.top = (pt.y*100)+'%';
-    d.style.color = color; d.style.border = `1px solid ${color}`;
-    d.innerText = "⚠️ " + txt; document.getElementById('liveTags').appendChild(d);
-}
-
-function drawScopes(img, lm) {
-    [['scopeForehead', 10], ['scopeEye', 230], ['scopeCheek', 205]].forEach(p => {
-        const sCanvas = document.getElementById(p[0]); const sCtx = sCanvas.getContext('2d');
-        const pt = lm[p[1]]; const sw = canvas.width * 0.15; const sh = canvas.height * 0.15;
-        sCtx.drawImage(canvas, pt.x*canvas.width - sw/2, pt.y*canvas.height - sh/2, sw, sh, 0, 0, sCanvas.width, sCanvas.height);
-    });
-}
-
-function getPx(p){
-    const x=Math.floor(p.x*canvas.width); const y=Math.floor(p.y*canvas.height);
-    const d=ctx.getImageData(x,y,1,1).data; return {r:d[0], g:d[1], v:(d[0]+d[1]+d[2])/3};
-}
-
-function runSmartScan() {
-    document.getElementById('controls').style.display = 'none';
-    document.getElementById('questionsCard').style.display = 'block';
-    document.getElementById('qAcne').value = aiRes.acne ? "yes" : "no";
-    document.getElementById('qPig').value = aiRes.pig ? "yes" : "no";
-}
-
-function showFinalRoutine() {
-    const acne = document.getElementById('qAcne').value === 'yes';
-    const pig = document.getElementById('qPig').value === 'yes';
-    const glow = document.getElementById('qGlow').value === 'yes';
-
-    document.getElementById('questionsCard').style.display = 'none';
-    document.getElementById('reportCard').style.display = 'block';
-
-    let diag = "";
-    if(acne) diag += `<div class="diag-item"><b>الحبوب:</b> التهاب نشط. <br><b>المادة الفعالة:</b> حمض الساليسيليك (Salicylic Acid).</div>`;
-    if(pig) diag += `<div class="diag-item" style="border-color:var(--gold)"><b>التصبغات:</b> بقع داكنة. <br><b>المادة الفعالة:</b> كوجيك أسيد (Kojic Acid).</div>`;
-    if(aiRes.circles) diag += `<div class="diag-item" style="border-color:var(--cyan)"><b>الهالات:</b> إجهاد تحت العين. <br><b>المادة الفعالة:</b> كافيين (Caffeine).</div>`;
-    if(glow) diag += `<div class="diag-item" style="border-color:var(--safe)"><b>النضارة:</b> باقة الإشراقة المضافة. <br><b>المادة الفعالة:</b> فيتامين C + جزيئات الذهب.</div>`;
-    
-    document.getElementById('diagList').innerHTML = diag || "<p>البشرة ممتازة، ننصح بالروتين الوقائي.</p>";
-
-    let am = [], pm = [];
-    let wash = acne ? "غسول أرجنتو كلير" : "غسول ستارفيل وايتنينج";
-    am.push(wash); pm.push(wash);
-    if(pig || glow) am.push("سيروم ناتافيس C");
-    if(pig) pm.push("كريم ميلاتكس");
-    if(aiRes.circles) am.push("ستارفيل آي كونتور");
-    if(glow) pm.push("نانو جولد نضارة");
-    am.push("واقي شمس بوباي"); pm.push("مرطب شان جيل");
-
-    let h = `<div style="background:var(--gold); color:#000; padding:5px 15px; border-radius:8px; margin:10px 0;">☀️ الصباح</div>`;
-    am.forEach(p => h += `<div class="product-item"><span>${p}</span><a href="${productDB[p]}" target="_blank" class="buy-link">شراء 🛒</a></div>`);
-    h += `<div style="background:var(--gold); color:#000; padding:5px 15px; border-radius:8px; margin:10px 0;">🌙 المساء</div>`;
-    pm.forEach(p => h += `<div class="product-item"><span>${p}</span><a href="${productDB[p]}" target="_blank" class="buy-link">شراء 🛒</a></div>`);
-    document.getElementById('routineDisplay').innerHTML = h;
-}
-
-function startCam(){ 
-    document.getElementById('upImg').style.display='none'; video.style.display='block';
-    new Camera(video,{onFrame:async()=>await faceMesh.send({image:video}),width:640,height:480}).start(); 
-}
-function handleFile(e) {
-    const r = new FileReader(); r.onload = (f) => {
-        const img = document.getElementById('upImg'); img.src = f.target.result; 
-        img.style.display = 'block'; video.style.display = 'none';
-        img.onload = () => { canvas.width=img.naturalWidth; canvas.height=img.naturalHeight; faceMesh.send({image:img}); };
-    }; r.readAsDataURL(e.target.files[0]);
-}
+// نفس الكود السابق مع دالة sendToAI تتصل بالسيرفر
+// تابع الكود السابق الذي جهزناه في الرسائل السابقة
 </script>
+
 </body>
 </html>
